@@ -96,7 +96,7 @@ svg:hover .port{opacity:.9}
 <body>
 <header>
   <h1><a href="index.html" style="color:inherit;text-decoration:none">CCN String Diagrams</a></h1>
-  <span class="sub">after Turaev &amp; Virelizier, <i>Monoidal Categories and Topological Field Theory</i>, §2.1 · arcs oriented downward · ⊗ = juxtaposition · <i>gf</i> = <i>f</i> above <i>g</i></span>
+  <span class="sub">after Turaev &amp; Virelizier, <i>Monoidal Categories and Topological Field Theory</i>, §2.1 · read bottom → top · ⊗ = side by side · <i>gf</i> = <i>f</i> below <i>g</i></span>
 </header>
 <main>
   <div id="stage">
@@ -120,7 +120,7 @@ svg:hover .port{opacity:.9}
       <button id="bSave">Save</button>
       <button id="bLoad">Open</button>
       <input type="file" id="file" accept=".json,application/json" hidden>
-      <label>direction <select id="dir"><option value="1">↓ top → bottom (book)</option><option value="-1">↑ bottom → top</option></select></label>
+      <label>direction <select id="dir"><option value="-1">↑ bottom → top (book)</option><option value="1">↓ top → bottom</option></select></label>
       <label><input type="checkbox" id="showTypes" checked> colours</label>
     </div>
     <svg id="canvas" xmlns="http://www.w3.org/2000/svg">
@@ -742,7 +742,7 @@ const Core = (() => {
 const $ = s => document.querySelector(s);
 const NS = 'http://www.w3.org/2000/svg';
 const U = 70, BH = 44;
-let D = {nodes:[], wires:[]}, sel = null, view = {x:0, y:0, s:1}, DIR = 1;
+let D = {nodes:[], wires:[]}, sel = null, view = {x:0, y:0, s:1}, DIR = -1;
 let lastResult = null, lastFocus = null, idc = 1;
 const newId = p => p + Date.now().toString(36) + (idc++);
 const undo = [];
@@ -750,7 +750,7 @@ const snapshot = () => JSON.stringify(D);
 const pushUndo = s => { undo.push(s ?? snapshot()); if (undo.length > 120) undo.shift(); };
 const byId = id => D.nodes.find(n => n.id === id);
 
-/* ---------- geometry (DIR = 1: sources at the top, as in the book) ---------- */
+/* ---------- geometry (DIR = -1: sources at the bottom, as in the book; DIR = 1: sources at the top) ---------- */
 function portPos(n, side, i) {
   if (n.kind === 'in' || n.kind === 'out') return {x:n.x, y:n.y};
   const k = side === 'in' ? n.nIn : n.nOut;
@@ -1243,9 +1243,9 @@ const EX = [
 ];
 $('#examples').innerHTML = '<option value="">Load an example…</option>' + EX.map((x, i) => `<option value="${i}">${escA(x[0])}</option>`).join('');
 $('#examples').onchange = e => { const x = EX[+e.target.value]; if (!x) return; $('#sig').value = SIG[x[2]]; $('#expr').value = x[1]; preview(); $('#bE2D').click(); e.target.value = ''; };
-const KEY = 'ccn-graphical-calculus-tv-v2';
+const KEY = 'ccn-graphical-calculus-tv-v3';
 function save() { try { localStorage.setItem(KEY, JSON.stringify({D, expr:$('#expr').value, sig:$('#sig').value, DIR, engine:$('#engine').value, wlurl:$('#wlurl').value})); } catch (_) {} }
-function load() { try { const j = JSON.parse(localStorage.getItem(KEY) || 'null'); if (j && j.D) { D = j.D; $('#expr').value = j.expr || ''; $('#sig').value = j.sig || ''; DIR = j.DIR || 1; $('#dir').value = String(DIR); if (j.engine) $('#engine').value = j.engine; if (j.wlurl) $('#wlurl').value = j.wlurl; return true; } } catch (_) {} return false; }
+function load() { try { const j = JSON.parse(localStorage.getItem(KEY) || 'null'); if (j && j.D) { D = j.D; $('#expr').value = j.expr || ''; $('#sig').value = j.sig || ''; DIR = j.DIR || -1; $('#dir').value = String(DIR); if (j.engine) $('#engine').value = j.engine; if (j.wlurl) $('#wlurl').value = j.wlurl; return true; } } catch (_) {} return false; }
 
 $('#wlurl').value = String(CFG.WOLFRAM_URL || '');
 drawPad();

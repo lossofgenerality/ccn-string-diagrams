@@ -21,7 +21,7 @@ An editor for the graphical calculus of monoidal categories, after Turaev & Vire
 - **Expression → Diagram** and **Diagram → Expression**. Equations are written with `=` between the sides.
 - **Simplify**, which applies the rules of §2.1 in priority order and shows every step: level exchange (Figure 2.1), the (2.1) left and right zigzags, the definition of ∨f, and the (2.2) slides through ev and coev. When an equation is entered, the two sides are compared by their normal forms.
 
-It uses the book's conventions. Arcs run downward, composition is written by juxtaposition (`gf`) and binds tighter than ⊗, and the unit is 𝟙.
+It uses the book's conventions. Diagrams read bottom to top (sources at the bottom, so in `gf` the box `f` sits below `g`), composition is written by juxtaposition (`gf`) and binds tighter than ⊗, and the unit is 𝟙.
 
 ## Two engines
 
