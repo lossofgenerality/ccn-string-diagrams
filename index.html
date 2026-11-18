@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>CCN String Diagrams</title>
+<meta name="description" content="A string-diagram editor for the graphical calculus of monoidal categories, after Turaev & Virelizier, Chapter 2.">
+<style>
+:root{--bg:#f6f4ee;--panel:#fffdf8;--ink:#1d1b16;--muted:#6b665a;--line:#d9d3c4;--accent:#7a2e1f;--accent2:#2d4a7a;
+--math:"STIX Two Math","Cambria Math","Latin Modern Math","STIX Two Text","Times New Roman",serif}
+*{box-sizing:border-box}
+html,body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.6 system-ui,-apple-system,"Segoe UI",sans-serif}
+.wrap{max-width:860px;margin:0 auto;padding:48px 24px 32px}
+h1{font:600 44px/1.1 var(--math);margin:0 0 10px}
+.lede{font-size:19px;color:#3a362d;max-width:640px;margin:0 0 26px}
+.lede i,.m{font-family:var(--math);font-size:1.08em}
+.cta{display:flex;flex-wrap:wrap;gap:10px;margin:0 0 40px}
+.btn{display:inline-block;padding:11px 18px;border-radius:8px;text-decoration:none;font-weight:600;border:1px solid var(--line);color:var(--ink);background:#fff}
+.btn.primary{background:var(--accent);border-color:var(--accent);color:#fff}
+.btn:hover{filter:brightness(.96)}
+.hero{display:grid;grid-template-columns:1fr auto;gap:28px;align-items:center;margin-bottom:8px}
+.fig{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:14px 18px}
+h2{font:600 12px/1 system-ui;text-transform:uppercase;letter-spacing:.09em;color:var(--muted);margin:36px 0 12px}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:14px}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:16px 18px}
+.card h3{margin:0 0 6px;font:600 17px/1.3 var(--math)}
+.card p{margin:0;color:#3a362d;font-size:14.5px}
+ul{padding-left:20px;margin:0}li{margin:4px 0}
+code{font:13.5px ui-monospace,SFMono-Regular,Menlo,monospace;background:#efeadd;padding:1px 5px;border-radius:4px}
+footer{border-top:1px solid var(--line);margin-top:44px;padding-top:14px;font-size:13px;color:var(--muted);display:flex;justify-content:space-between;flex-wrap:wrap;gap:8px}
+a{color:var(--accent2)}
+@media(max-width:640px){.hero{grid-template-columns:1fr}h1{font-size:36px}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="hero">
+    <div>
+      <h1>CCN String Diagrams</h1>
+      <p class="lede">An editor for the graphical calculus of monoidal categories, after Turaev &amp; Virelizier, <i>Monoidal Categories and Topological Field Theory</i>, Chapter 2. Draw boxes and arcs, type expressions with a maths keypad, convert in both directions and simplify with the rules of §2.1.</p>
+      <div class="cta">
+        <a class="btn primary" href="string-diagram-editor.html">Open the editor</a>
+        <a class="btn" href="kernel/GraphicalCalculusKernel-deploy.wl">Wolfram kernel (.wl)</a>
+        <a class="btn" href="https://github.com/lossofgenerality/ccn-string-diagrams">Source on GitHub</a>
+      </div>
+    </div>
+    <div class="fig" aria-label="The left dual of f, as drawn in the editor">
+      <svg width="210" height="230" viewBox="0 0 210 230" xmlns="http://www.w3.org/2000/svg" font-family="STIX Two Math, Cambria Math, Times New Roman, serif">
+        <g fill="none" stroke="#1d1b16" stroke-width="2">
+          <path d="M40 22 V176"/><path d="M150 66 V214"/><path d="M120 66 V102"/><path d="M120 128 V176"/>
+        </g>
+        <rect x="95" y="44" width="80" height="24" rx="3" fill="#fff" stroke="#1d1b16" stroke-width="1.6"/>
+        <rect x="106" y="102" width="28" height="26" rx="3" fill="#fff" stroke="#1d1b16" stroke-width="1.6"/>
+        <rect x="22" y="176" width="114" height="24" rx="3" fill="#fff" stroke="#1d1b16" stroke-width="1.6"/>
+        <g font-size="16" text-anchor="middle" fill="#1d1b16">
+          <text x="135" y="61">coev<tspan font-size="11" dy="4" font-style="italic">X</tspan></text>
+          <text x="120" y="120" font-style="italic" font-size="18">f</text>
+          <text x="79" y="193">ev<tspan font-size="11" dy="4" font-style="italic">Y</tspan></text>
+        </g>
+        <g font-size="14" fill="#2d4a7a" font-style="italic">
+          <text x="28" y="18"><tspan font-style="normal" font-size="10" dy="-5">∨</tspan><tspan dy="5">Y</tspan></text>
+          <text x="126" y="90">X</text><text x="126" y="156">Y</text>
+          <text x="158" y="226"><tspan font-style="normal" font-size="10" dy="-5">∨</tspan><tspan dy="5">X</tspan></text>
+        </g>
+      </svg>
+      <div style="font:15px var(--math);text-align:center;color:var(--muted)">= <sup style="font-size:.7em">∨</sup><i>f</i></div>
+    </div>
+  </div>
+
+  <h2>What it does</h2>
+  <div class="grid">
+    <div class="card"><h3>Box-and-arcs editor</h3><p>Boxes, boxes with source or target 𝟙, dots, arc ends and “=” signs. Drag between ports to draw arcs, edit colours, undo, save and export SVG.</p></div>
+    <div class="card"><h3>Maths keypad</h3><p>⊗, ∘, 𝟙, <span class="m"><sup style="font-size:.7em">∨</sup>X</span>, id, ev, coev, ω, Ω, Ω′, Greek letters and subscripts, typeset as in the book while you type.</p></div>
+    <div class="card"><h3>Expression ⇄ diagram</h3><p>Turns <span class="m">(id<sub>Y</sub> ⊗ <i>g</i>)(<i>f</i> ⊗ id<sub>U</sub>)</span> into a picture and reads a picture back as an expression, side by side for equations.</p></div>
+    <div class="card"><h3>Simplifier, two engines</h3><p>Level exchange (Fig. 2.1), the (2.1) zigzags, the definition of <span class="m"><sup style="font-size:.7em">∨</sup><i>f</i></span> and the (2.2) slides, step by step. It runs offline in JavaScript, or on the Wolfram notebook engine in the cloud, and the two engines are checked against each other.</p></div>
+  </div>
+
+  <h2>Conventions (from §2.1)</h2>
+  <ul>
+    <li>Arcs are oriented downward: sources at the top, targets at the bottom. A toggle flips the direction.</li>
+    <li>Composition is written by juxtaposition, <span class="m"><i>gf</i></span>, and binds tighter than ⊗. Separate the sides of an equation with <code>=</code>.</li>
+    <li>The unit is 𝟙, and its strands are erased. Every morphism is drawn as a box.</li>
+    <li>Built in: <span class="m">ev<sub><i>X</i></sub> : <sup style="font-size:.7em">∨</sup><i>X</i> ⊗ <i>X</i> → 𝟙</span> and <span class="m">coev<sub><i>X</i></sub> : 𝟙 → <i>X</i> ⊗ <sup style="font-size:.7em">∨</sup><i>X</i></span>. Declare a pairing with its inverse with <code>pairing ω Ω</code>.</li>
+  </ul>
+
+  <h2>Wolfram engine</h2>
+  <p style="margin:0">The “Wolfram kernel” option sends the diagram's layered form to <code>GraphicalCalculusKernel</code>, a Wolfram Cloud API that runs the rules of the notebook <code>graphical-calculus-2.1-simplify.nb</code>. To redeploy it, evaluate <a href="kernel/GraphicalCalculusKernel-deploy.wl">kernel/GraphicalCalculusKernel-deploy.wl</a> in a signed-in Wolfram session.</p>
+
+  <footer><span>© Computational Classnotes · CC BY-NC-SA 4.0</span><span>Source: V. Turaev, A. Virelizier, <i>Monoidal Categories and Topological Field Theory</i>, Progress in Mathematics 322, Springer 2017, §2.1.</span></footer>
+</div>
+</body>
+</html>
