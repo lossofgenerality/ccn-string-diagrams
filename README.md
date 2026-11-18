@@ -32,6 +32,8 @@ Every Wolfram result is also worked out in JavaScript, and the page reports any 
 
 ### Redeploying the kernel
 
+The “Wolfram kernel” option sends the diagram's layered form to `GraphicalCalculusKernel`, a Wolfram Cloud API that runs the rules of the notebook `graphical-calculus-2.1-simplify.nb`. To redeploy it, evaluate [`kernel/GraphicalCalculusKernel-deploy.wl`](kernel/GraphicalCalculusKernel-deploy.wl) in a signed-in Wolfram session.
+
 Put `graphical-calculus-2.1-simplify.nb` in `~/Downloads`, or edit `gcNotebook` at the top of the `.wl` file. Then evaluate the whole file in a signed-in Wolfram session. It loads the notebook's engine, runs a check and calls `CloudDeploy`. Deploying under the same name keeps the URL.
 
 ---
