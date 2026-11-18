@@ -381,20 +381,23 @@ const Core = (() => {
   function splitName(name) {
     let pre = 0; while (name.startsWith('∨')) { pre++; name = name.slice(1); }
     let dag = 0, star = 0;
-    for (;;) { if (name.endsWith('†')) { dag++; name = name.slice(0, -1); } else if (name.length > 1 && name.endsWith('*')) { star++; name = name.slice(0, -1); } else break; }
+    // in ev_X*, coev~_X*, ψ_X*, τ_{X*,Y} the star belongs to the subscript, not to the morphism
+    const fixedSub = /^(ev~?|coev~?|ψ(⁻¹)?|τ(⁻¹)?)_/.test(name);
+    for (;;) { if (fixedSub) break; if (name.endsWith('†')) { dag++; name = name.slice(0, -1); } else if (name.length > 1 && name.endsWith('*')) { star++; name = name.slice(0, -1); } else break; }
     const k = name.indexOf('_');
     let main = k < 0 ? name : name.slice(0, k), sub = k < 0 ? '' : name.slice(k + 1);
     if (sub.startsWith('{') && sub.endsWith('}')) sub = sub.slice(1, -1);
+    let inv = false; if (main.length > 2 && main.endsWith('⁻¹')) { inv = true; main = main.slice(0, -2); }
     const letters = main.replace(/[′'0-9]/g, '');
-    return {pre, main, sub, dag, star, italic: letters.replace(/~/g, '').length <= 1 && !TILDE[main]};
+    return {pre, main, sub, dag, star, inv, italic: letters.replace(/~/g, '').length <= 1 && !TILDE[main]};
   }
   const TILDE = {'ev~':'e\u0303v', 'coev~':'c\u0303oev'};
   const showMain = m => TILDE[m] || m;
-  const subHTML = s => s.split('⊗').map(a => atomHTML(a.trim())).join('<span class="op">⊗</span>');
+  const subHTML = s => s.split(',').map(p => p.split('⊗').map(a => atomHTML(a.trim())).join('<span class="op">⊗</span>')).join(',');
   function nameHTML(name) {
     const n = splitName(name);
     return '<span class="dv">∨</span>'.repeat(n.pre) +
-      (n.italic ? `<i>${esc(n.main)}</i>` : `<span class="rm">${esc(showMain(n.main))}</span>`) +
+      (n.italic ? `<i>${esc(n.main)}</i>` : `<span class="rm">${esc(showMain(n.main))}</span>`) + (n.inv ? '<sup>−1</sup>' : '') +
       (n.sub ? `<sub>${subHTML(n.sub)}</sub>` : '') + (n.star || n.dag ? `<sup>${'*'.repeat(n.star)}${'†'.repeat(n.dag)}</sup>` : '');
   }
   const atomHTML = a => a === '?' ? '<span class="rm">?</span>' : isUnitWord(a) ? UNIT : nameHTML(a);
@@ -414,8 +417,8 @@ const Core = (() => {
   function nameTeX(name) {
     const n = splitName(name);
     let m = TILDE[n.main] ? `\\widetilde{\\mathrm{${n.main.slice(0, -1)}}}` : texChars(n.main); if (!n.italic && !TILDE[n.main]) m = `\\mathrm{${m}}`;
-    const sub = n.sub ? n.sub.split('⊗').map(a => nameTeX(a.trim())).join(' \\otimes ') : '';
-    return '{}^{\\vee}'.repeat(n.pre) + m + (sub ? `_{${sub}}` : '') + (n.star || n.dag ? `^{${'*'.repeat(n.star)}${'\\dagger'.repeat(n.dag)}}` : '');
+    const sub = n.sub ? n.sub.split(',').map(p => p.split('⊗').map(a => nameTeX(a.trim())).join(' \\otimes ')).join(',') : '';
+    return '{}^{\\vee}'.repeat(n.pre) + m + (n.inv ? '^{-1}' : '') + (sub ? `_{${sub}}` : '') + (n.star || n.dag ? `^{${'*'.repeat(n.star)}${'\\dagger'.repeat(n.dag)}}` : '');
   }
   const objTeX = o => o.length ? o.map(a => a === '?' ? '?' : nameTeX(a)).join(' \\otimes ') : '\\mathbb{1}';
   function toTeX(e, ctx = 'top') {

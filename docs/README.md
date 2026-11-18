@@ -2,7 +2,7 @@
 
 **Dara O Shayda and Noor Hoshino (星野ヌール)**
 
-*A guided tour of the examples in the CCN String Diagrams editor, after Turaev & Virelizier, “Monoidal Categories and Topological Field Theory”, Chapter 2, §2.1–2.7 (pp. 31–50).*
+*A guided tour of the examples in the CCN String Diagrams editor, after Turaev & Virelizier, “Monoidal Categories and Topological Field Theory”, Chapters 2–3, §2.1–3.2 (pp. 31–58).*
 
 © Computational Classnotes · CC BY-NC-SA 4.0
 
@@ -22,7 +22,10 @@ Editor: <https://lossofgenerality.github.io/ccn-string-diagrams/string-diagram-e
 10. §2.3 Double duals and generalized evaluations
 11. §2.4–2.6 Isotopy, traces and dimensions
 12. §2.7 Spherical categories
-13. The two engines
+13. §3.1 Braidings and symmetries
+14. §3.2 The Reidemeister calculus
+15. §3.1.2 Symmetries and Remark 3.2.3
+16. The two engines
 
 ## 1. The editor
 
@@ -75,6 +78,12 @@ The simplifier works on the **layered form** of a diagram: the source colours, t
 | trace symmetry (§2.6.1) | §2.6.1 | turn a loop so that its boxes start at the first name in code-point order |
 | inverse boxes | §2.6.2 | cancel $u'u$ and $uu'$ for a declared pair `inverse u u′` |
 | sphericity (§2.7.1) | §2.7.1 | spherical only: a right loop becomes a left loop |
+| retract (§2.7.3) | §2.7.3 | cancel $pj$ for a declared retraction `retract p j` |
+| braiding on ⊗ (3.1)–(3.3) | §3.1.1 | split a crossing of tensor products into crossings of single strands; remove a crossing with $\mathbb 1$ |
+| R2 (§3.2.2) | §3.2.2 | a crossing and its inverse cancel |
+| R4, R5: naturality of τ | §3.1.1, §3.2.2 | a one-line box moves from above a crossing to below it |
+| R3: Yang–Baxter | Exercise 3.1.12 | three crossings of one kind on positions $a, a+1, a$ become $a+1, a, a+1$ |
+| symmetry (§3.1.2), τ_Y,X τ_X,Y = id | §3.1.2 | symmetric only: under-crossings become over-crossings, and a crossing twice is the identity |
 
 Each step is shown with its rule name. An equation holds when all its sides reach the same normal form. Every rule makes the diagram smaller, so Simplify always stops.
 
@@ -1597,7 +1606,7 @@ f : X → Y
 **Symbolic.** The editor typesets it as
 
 $$
-(\widetilde{\mathrm{ev}}_{X} \otimes \mathrm{id}_{X}) (\mathrm{id}_{X} \otimes \mathrm{coev}_{X}^{*})
+(\widetilde{\mathrm{ev}}_{X} \otimes \mathrm{id}_{X}) (\mathrm{id}_{X} \otimes \mathrm{coev}_{X^{*}})
 $$
 
 $$=$$
@@ -1643,13 +1652,13 @@ f : X → Y
 **Symbolic.** The editor typesets it as
 
 $$
-(\widetilde{\mathrm{ev}}_{X} \otimes \mathrm{id}_{X}) (\mathrm{id}_{X} \otimes \mathrm{coev}_{X}^{*})
+(\widetilde{\mathrm{ev}}_{X} \otimes \mathrm{id}_{X}) (\mathrm{id}_{X} \otimes \mathrm{coev}_{X^{*}})
 $$
 
 $$=$$
 
 $$
-(\mathrm{id}_{X} \otimes \mathrm{ev}_{X}) (\widetilde{\mathrm{coev}}_{X}^{*} \otimes \mathrm{id}_{X})
+(\mathrm{id}_{X} \otimes \mathrm{ev}_{X}) (\widetilde{\mathrm{coev}}_{X^{*}} \otimes \mathrm{id}_{X})
 $$
 
 a morphism from $X$ to $X$.
@@ -1689,19 +1698,19 @@ f : X → Y
 **Symbolic.** The editor typesets it as
 
 $$
-\mathrm{\psi ⁻¹}_{X}
+\psi^{-1}_{X}
 $$
 
 $$=$$
 
 $$
-(\mathrm{id}_{X} \otimes \widetilde{\mathrm{ev}}_{X}^{*}) (\mathrm{coev}_{X} \otimes \mathrm{id}_{X})
+(\mathrm{id}_{X} \otimes \widetilde{\mathrm{ev}}_{X^{*}}) (\mathrm{coev}_{X} \otimes \mathrm{id}_{X})
 $$
 
 $$=$$
 
 $$
-(\mathrm{ev}_{X}^{*} \otimes \mathrm{id}_{X}) (\mathrm{id}_{X} \otimes \widetilde{\mathrm{coev}}_{X})
+(\mathrm{ev}_{X^{*}} \otimes \mathrm{id}_{X}) (\mathrm{id}_{X} \otimes \widetilde{\mathrm{coev}}_{X})
 $$
 
 a morphism from $X$ to $X$.
@@ -1741,7 +1750,7 @@ ev~_X = ev_X*(ψ_X ⊗ id_X*)
 **Symbolic.** The editor typesets it as
 
 $$
-\widetilde{\mathrm{ev}}_{X} \;=\; \mathrm{ev}_{X}^{*} (\psi_{X} \otimes \mathrm{id}_{X^{*}})
+\widetilde{\mathrm{ev}}_{X} \;=\; \mathrm{ev}_{X^{*}} (\psi_{X} \otimes \mathrm{id}_{X^{*}})
 $$
 
 a morphism from $X \otimes X^{*}$ to $\mathbb{1}$.
@@ -1781,7 +1790,7 @@ coev~_X = (id_X* ⊗ ψ⁻¹_X)coev_X*
 **Symbolic.** The editor typesets it as
 
 $$
-\widetilde{\mathrm{coev}}_{X} \;=\; (\mathrm{id}_{X^{*}} \otimes \mathrm{\psi ⁻¹}_{X}) \mathrm{coev}_{X}^{*}
+\widetilde{\mathrm{coev}}_{X} \;=\; (\mathrm{id}_{X^{*}} \otimes \psi^{-1}_{X}) \mathrm{coev}_{X^{*}}
 $$
 
 a morphism from $\mathbb{1}$ to $X^{*} \otimes X$.
@@ -1919,9 +1928,9 @@ f : X → Y
 
 $$
 \begin{aligned}
-&(\mathrm{ev}_{X}^{*} \otimes \mathrm{id}_{Y}) \\
+&(\mathrm{ev}_{X^{*}} \otimes \mathrm{id}_{Y}) \\
 &\;(\mathrm{id}_{X} \otimes ((\mathrm{ev}_{Y} \otimes \mathrm{id}_{X^{*}}) (\mathrm{id}_{Y^{*}} \otimes f \otimes \mathrm{id}_{X^{*}}) (\mathrm{id}_{Y^{*}} \otimes \mathrm{coev}_{X})) \otimes \mathrm{id}_{Y}) \\
-&\;(\mathrm{id}_{X} \otimes \mathrm{coev}_{Y}^{*})
+&\;(\mathrm{id}_{X} \otimes \mathrm{coev}_{Y^{*}})
 \end{aligned}
 $$
 
@@ -2075,7 +2084,7 @@ $$
 $$=$$
 
 $$
-\widetilde{\mathrm{ev}}_{X}^{*} (k^{*} \otimes \mathrm{id}_{X}) \mathrm{coev}_{X}^{*}
+\widetilde{\mathrm{ev}}_{X^{*}} (k^{*} \otimes \mathrm{id}_{X}) \mathrm{coev}_{X^{*}}
 $$
 
 a morphism from $\mathbb{1}$ to $\mathbb{1}$.
@@ -2167,7 +2176,7 @@ ev_X coev~_X = ev~_X* coev_X*
 **Symbolic.** The editor typesets it as
 
 $$
-\mathrm{ev}_{X} \widetilde{\mathrm{coev}}_{X} \;=\; \widetilde{\mathrm{ev}}_{X}^{*} \mathrm{coev}_{X}^{*}
+\mathrm{ev}_{X} \widetilde{\mathrm{coev}}_{X} \;=\; \widetilde{\mathrm{ev}}_{X^{*}} \mathrm{coev}_{X^{*}}
 $$
 
 a morphism from $\mathbb{1}$ to $\mathbb{1}$.
@@ -2381,7 +2390,631 @@ $$
 
 The editor reports: *✓ Both sides reduce to the same normal form, so the equation holds.*
 
-## 13. The two engines
+### §2.7.3  Lemma 2.10: tr_l(j f p) = tr_l(f)
+
+§2.7.3, Lemma 2.10: in the category of projective modules, the left trace is the Hattori–Stallings trace. A projective module $X$ sits in a free module $Y$ with inclusion $j$ and projection $p$, so $pj = \mathrm{id}_X$; the proof is $\mathrm{tr}_l(jfp) = \mathrm{tr}_l(fpj) = \mathrm{tr}_l(f)$. The signature line `retract p j` declares $pj = \mathrm{id}_X$.
+
+**Type it.** Signature and expression:
+
+```
+f : X → X
+j : X → Y
+p : Y → X
+retract p j
+```
+
+```
+ev_Y(id_Y* ⊗ j f p)coev~_Y = ev_X(id_X* ⊗ f)coev~_X
+```
+
+**Symbolic.** The editor typesets it as
+
+$$
+\mathrm{ev}_{Y} (\mathrm{id}_{Y^{*}} \otimes (j f p)) \widetilde{\mathrm{coev}}_{Y}
+$$
+
+$$=$$
+
+$$
+\mathrm{ev}_{X} (\mathrm{id}_{X^{*}} \otimes f) \widetilde{\mathrm{coev}}_{X}
+$$
+
+a morphism from $\mathbb{1}$ to $\mathbb{1}$.
+
+**Graphical.** Expression → Diagram draws:
+
+![§2.7.3  Lemma 2.10: tr_l(j f p) = tr_l(f)](img/ex51a.png)
+
+**Simplify.** **trace symmetry** turns the loop so that it starts at $f$; then $j$ sits directly below $p$ and **retract (§2.7.3)** removes them. (Exercise 2.7.4, on equivalent pivotal categories, is a statement about functors and is not in the editor.)
+
+Steps, side by side: side 1: trace symmetry (§2.6.1) → retract (§2.7.3); side 2: already in normal form.
+
+Normal form:
+
+$$
+\mathrm{ev}_{X} (\mathrm{id}_{X^{*}} \otimes f) \widetilde{\mathrm{coev}}_{X}
+$$
+
+![§2.7.3  Lemma 2.10: tr_l(j f p) = tr_l(f), simplified](img/ex51b.png)
+
+The editor reports: *✓ Both sides reduce to the same normal form, so the equation holds.*
+
+## 13. §3.1 Braidings and symmetries
+
+### (3.1)  τ_{X,Y⊗Z} = (id_Y ⊗ τ_{X,Z})(τ_{X,Y} ⊗ id_Z)
+
+Chapter 3, §3.1.1: a braiding is a natural family of isomorphisms $\tau_{X,Y}\colon X\otimes Y\to Y\otimes X$, drawn as a crossing in which the strand from $X$ passes over (Figure 3.1). It is ⊗-multiplicative: (3.1) $\tau_{X,Y\otimes Z} = (\mathrm{id}_Y\otimes\tau_{X,Z})(\tau_{X,Y}\otimes\mathrm{id}_Z)$. Type it as `τ_{X,Y⊗Z}`.
+
+**Type it.** Signature and expression:
+
+```
+f : X → X
+g : Y → Y
+```
+
+```
+τ_{X,Y⊗Z} = (id_Y ⊗ τ_{X,Z})(τ_{X,Y} ⊗ id_Z)
+```
+
+**Symbolic.** The editor typesets it as
+
+$$
+\tau_{X,Y \otimes Z} \;=\; (\mathrm{id}_{Y} \otimes \tau_{X,Z}) (\tau_{X,Y} \otimes \mathrm{id}_{Z})
+$$
+
+a morphism from $X \otimes Y \otimes Z$ to $Y \otimes Z \otimes X$.
+
+**Graphical.** Expression → Diagram draws:
+
+![(3.1)  τ_{X,Y⊗Z} = (id_Y ⊗ τ_{X,Z})(τ_{X,Y} ⊗ id_Z)](img/ex52a.png)
+
+**Simplify.** The rule **braiding on ⊗ (3.1)–(3.3)** splits the crossing of $X$ over the pair $Y\otimes Z$ into two crossings of single strands. With the unit, (3.3) $\tau_{X,\mathbb 1} = \tau_{\mathbb 1,X} = \mathrm{id}_X$, the same rule removes the box.
+
+Steps, side by side: side 1: braiding on ⊗ (3.1)–(3.3); side 2: already in normal form.
+
+Normal form:
+
+$$
+(\mathrm{id}_{Y} \otimes \tau_{X,Z}) (\tau_{X,Y} \otimes \mathrm{id}_{Z})
+$$
+
+![(3.1)  τ_{X,Y⊗Z} = (id_Y ⊗ τ_{X,Z})(τ_{X,Y} ⊗ id_Z), simplified](img/ex52b.png)
+
+The editor reports: *✓ Both sides reduce to the same normal form, so the equation holds.*
+
+### (3.2)  τ_{X⊗Y,Z} = (τ_{X,Z} ⊗ id_Y)(id_X ⊗ τ_{Y,Z})
+
+(3.2): $\tau_{X\otimes Y,Z} = (\tau_{X,Z}\otimes\mathrm{id}_Y)(\mathrm{id}_X\otimes\tau_{Y,Z})$.
+
+**Type it.** Signature and expression:
+
+```
+f : X → X
+g : Y → Y
+```
+
+```
+τ_{X⊗Y,Z} = (τ_{X,Z} ⊗ id_Y)(id_X ⊗ τ_{Y,Z})
+```
+
+**Symbolic.** The editor typesets it as
+
+$$
+\tau_{X \otimes Y,Z} \;=\; (\tau_{X,Z} \otimes \mathrm{id}_{Y}) (\mathrm{id}_{X} \otimes \tau_{Y,Z})
+$$
+
+a morphism from $X \otimes Y \otimes Z$ to $Z \otimes X \otimes Y$.
+
+**Graphical.** Expression → Diagram draws:
+
+![(3.2)  τ_{X⊗Y,Z} = (τ_{X,Z} ⊗ id_Y)(id_X ⊗ τ_{Y,Z})](img/ex53a.png)
+
+**Simplify.** The same rule, now splitting the left factor.
+
+Steps, side by side: side 1: braiding on ⊗ (3.1)–(3.3); side 2: already in normal form.
+
+Normal form:
+
+$$
+(\tau_{X,Z} \otimes \mathrm{id}_{Y}) (\mathrm{id}_{X} \otimes \tau_{Y,Z})
+$$
+
+![(3.2)  τ_{X⊗Y,Z} = (τ_{X,Z} ⊗ id_Y)(id_X ⊗ τ_{Y,Z}), simplified](img/ex53b.png)
+
+The editor reports: *✓ Both sides reduce to the same normal form, so the equation holds.*
+
+### §3.1.1  naturality: τ_{X,Y}(f ⊗ g) = (g ⊗ f)τ_{X,Y}
+
+Naturality of the braiding: $\tau_{X',Y'}(f\otimes g) = (g\otimes f)\tau_{X,Y}$ for $f\colon X\to X'$ and $g\colon Y\to Y'$. Boxes slide along the strands through the crossing.
+
+**Type it.** Signature and expression:
+
+```
+f : X → X
+g : Y → Y
+```
+
+```
+τ_{X,Y}(f ⊗ g) = (g ⊗ f)τ_{X,Y}
+```
+
+**Symbolic.** The editor typesets it as
+
+$$
+\tau_{X,Y} (f \otimes g) \;=\; (g \otimes f) \tau_{X,Y}
+$$
+
+a morphism from $X \otimes Y$ to $Y \otimes X$.
+
+**Graphical.** Expression → Diagram draws:
+
+![§3.1.1  naturality: τ_{X,Y}(f ⊗ g) = (g ⊗ f)τ_{X,Y}](img/ex54a.png)
+
+**Simplify.** The rule **R4, R5: naturality of τ** moves a one-line box from above a crossing to below it, on the same strand. Applied twice, it turns the right side into the left side.
+
+Steps, side by side: side 1: already in normal form; side 2: R4, R5: naturality of τ → R4, R5: naturality of τ.
+
+Normal form:
+
+$$
+\tau_{X,Y} (f \otimes g)
+$$
+
+![§3.1.1  naturality: τ_{X,Y}(f ⊗ g) = (g ⊗ f)τ_{X,Y}, simplified](img/ex54b.png)
+
+The editor reports: *✓ Both sides reduce to the same normal form, so the equation holds.*
+
+### Exercise 3.1.12  the Yang–Baxter equation
+
+Exercise 3.1.12: every braiding satisfies the Yang–Baxter equation $(\tau_{Y,Z}\otimes\mathrm{id}_X)(\mathrm{id}_Y\otimes\tau_{X,Z})(\tau_{X,Y}\otimes\mathrm{id}_Z) = (\mathrm{id}_Z\otimes\tau_{X,Y})(\tau_{X,Z}\otimes\mathrm{id}_Y)(\mathrm{id}_X\otimes\tau_{Y,Z})$. Pictorially it is the Reidemeister move R3: a strand slides over a crossing.
+
+**Type it.** Signature and expression:
+
+```
+f : X → X
+g : Y → Y
+```
+
+```
+(τ_{Y,Z} ⊗ id_X)(id_Y ⊗ τ_{X,Z})(τ_{X,Y} ⊗ id_Z) = (id_Z ⊗ τ_{X,Y})(τ_{X,Z} ⊗ id_Y)(id_X ⊗ τ_{Y,Z})
+```
+
+**Symbolic.** The editor typesets it as
+
+$$
+\begin{aligned}
+&(\tau_{Y,Z} \otimes \mathrm{id}_{X}) \\
+&\;(\mathrm{id}_{Y} \otimes \tau_{X,Z}) \\
+&\;(\tau_{X,Y} \otimes \mathrm{id}_{Z})
+\end{aligned}
+$$
+
+$$=$$
+
+$$
+\begin{aligned}
+&(\mathrm{id}_{Z} \otimes \tau_{X,Y}) \\
+&\;(\tau_{X,Z} \otimes \mathrm{id}_{Y}) \\
+&\;(\mathrm{id}_{X} \otimes \tau_{Y,Z})
+\end{aligned}
+$$
+
+a morphism from $X \otimes Y \otimes Z$ to $Z \otimes Y \otimes X$.
+
+**Graphical.** Expression → Diagram draws:
+
+![Exercise 3.1.12  the Yang–Baxter equation](img/ex55a.png)
+
+**Simplify.** The rule **R3: Yang–Baxter** rewrites three consecutive crossings of the same kind, on positions $a, a+1, a$, into the order $a+1, a, a+1$.
+
+Steps, side by side: side 1: R3: Yang–Baxter; side 2: already in normal form.
+
+Normal form:
+
+$$
+\begin{aligned}
+&(\mathrm{id}_{Z} \otimes \tau_{X,Y}) \\
+&\;(\tau_{X,Z} \otimes \mathrm{id}_{Y}) \\
+&\;(\mathrm{id}_{X} \otimes \tau_{Y,Z})
+\end{aligned}
+$$
+
+![Exercise 3.1.12  the Yang–Baxter equation, simplified](img/ex55b.png)
+
+The editor reports: *✓ Both sides reduce to the same normal form, so the equation holds.*
+
+### Exercise 3.1.12  naturality for τ_{Y,Z} gives Yang–Baxter
+
+Exercise 3.1.12, the proof: naturality of $\tau_{X,-}$ for the box $\tau_{Y,Z}\colon Y\otimes Z\to Z\otimes Y$ reads $\tau_{X,Z\otimes Y}(\mathrm{id}_X\otimes\tau_{Y,Z}) = (\tau_{Y,Z}\otimes\mathrm{id}_X)\tau_{X,Y\otimes Z}$.
+
+**Type it.** Signature and expression:
+
+```
+f : X → X
+g : Y → Y
+```
+
+```
+τ_{X,Z⊗Y}(id_X ⊗ τ_{Y,Z}) = (τ_{Y,Z} ⊗ id_X)τ_{X,Y⊗Z}
+```
+
+**Symbolic.** The editor typesets it as
+
+$$
+\tau_{X,Z \otimes Y} (\mathrm{id}_{X} \otimes \tau_{Y,Z})
+$$
+
+$$=$$
+
+$$
+(\tau_{Y,Z} \otimes \mathrm{id}_{X}) \tau_{X,Y \otimes Z}
+$$
+
+a morphism from $X \otimes Y \otimes Z$ to $Z \otimes Y \otimes X$.
+
+**Graphical.** Expression → Diagram draws:
+
+![Exercise 3.1.12  naturality for τ_{Y,Z} gives Yang–Baxter](img/ex56a.png)
+
+**Simplify.** Splitting the crossings of tensor products by (3.1) turns the two sides into the two sides of the Yang–Baxter equation, and **R3** finishes.
+
+Steps, side by side: side 1: braiding on ⊗ (3.1)–(3.3); side 2: braiding on ⊗ (3.1)–(3.3) → R3: Yang–Baxter.
+
+Normal form:
+
+$$
+\begin{aligned}
+&(\mathrm{id}_{Z} \otimes \tau_{X,Y}) \\
+&\;(\tau_{X,Z} \otimes \mathrm{id}_{Y}) \\
+&\;(\mathrm{id}_{X} \otimes \tau_{Y,Z})
+\end{aligned}
+$$
+
+![Exercise 3.1.12  naturality for τ_{Y,Z} gives Yang–Baxter, simplified](img/ex56b.png)
+
+The editor reports: *✓ Both sides reduce to the same normal form, so the equation holds.*
+
+### Figure 3.1  the two crossings
+
+Figure 3.1: the two kinds of crossing. In $\tau_{X,Y}$ the strand from $X$ (bottom left) passes over; in $\tau^{-1}_{Y,X}$ (typed `τ⁻¹_{Y,X}`), the inverse of $\tau_{Y,X}$, the strand from $Y$ (bottom right) passes over. Both go from $X\otimes Y$ to $Y\otimes X$.
+
+**Type it.** Signature and expression:
+
+```
+f : X → X
+g : Y → Y
+```
+
+```
+τ_{X,Y} ⊗ τ⁻¹_{Y,X}
+```
+
+**Symbolic.** The editor typesets it as
+
+$$
+\tau_{X,Y} \otimes \tau^{-1}_{Y,X}
+$$
+
+a morphism from $X \otimes Y \otimes X \otimes Y$ to $Y \otimes X \otimes Y \otimes X$.
+
+**Graphical.** Expression → Diagram draws:
+
+![Figure 3.1  the two crossings](img/ex57a.png)
+
+**Simplify.** The editor draws both as crossings, with a gap in the under-pass.
+
+No rewriting rule applies: the diagram is already in normal form.
+
+## 14. §3.2 The Reidemeister calculus
+
+### R2  τ⁻¹_{X,Y} τ_{X,Y} = id
+
+§3.2.2, the move R2: a crossing followed by the inverse crossing on the same two strands is the identity.
+
+**Type it.** Signature and expression:
+
+```
+f : X → X
+g : Y → Y
+```
+
+```
+τ⁻¹_{X,Y} τ_{X,Y} = id_X ⊗ id_Y
+```
+
+**Symbolic.** The editor typesets it as
+
+$$
+\tau^{-1}_{X,Y} \tau_{X,Y} \;=\; \mathrm{id}_{X} \otimes \mathrm{id}_{Y}
+$$
+
+a morphism from $X \otimes Y$ to $X \otimes Y$.
+
+**Graphical.** Expression → Diagram draws:
+
+![R2  τ⁻¹_{X,Y} τ_{X,Y} = id](img/ex58a.png)
+
+**Simplify.** **R2 (§3.2.2)** removes the pair.
+
+Steps, side by side: side 1: R2 (§3.2.2); side 2: already in normal form.
+
+Normal form:
+
+$$
+\mathrm{id}_{X \otimes Y}
+$$
+
+![R2  τ⁻¹_{X,Y} τ_{X,Y} = id, simplified](img/ex58b.png)
+
+The editor reports: *✓ Both sides reduce to the same normal form, so the equation holds.*
+
+### R3  with inverse crossings
+
+R3 for crossings of the other kind: the Yang–Baxter equation also holds for the inverse crossings $\tau^{-1}$.
+
+**Type it.** Signature and expression:
+
+```
+f : X → X
+g : Y → Y
+```
+
+```
+(τ⁻¹_{Z,Y} ⊗ id_X)(id_Y ⊗ τ⁻¹_{Z,X})(τ⁻¹_{Y,X} ⊗ id_Z) = (id_Z ⊗ τ⁻¹_{Y,X})(τ⁻¹_{Z,X} ⊗ id_Y)(id_X ⊗ τ⁻¹_{Z,Y})
+```
+
+**Symbolic.** The editor typesets it as
+
+$$
+\begin{aligned}
+&(\tau^{-1}_{Z,Y} \otimes \mathrm{id}_{X}) \\
+&\;(\mathrm{id}_{Y} \otimes \tau^{-1}_{Z,X}) \\
+&\;(\tau^{-1}_{Y,X} \otimes \mathrm{id}_{Z})
+\end{aligned}
+$$
+
+$$=$$
+
+$$
+\begin{aligned}
+&(\mathrm{id}_{Z} \otimes \tau^{-1}_{Y,X}) \\
+&\;(\tau^{-1}_{Z,X} \otimes \mathrm{id}_{Y}) \\
+&\;(\mathrm{id}_{X} \otimes \tau^{-1}_{Z,Y})
+\end{aligned}
+$$
+
+a morphism from $X \otimes Y \otimes Z$ to $Z \otimes Y \otimes X$.
+
+**Graphical.** Expression → Diagram draws:
+
+![R3  with inverse crossings](img/ex59a.png)
+
+**Simplify.** **R3: Yang–Baxter** applies to three crossings of the same kind, positive or negative.
+
+Steps, side by side: side 1: R3: Yang–Baxter; side 2: already in normal form.
+
+Normal form:
+
+$$
+\begin{aligned}
+&(\mathrm{id}_{Z} \otimes \tau^{-1}_{Y,X}) \\
+&\;(\tau^{-1}_{Z,X} \otimes \mathrm{id}_{Y}) \\
+&\;(\mathrm{id}_{X} \otimes \tau^{-1}_{Z,Y})
+\end{aligned}
+$$
+
+![R3  with inverse crossings, simplified](img/ex59b.png)
+
+The editor reports: *✓ Both sides reduce to the same normal form, so the equation holds.*
+
+### R4  a strand passes over a box
+
+R4: a strand that passes over a box can be pushed off it. In formulas this is the naturality of $\tau_{X,Y}$ in $X$.
+
+**Type it.** Signature and expression:
+
+```
+f : X → X
+g : Y → Y
+```
+
+```
+(id_Y ⊗ f)τ_{X,Y} = τ_{X,Y}(f ⊗ id_Y)
+```
+
+**Symbolic.** The editor typesets it as
+
+$$
+(\mathrm{id}_{Y} \otimes f) \tau_{X,Y} \;=\; \tau_{X,Y} (f \otimes \mathrm{id}_{Y})
+$$
+
+a morphism from $X \otimes Y$ to $Y \otimes X$.
+
+**Graphical.** Expression → Diagram draws:
+
+![R4  a strand passes over a box](img/ex60a.png)
+
+**Simplify.** **R4, R5: naturality of τ** moves the box below the crossing.
+
+Steps, side by side: side 1: R4, R5: naturality of τ; side 2: already in normal form.
+
+Normal form:
+
+$$
+\tau_{X,Y} (f \otimes \mathrm{id}_{Y})
+$$
+
+![R4  a strand passes over a box, simplified](img/ex60b.png)
+
+The editor reports: *✓ Both sides reduce to the same normal form, so the equation holds.*
+
+### R5  a strand passes under a box
+
+R5: the same for a strand that passes under a box, the naturality of the inverse crossing.
+
+**Type it.** Signature and expression:
+
+```
+f : X → X
+g : Y → Y
+```
+
+```
+(id_Y ⊗ f)τ⁻¹_{Y,X} = τ⁻¹_{Y,X}(f ⊗ id_Y)
+```
+
+**Symbolic.** The editor typesets it as
+
+$$
+(\mathrm{id}_{Y} \otimes f) \tau^{-1}_{Y,X} \;=\; \tau^{-1}_{Y,X} (f \otimes \mathrm{id}_{Y})
+$$
+
+a morphism from $X \otimes Y$ to $Y \otimes X$.
+
+**Graphical.** Expression → Diagram draws:
+
+![R5  a strand passes under a box](img/ex61a.png)
+
+**Simplify.** The same rule moves the box through $\tau^{-1}_{Y,X}$.
+
+Steps, side by side: side 1: R4, R5: naturality of τ; side 2: already in normal form.
+
+Normal form:
+
+$$
+\tau^{-1}_{Y,X} (f \otimes \mathrm{id}_{Y})
+$$
+
+![R5  a strand passes under a box, simplified](img/ex61b.png)
+
+The editor reports: *✓ Both sides reduce to the same normal form, so the equation holds.*
+
+### Lemma 3.1  an upward strand crosses a box
+
+Lemma 3.1 says that the Reidemeister moves R2–R5 preserve the morphism of a Reidemeister diagram, also when strands point up. Here the crossing is on an upward strand coloured $X^*$, with duals written $X^*$.
+
+**Type it.** Signature and expression:
+
+```
+f : X → X
+g : Y → Y
+```
+
+```
+(g ⊗ id_X*)τ_{X*,Y} = τ_{X*,Y}(id_X* ⊗ g)
+```
+
+**Symbolic.** The editor typesets it as
+
+$$
+(g \otimes \mathrm{id}_{X^{*}}) \tau_{X^{*},Y} \;=\; \tau_{X^{*},Y} (\mathrm{id}_{X^{*}} \otimes g)
+$$
+
+a morphism from $X^{*} \otimes Y$ to $Y \otimes X^{*}$.
+
+**Graphical.** Expression → Diagram draws:
+
+![Lemma 3.1  an upward strand crosses a box](img/ex62a.png)
+
+**Simplify.** The box slides through the crossing just as before: in the layered form an upward strand is simply a strand coloured $X^*$. (The move R1 needs the twists of §3.3 and a spherical category; it is not in the editor.)
+
+Steps, side by side: side 1: R4, R5: naturality of τ; side 2: already in normal form.
+
+Normal form:
+
+$$
+\tau_{X^{*},Y} (\mathrm{id}_{X^{*}} \otimes g)
+$$
+
+![Lemma 3.1  an upward strand crosses a box, simplified](img/ex62b.png)
+
+The editor reports: *✓ Both sides reduce to the same normal form, so the equation holds.*
+
+## 15. §3.1.2 Symmetries and Remark 3.2.3
+
+### §3.1.2  a symmetry: τ_{Y,X} τ_{X,Y} = id
+
+§3.1.2: a braiding is symmetric when $\tau_{Y,X}\tau_{X,Y} = \mathrm{id}_{X\otimes Y}$, as for the flip of sets or vector spaces (Examples 3.1.3–3.1.4) and the signed flip of super vector spaces (Example 3.1.5). This example switches on **symmetric** under the buttons.
+
+**Type it.** Signature and expression:
+
+```
+f : X → X
+g : Y → Y
+```
+
+```
+τ_{Y,X} τ_{X,Y} = id_X ⊗ id_Y
+```
+
+**Symbolic.** The editor typesets it as
+
+$$
+\tau_{Y,X} \tau_{X,Y} \;=\; \mathrm{id}_{X} \otimes \mathrm{id}_{Y}
+$$
+
+a morphism from $X \otimes Y$ to $X \otimes Y$.
+
+**Graphical.** Expression → Diagram draws:
+
+![§3.1.2  a symmetry: τ_{Y,X} τ_{X,Y} = id](img/ex63a.png)
+
+**Simplify.** With **symmetric** on, the rule **τ_Y,X τ_X,Y = id (§3.1.2)** removes two crossings of the same kind stacked on the same strands. Without it the equation is (rightly) not proved.
+
+Steps, side by side: side 1: τ_Y,X τ_X,Y = id (§3.1.2); side 2: already in normal form.
+
+Normal form:
+
+$$
+\mathrm{id}_{X \otimes Y}
+$$
+
+![§3.1.2  a symmetry: τ_{Y,X} τ_{X,Y} = id, simplified](img/ex63b.png)
+
+The editor reports: *✓ Both sides reduce to the same normal form, so the equation holds.*
+
+### Remark 3.2.3  over- and under-passes agree
+
+Remark 3.2.3: for a symmetric braiding the two crossings of Figure 3.1 are the same morphism, $\tau^{-1}_{Y,X} = \tau_{X,Y}$, so over- and under-passes do not matter.
+
+**Type it.** Signature and expression:
+
+```
+f : X → X
+g : Y → Y
+```
+
+```
+τ⁻¹_{Y,X} = τ_{X,Y}
+```
+
+**Symbolic.** The editor typesets it as
+
+$$
+\tau^{-1}_{Y,X} \;=\; \tau_{X,Y}
+$$
+
+a morphism from $X \otimes Y$ to $Y \otimes X$.
+
+**Graphical.** Expression → Diagram draws:
+
+![Remark 3.2.3  over- and under-passes agree](img/ex64a.png)
+
+**Simplify.** **symmetry (§3.1.2)** turns every under-crossing into the over-crossing.
+
+Steps, side by side: side 1: symmetry (§3.1.2); side 2: already in normal form.
+
+Normal form:
+
+$$
+\tau_{X,Y}
+$$
+
+![Remark 3.2.3  over- and under-passes agree, simplified](img/ex64b.png)
+
+The editor reports: *✓ Both sides reduce to the same normal form, so the equation holds.*
+
+## 16. The two engines
 
 Simplify can run on either of two engines, chosen with **engine** under the buttons:
 
