@@ -2,7 +2,7 @@
 
 **Dara O Shayda and Noor Hoshino (星野ヌール)**
 
-*A guided tour of the examples in the CCN String Diagrams editor, after Turaev & Virelizier, “Monoidal Categories and Topological Field Theory”, Chapters 2–3, §2.1–3.2 (pp. 31–58).*
+*A guided tour of the examples in the CCN String Diagrams editor, after Turaev & Virelizier, “Monoidal Categories and Topological Field Theory”, Chapters 2–3, §2.1–3.3 (pp. 31–62).*
 
 © Computational Classnotes · CC BY-NC-SA 4.0
 
@@ -25,7 +25,10 @@ Editor: <https://lossofgenerality.github.io/ccn-string-diagrams/string-diagram-e
 13. §3.1 Braidings and symmetries
 14. §3.2 The Reidemeister calculus
 15. §3.1.2 Symmetries and Remark 3.2.3
-16. The two engines
+16. §3.3.1 Twists and Lemma 3.2
+17. Exercise 3.3.3 Twists of tensor products
+18. §3.3.2 Ribbon categories
+19. The two engines
 
 ## 1. The editor
 
@@ -83,6 +86,10 @@ The simplifier works on the **layered form** of a diagram: the source colours, t
 | R2 (§3.2.2) | §3.2.2 | a crossing and its inverse cancel |
 | R4, R5: naturality of τ | §3.1.1, §3.2.2 | a one-line box moves from above a crossing to below it |
 | R3: Yang–Baxter | Exercise 3.1.12 | three crossings of one kind on positions $a, a+1, a$ become $a+1, a, a+1$ |
+| twist fold (§3.3.1) | §3.3.1, Lemma 3.2 | pivotal only, tried before Lemma 2.3: a curl (cup, crossing, cap) becomes $\theta^l_X$, $\theta^r_X$ or an inverse; layers that do not touch the curl may sit between its parts |
+| twists cancel, naturality of θ | Lemma 3.2 | a twist and its inverse cancel; a twist moves below a one-line box |
+| twist on ⊗ (Exercise 3.3.3) | Exercise 3.3.3 | $\theta_{X\otimes Y} = (\theta_X\otimes\theta_Y)\tau_{Y,X}\tau_{X,Y}$, $\theta_{\mathbb 1} = \mathrm{id}$ |
+| ribbon: θʳ = θˡ (§3.3.2) | §3.3.2, Cor. 3.4 | ribbon only: the right twist is the left twist; ribbon also switches on sphericity |
 | symmetry (§3.1.2), τ_Y,X τ_X,Y = id | §3.1.2 | symmetric only: under-crossings become over-crossings, and a crossing twice is the identity |
 
 Each step is shown with its rule name. An equation holds when all its sides reach the same normal form. Every rule makes the diagram smaller, so Simplify always stops.
@@ -2916,7 +2923,7 @@ a morphism from $X^{*} \otimes Y$ to $Y \otimes X^{*}$.
 
 ![Lemma 3.1  an upward strand crosses a box](img/ex62a.png)
 
-**Simplify.** The box slides through the crossing just as before: in the layered form an upward strand is simply a strand coloured $X^*$. (The move R1 needs the twists of §3.3 and a spherical category; it is not in the editor.)
+**Simplify.** The box slides through the crossing just as before: in the layered form an upward strand is simply a strand coloured $X^*$. (The move R1 needs the twists of §3.3; see Theorem 3.3 below.)
 
 Steps, side by side: side 1: R4, R5: naturality of τ; side 2: already in normal form.
 
@@ -3014,14 +3021,653 @@ $$
 
 The editor reports: *✓ Both sides reduce to the same normal form, so the equation holds.*
 
-## 16. The two engines
+## 16. §3.3.1 Twists and Lemma 3.2
+
+### §3.3.1  the left twist θˡ_X is a curl
+
+§3.3.1: in a braided pivotal category the **left twist** is the curl $\theta^l_X = (\mathrm{ev}_X \otimes \mathrm{id}_X)(\mathrm{id}_{X^*} \otimes \tau_{X,X})(\widetilde{\mathrm{coev}}_X \otimes \mathrm{id}_X)$: the strand makes a loop to the left and crosses over itself. The twists are built in, typed `θˡ_X`, `θʳ_X`, `θˡ⁻¹_X` and `θʳ⁻¹_X` (keypad *Greek* for θ; ˡ and ʳ are the modifier letters).
+
+**Type it.** Signature and expression:
+
+```
+g : X → Y
+k : X → X
+```
+
+```
+(ev_X ⊗ id_X)(id_X* ⊗ τ_{X,X})(coev~_X ⊗ id_X) = θˡ_X
+```
+
+**Symbolic.** The editor typesets it as
+
+$$
+\begin{aligned}
+&(\mathrm{ev}_{X} \otimes \mathrm{id}_{X}) \\
+&\;(\mathrm{id}_{X^{*}} \otimes \tau_{X,X}) \\
+&\;(\widetilde{\mathrm{coev}}_{X} \otimes \mathrm{id}_{X})
+\end{aligned}
+$$
+
+$$=$$
+
+$$
+\mathrm{\theta ^{l}}_{X}
+$$
+
+a morphism from $X$ to $X$.
+
+**Graphical.** Expression → Diagram draws:
+
+![§3.3.1  the left twist θˡ_X is a curl](img/ex65a.png)
+
+**Simplify.** **twist fold (§3.3.1)** recognises the cup $\widetilde{\mathrm{coev}}_X$, the crossing and the cap $\mathrm{ev}_X$ and replaces the three by one box $\theta^l_X$.
+
+Steps, side by side: side 1: twist fold (§3.3.1); side 2: already in normal form.
+
+Normal form:
+
+$$
+\mathrm{\theta ^{l}}_{X}
+$$
+
+![§3.3.1  the left twist θˡ_X is a curl, simplified](img/ex65b.png)
+
+The editor reports: *✓ Both sides reduce to the same normal form, so the equation holds.*
+
+### §3.3.1  the right twist θʳ_X is a curl
+
+§3.3.1: the **right twist** $\theta^r_X = (\mathrm{id}_X \otimes \widetilde{\mathrm{ev}}_X)(\tau_{X,X} \otimes \mathrm{id}_{X^*})(\mathrm{id}_X \otimes \mathrm{coev}_X)$ is the mirror curl, a loop to the right.
+
+**Type it.** Signature and expression:
+
+```
+g : X → Y
+k : X → X
+```
+
+```
+(id_X ⊗ ev~_X)(τ_{X,X} ⊗ id_X*)(id_X ⊗ coev_X) = θʳ_X
+```
+
+**Symbolic.** The editor typesets it as
+
+$$
+\begin{aligned}
+&(\mathrm{id}_{X} \otimes \widetilde{\mathrm{ev}}_{X}) \\
+&\;(\tau_{X,X} \otimes \mathrm{id}_{X^{*}}) \\
+&\;(\mathrm{id}_{X} \otimes \mathrm{coev}_{X})
+\end{aligned}
+$$
+
+$$=$$
+
+$$
+\mathrm{\theta ^{r}}_{X}
+$$
+
+a morphism from $X$ to $X$.
+
+**Graphical.** Expression → Diagram draws:
+
+![§3.3.1  the right twist θʳ_X is a curl](img/ex66a.png)
+
+**Simplify.** The same rule folds the right-hand curl into $\theta^r_X$.
+
+Steps, side by side: side 1: twist fold (§3.3.1); side 2: already in normal form.
+
+Normal form:
+
+$$
+\mathrm{\theta ^{r}}_{X}
+$$
+
+![§3.3.1  the right twist θʳ_X is a curl, simplified](img/ex66b.png)
+
+The editor reports: *✓ Both sides reduce to the same normal form, so the equation holds.*
+
+### Lemma 3.2  (θˡ_X)⁻¹ is the curl with τ⁻¹
+
+Lemma 3.2: the twists are invertible, and the inverse of $\theta^l_X$ is the right-hand curl with the inverse crossing, $(\theta^l_X)^{-1} = (\mathrm{id}_X \otimes \widetilde{\mathrm{ev}}_X)(\tau^{-1}_{X,X} \otimes \mathrm{id}_{X^*})(\mathrm{id}_X \otimes \mathrm{coev}_X)$.
+
+**Type it.** Signature and expression:
+
+```
+g : X → Y
+k : X → X
+```
+
+```
+(id_X ⊗ ev~_X)(τ⁻¹_{X,X} ⊗ id_X*)(id_X ⊗ coev_X) = θˡ⁻¹_X
+```
+
+**Symbolic.** The editor typesets it as
+
+$$
+\begin{aligned}
+&(\mathrm{id}_{X} \otimes \widetilde{\mathrm{ev}}_{X}) \\
+&\;(\tau^{-1}_{X,X} \otimes \mathrm{id}_{X^{*}}) \\
+&\;(\mathrm{id}_{X} \otimes \mathrm{coev}_{X})
+\end{aligned}
+$$
+
+$$=$$
+
+$$
+\mathrm{\theta ^{l}}^{-1}_{X}
+$$
+
+a morphism from $X$ to $X$.
+
+**Graphical.** Expression → Diagram draws:
+
+![Lemma 3.2  (θˡ_X)⁻¹ is the curl with τ⁻¹](img/ex67a.png)
+
+**Simplify.** **twist fold (§3.3.1)** reads the sign of the crossing: a right-hand curl with $\tau^{-1}$ becomes $\theta^{l\,-1}_X$.
+
+Steps, side by side: side 1: twist fold (§3.3.1); side 2: already in normal form.
+
+Normal form:
+
+$$
+\mathrm{\theta ^{l}}^{-1}_{X}
+$$
+
+![Lemma 3.2  (θˡ_X)⁻¹ is the curl with τ⁻¹, simplified](img/ex67b.png)
+
+The editor reports: *✓ Both sides reduce to the same normal form, so the equation holds.*
+
+### Lemma 3.2  (θʳ_X)⁻¹ is the curl with τ⁻¹
+
+Lemma 3.2: likewise $(\theta^r_X)^{-1}$ is the left-hand curl with the inverse crossing.
+
+**Type it.** Signature and expression:
+
+```
+g : X → Y
+k : X → X
+```
+
+```
+(ev_X ⊗ id_X)(id_X* ⊗ τ⁻¹_{X,X})(coev~_X ⊗ id_X) = θʳ⁻¹_X
+```
+
+**Symbolic.** The editor typesets it as
+
+$$
+\begin{aligned}
+&(\mathrm{ev}_{X} \otimes \mathrm{id}_{X}) \\
+&\;(\mathrm{id}_{X^{*}} \otimes \tau^{-1}_{X,X}) \\
+&\;(\widetilde{\mathrm{coev}}_{X} \otimes \mathrm{id}_{X})
+\end{aligned}
+$$
+
+$$=$$
+
+$$
+\mathrm{\theta ^{r}}^{-1}_{X}
+$$
+
+a morphism from $X$ to $X$.
+
+**Graphical.** Expression → Diagram draws:
+
+![Lemma 3.2  (θʳ_X)⁻¹ is the curl with τ⁻¹](img/ex68a.png)
+
+**Simplify.** The left-hand curl with $\tau^{-1}$ becomes $\theta^{r\,-1}_X$.
+
+Steps, side by side: side 1: twist fold (§3.3.1); side 2: already in normal form.
+
+Normal form:
+
+$$
+\mathrm{\theta ^{r}}^{-1}_{X}
+$$
+
+![Lemma 3.2  (θʳ_X)⁻¹ is the curl with τ⁻¹, simplified](img/ex68b.png)
+
+The editor reports: *✓ Both sides reduce to the same normal form, so the equation holds.*
+
+### Lemma 3.2  θˡ_X (θˡ_X)⁻¹ = id, the curls drawn out
+
+Lemma 3.2 drawn out: $\theta^l_X(\theta^l_X)^{-1} = \mathrm{id}_X$ with both curls written as cups, crossings and caps.
+
+**Type it.** Signature and expression:
+
+```
+g : X → Y
+k : X → X
+```
+
+```
+(ev_X ⊗ id_X)(id_X* ⊗ τ_{X,X})(coev~_X ⊗ id_X)(id_X ⊗ ev~_X)(τ⁻¹_{X,X} ⊗ id_X*)(id_X ⊗ coev_X) = id_X
+```
+
+**Symbolic.** The editor typesets it as
+
+$$
+\begin{aligned}
+&(\mathrm{ev}_{X} \otimes \mathrm{id}_{X}) \\
+&\;(\mathrm{id}_{X^{*}} \otimes \tau_{X,X}) \\
+&\;(\widetilde{\mathrm{coev}}_{X} \otimes \mathrm{id}_{X}) \\
+&\;(\mathrm{id}_{X} \otimes \widetilde{\mathrm{ev}}_{X}) \\
+&\;(\tau^{-1}_{X,X} \otimes \mathrm{id}_{X^{*}}) \\
+&\;(\mathrm{id}_{X} \otimes \mathrm{coev}_{X})
+\end{aligned}
+$$
+
+$$=$$
+
+$$
+\mathrm{id}_{X}
+$$
+
+a morphism from $X$ to $X$.
+
+**Graphical.** Expression → Diagram draws:
+
+![Lemma 3.2  θˡ_X (θˡ_X)⁻¹ = id, the curls drawn out](img/ex69a.png)
+
+**Simplify.** In the normal form the layers of the two curls interleave, so the fold follows each curl's strands past layers that do not touch them (level exchange). It folds the curl with $\tau^{-1}$ first, then the other, and **twists cancel (Lemma 3.2)** removes $\theta^l_X$ with its inverse.
+
+Steps, side by side: side 1: twist fold (§3.3.1) → twist fold (§3.3.1) → twists cancel (Lemma 3.2); side 2: already in normal form.
+
+Normal form:
+
+$$
+\mathrm{id}_{X}
+$$
+
+![Lemma 3.2  θˡ_X (θˡ_X)⁻¹ = id, the curls drawn out, simplified](img/ex69b.png)
+
+The editor reports: *✓ Both sides reduce to the same normal form, so the equation holds.*
+
+### Lemma 3.2  (θʳ_X)⁻¹ θʳ_X = id
+
+Lemma 3.2: $(\theta^r_X)^{-1}\theta^r_X = \mathrm{id}_X$, with the boxes typed directly.
+
+**Type it.** Signature and expression:
+
+```
+g : X → Y
+k : X → X
+```
+
+```
+θʳ⁻¹_X θʳ_X = id_X
+```
+
+**Symbolic.** The editor typesets it as
+
+$$
+\mathrm{\theta ^{r}}^{-1}_{X} \mathrm{\theta ^{r}}_{X} \;=\; \mathrm{id}_{X}
+$$
+
+a morphism from $X$ to $X$.
+
+**Graphical.** Expression → Diagram draws:
+
+![Lemma 3.2  (θʳ_X)⁻¹ θʳ_X = id](img/ex70a.png)
+
+**Simplify.** **twists cancel (Lemma 3.2)** removes a twist directly above its inverse on the same strand.
+
+Steps, side by side: side 1: twists cancel (Lemma 3.2); side 2: already in normal form.
+
+Normal form:
+
+$$
+\mathrm{id}_{X}
+$$
+
+![Lemma 3.2  (θʳ_X)⁻¹ θʳ_X = id, simplified](img/ex70b.png)
+
+The editor reports: *✓ Both sides reduce to the same normal form, so the equation holds.*
+
+### Lemma 3.2  the twist is natural: θˡ_Y g = g θˡ_X
+
+Lemma 3.2: the twist is a natural isomorphism, $\theta_Y g = g\,\theta_X$ for every $g : X \to Y$.
+
+**Type it.** Signature and expression:
+
+```
+g : X → Y
+k : X → X
+```
+
+```
+θˡ_Y g = g θˡ_X
+```
+
+**Symbolic.** The editor typesets it as
+
+$$
+\mathrm{\theta ^{l}}_{Y} g \;=\; g \mathrm{\theta ^{l}}_{X}
+$$
+
+a morphism from $X$ to $Y$.
+
+**Graphical.** Expression → Diagram draws:
+
+![Lemma 3.2  the twist is natural: θˡ_Y g = g θˡ_X](img/ex71a.png)
+
+**Simplify.** **naturality of θ (Lemma 3.2)** moves a twist from above a one-line box to below it; both sides end as $g\,\theta^l_X$.
+
+Steps, side by side: side 1: naturality of θ (Lemma 3.2); side 2: already in normal form.
+
+Normal form:
+
+$$
+g \mathrm{\theta ^{l}}_{X}
+$$
+
+![Lemma 3.2  the twist is natural: θˡ_Y g = g θˡ_X, simplified](img/ex71b.png)
+
+The editor reports: *✓ Both sides reduce to the same normal form, so the equation holds.*
+
+### Lemma 3.2  naturality of θʳ, curl drawn out
+
+Lemma 3.2 for $\theta^r$, with the curl on $Y$ drawn out above $g$.
+
+**Type it.** Signature and expression:
+
+```
+g : X → Y
+k : X → X
+```
+
+```
+(id_Y ⊗ ev~_Y)(τ_{Y,Y} ⊗ id_Y*)(id_Y ⊗ coev_Y) g = g θʳ_X
+```
+
+**Symbolic.** The editor typesets it as
+
+$$
+\begin{aligned}
+&(\mathrm{id}_{Y} \otimes \widetilde{\mathrm{ev}}_{Y}) \\
+&\;(\tau_{Y,Y} \otimes \mathrm{id}_{Y^{*}}) \\
+&\;(\mathrm{id}_{Y} \otimes \mathrm{coev}_{Y}) g
+\end{aligned}
+$$
+
+$$=$$
+
+$$
+g \mathrm{\theta ^{r}}_{X}
+$$
+
+a morphism from $X$ to $Y$.
+
+**Graphical.** Expression → Diagram draws:
+
+![Lemma 3.2  naturality of θʳ, curl drawn out](img/ex72a.png)
+
+**Simplify.** The curl is folded into $\theta^r_Y$, which then slides below $g$ and becomes $\theta^r_X$.
+
+Steps, side by side: side 1: twist fold (§3.3.1) → naturality of θ (Lemma 3.2); side 2: already in normal form.
+
+Normal form:
+
+$$
+g \mathrm{\theta ^{r}}_{X}
+$$
+
+![Lemma 3.2  naturality of θʳ, curl drawn out, simplified](img/ex72b.png)
+
+The editor reports: *✓ Both sides reduce to the same normal form, so the equation holds.*
+
+### Lemma 3.2  a curl on an upward strand is θˡ_X*
+
+A curl on an upward strand: the same picture coloured $X^*$ is $\theta^l_{X^*}$. (Lemma 3.2 also gives $(\theta^r_X)^* = \theta^l_{X^*}$; that identity is checked in the Wolfram notebook in matrices.)
+
+**Type it.** Signature and expression:
+
+```
+g : X → Y
+k : X → X
+```
+
+```
+(ev_X* ⊗ id_X*)(id_X ⊗ τ_{X*,X*})(coev~_X* ⊗ id_X*) = θˡ_X*
+```
+
+**Symbolic.** The editor typesets it as
+
+$$
+\begin{aligned}
+&(\mathrm{ev}_{X^{*}} \otimes \mathrm{id}_{X^{*}}) \\
+&\;(\mathrm{id}_{X} \otimes \tau_{X^{*},X^{*}}) \\
+&\;(\widetilde{\mathrm{coev}}_{X^{*}} \otimes \mathrm{id}_{X^{*}})
+\end{aligned}
+$$
+
+$$=$$
+
+$$
+\mathrm{\theta ^{l}}_{X^{*}}
+$$
+
+a morphism from $X^{*}$ to $X^{*}$.
+
+**Graphical.** Expression → Diagram draws:
+
+![Lemma 3.2  a curl on an upward strand is θˡ_X*](img/ex73a.png)
+
+**Simplify.** With $X^{**} = X$ the cup and cap of the curl are $\widetilde{\mathrm{coev}}_{X^*}$ and $\mathrm{ev}_{X^*}$; the fold, which comes before Lemma 2.3, folds the curl into $\theta^l_{X^*}$.
+
+Steps, side by side: side 1: twist fold (§3.3.1); side 2: already in normal form.
+
+Normal form:
+
+$$
+\mathrm{\theta ^{l}}_{X^{*}}
+$$
+
+![Lemma 3.2  a curl on an upward strand is θˡ_X*, simplified](img/ex73b.png)
+
+The editor reports: *✓ Both sides reduce to the same normal form, so the equation holds.*
+
+## 17. Exercise 3.3.3 Twists of tensor products
+
+### Exercise 3.3.3  θ_{X⊗Y} = (θ_X ⊗ θ_Y) τ_{Y,X} τ_{X,Y}
+
+Exercise 3.3.3: the twist of a tensor product is $\theta_{X\otimes Y} = (\theta_X \otimes \theta_Y)\,\tau_{Y,X}\tau_{X,Y}$, and $\theta_{\mathbb 1} = \mathrm{id}_{\mathbb 1}$.
+
+**Type it.** Signature and expression:
+
+```
+g : X → Y
+k : X → X
+```
+
+```
+θˡ_{X⊗Y} = (θˡ_X ⊗ θˡ_Y) τ_{Y,X} τ_{X,Y}
+```
+
+**Symbolic.** The editor typesets it as
+
+$$
+\mathrm{\theta ^{l}}_{X \otimes Y}
+$$
+
+$$=$$
+
+$$
+(\mathrm{\theta ^{l}}_{X} \otimes \mathrm{\theta ^{l}}_{Y}) \tau_{Y,X} \tau_{X,Y}
+$$
+
+a morphism from $X \otimes Y$ to $X \otimes Y$.
+
+**Graphical.** Expression → Diagram draws:
+
+![Exercise 3.3.3  θ_{X⊗Y} = (θ_X ⊗ θ_Y) τ_{Y,X} τ_{X,Y}](img/ex74a.png)
+
+**Simplify.** **twist on ⊗ (Exercise 3.3.3)** writes $\theta_{X\otimes Y}$ as the double crossing followed by the twists of the two strands.
+
+Steps, side by side: side 1: twist on ⊗ (Exercise 3.3.3); side 2: already in normal form.
+
+Normal form:
+
+$$
+(\mathrm{\theta ^{l}}_{X} \otimes \mathrm{\theta ^{l}}_{Y}) \tau_{Y,X} \tau_{X,Y}
+$$
+
+![Exercise 3.3.3  θ_{X⊗Y} = (θ_X ⊗ θ_Y) τ_{Y,X} τ_{X,Y}, simplified](img/ex74b.png)
+
+The editor reports: *✓ Both sides reduce to the same normal form, so the equation holds.*
+
+## 18. §3.3.2 Ribbon categories
+
+### §3.3.2  ribbon: θˡ_X = θʳ_X
+
+§3.3.2: a braided pivotal category is **ribbon** when $\theta^l_X = \theta^r_X$ for all $X$; the common value is the twist $\theta_X$. This example switches on **ribbon** under the buttons.
+
+**Type it.** Signature and expression:
+
+```
+g : X → Y
+k : X → X
+```
+
+```
+θˡ_X = θʳ_X
+```
+
+**Symbolic.** The editor typesets it as
+
+$$
+\mathrm{\theta ^{l}}_{X} \;=\; \mathrm{\theta ^{r}}_{X}
+$$
+
+a morphism from $X$ to $X$.
+
+**Graphical.** Expression → Diagram draws:
+
+![§3.3.2  ribbon: θˡ_X = θʳ_X](img/ex75a.png)
+
+**Simplify.** With **ribbon** on, **ribbon: θʳ = θˡ (§3.3.2)** writes every right twist as the left twist. Without it the equation is (rightly) not proved: in a braided pivotal category the two twists can differ.
+
+Steps, side by side: side 1: already in normal form; side 2: ribbon: θʳ = θˡ (§3.3.2).
+
+Normal form:
+
+$$
+\mathrm{\theta ^{l}}_{X}
+$$
+
+![§3.3.2  ribbon: θˡ_X = θʳ_X, simplified](img/ex75b.png)
+
+The editor reports: *✓ Both sides reduce to the same normal form, so the equation holds.*
+
+### Theorem 3.3  R1: θʳ_X (θˡ_X)⁻¹ = id
+
+Theorem 3.3: in a ribbon category the move R1 holds: a right-hand curl followed by a left-hand curl with the inverse crossing is the identity, since it is $\theta^r_X(\theta^l_X)^{-1} = \mathrm{id}_X$.
+
+**Type it.** Signature and expression:
+
+```
+g : X → Y
+k : X → X
+```
+
+```
+(id_X ⊗ ev~_X)(τ_{X,X} ⊗ id_X*)(id_X ⊗ coev_X)(id_X ⊗ ev~_X)(τ⁻¹_{X,X} ⊗ id_X*)(id_X ⊗ coev_X) = id_X
+```
+
+**Symbolic.** The editor typesets it as
+
+$$
+\begin{aligned}
+&(\mathrm{id}_{X} \otimes \widetilde{\mathrm{ev}}_{X}) \\
+&\;(\tau_{X,X} \otimes \mathrm{id}_{X^{*}}) \\
+&\;(\mathrm{id}_{X} \otimes \mathrm{coev}_{X}) \\
+&\;(\mathrm{id}_{X} \otimes \widetilde{\mathrm{ev}}_{X}) \\
+&\;(\tau^{-1}_{X,X} \otimes \mathrm{id}_{X^{*}}) \\
+&\;(\mathrm{id}_{X} \otimes \mathrm{coev}_{X})
+\end{aligned}
+$$
+
+$$=$$
+
+$$
+\mathrm{id}_{X}
+$$
+
+a morphism from $X$ to $X$.
+
+**Graphical.** Expression → Diagram draws:
+
+![Theorem 3.3  R1: θʳ_X (θˡ_X)⁻¹ = id](img/ex76a.png)
+
+**Simplify.** The two curls fold to $\theta^r_X$ and $\theta^{l\,-1}_X$, **ribbon** makes the first $\theta^l_X$, and **twists cancel** finishes.
+
+Steps, side by side: side 1: twist fold (§3.3.1) → twist fold (§3.3.1) → ribbon: θʳ = θˡ (§3.3.2) → twists cancel (Lemma 3.2); side 2: already in normal form.
+
+Normal form:
+
+$$
+\mathrm{id}_{X}
+$$
+
+![Theorem 3.3  R1: θʳ_X (θˡ_X)⁻¹ = id, simplified](img/ex76b.png)
+
+The editor reports: *✓ Both sides reduce to the same normal form, so the equation holds.*
+
+### Corollary 3.4  a ribbon category is spherical
+
+Corollary 3.4: a ribbon category is spherical, $\mathrm{tr}_l(k) = \mathrm{tr}_r(k)$.
+
+**Type it.** Signature and expression:
+
+```
+g : X → Y
+k : X → X
+```
+
+```
+ev_X(id_X* ⊗ k)coev~_X = ev~_X(k ⊗ id_X*)coev_X
+```
+
+**Symbolic.** The editor typesets it as
+
+$$
+\mathrm{ev}_{X} (\mathrm{id}_{X^{*}} \otimes k) \widetilde{\mathrm{coev}}_{X}
+$$
+
+$$=$$
+
+$$
+\widetilde{\mathrm{ev}}_{X} (k \otimes \mathrm{id}_{X^{*}}) \mathrm{coev}_{X}
+$$
+
+a morphism from $\mathbb{1}$ to $\mathbb{1}$.
+
+**Graphical.** Expression → Diagram draws:
+
+![Corollary 3.4  a ribbon category is spherical](img/ex77a.png)
+
+**Simplify.** With **ribbon** on, the editor (like the kernel) also uses **sphericity (§2.7.1)**, which turns the right loop into the left loop.
+
+Steps, side by side: side 1: already in normal form; side 2: sphericity (§2.7.1).
+
+Normal form:
+
+$$
+\mathrm{ev}_{X} (\mathrm{id}_{X^{*}} \otimes k) \widetilde{\mathrm{coev}}_{X}
+$$
+
+![Corollary 3.4  a ribbon category is spherical, simplified](img/ex77b.png)
+
+The editor reports: *✓ Both sides reduce to the same normal form, so the equation holds.*
+
+## 19. The two engines
 
 Simplify can run on either of two engines, chosen with **engine** under the buttons:
 
 - **JavaScript (offline):** a port of the Wolfram notebook engine, with the same layered form, the same level exchange and the same rules in the same order. It needs no network.
-- **Wolfram kernel:** the page sends the layered form to the `GraphicalCalculusKernel` API in the Wolfram Cloud, which runs the rules of the Wolfram notebooks (`graphical-calculus-2.1-simplify.nb`, `pivotal-2.1.3.wl`, `penrose-2.2.wl`). The page then compares the kernel's answer with the JavaScript engine and reports any difference.
+- **Wolfram kernel:** the page sends the layered form to the `GraphicalCalculusKernel` API in the Wolfram Cloud, which runs the rules of the Wolfram notebooks (`graphical-calculus-2.1-simplify.nb`, `pivotal-2.1.3.wl`, `penrose-2.2.wl`, `pivotal-2.3-2.7.wl`, `braided-2.7-3.2.wl`, `ribbon-3.3.wl`). The page then compares the kernel's answer with the JavaScript engine and reports any difference.
 
 For §2.3–2.7 the editor works in a strict pivotal category: it identifies $X^{**}$ with $X$ and $\psi_X$ with $\mathrm{id}_X$. The Wolfram notebook `graphical-calculus-2.3-2.7.nb` keeps $X^{**}$ apart from $X$, draws $\psi_X$ as a box, and proves Lemmas 2.2–2.4, Exercise 2.3.3 and Theorem 2.7 (strand by strand) with it; for the editor's inputs the kernel uses the strict forms of the same rules.
+
+For §3.3 the notebook `graphical-calculus-3.3.nb` also checks, in graded vector spaces with weights, that the model with weight 2 is braided pivotal but not ribbon, that the weights ±1 give a ribbon category, the duals of twists in Lemma 3.2, (3.4), Corollary 3.4, Lemma 3.5 for super vector spaces and Lemma 3.6.
 
 On every example in this document, both engines give the same sequence of rules and the same result. In the Wolfram notebooks the same identities are also checked in vector spaces, where $\otimes$ is the Kronecker product and composition is the matrix product.
 

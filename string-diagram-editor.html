@@ -99,7 +99,7 @@ svg:hover .port{opacity:.9}
 <body>
 <header>
   <h1><a href="index.html" style="color:inherit;text-decoration:none">CCN String Diagrams</a></h1>
-  <span class="sub">after Turaev &amp; Virelizier, <i>Monoidal Categories and Topological Field Theory</i>, §2.1–3.2 · read bottom → top · ⊗ = side by side · <i>gf</i> = <i>f</i> below <i>g</i></span>
+  <span class="sub">after Turaev &amp; Virelizier, <i>Monoidal Categories and Topological Field Theory</i>, §2.1–3.3 · read bottom → top · ⊗ = side by side · <i>gf</i> = <i>f</i> below <i>g</i></span>
 </header>
 <main>
   <div id="stage">
@@ -151,6 +151,7 @@ svg:hover .port{opacity:.9}
         <label><input type="checkbox" id="rightFirst"> right zigzag first</label>
         <label title="§2.7: left and right traces agree (pivotal mode only)"><input type="checkbox" id="spherical"> spherical</label>
         <label title="§3.1.2: the braiding is a symmetry, τ⁻¹_{Y,X} = τ_{X,Y}"><input type="checkbox" id="symmetric"> symmetric</label>
+        <label title="§3.3.2: a ribbon category, θʳ_X = θˡ_X (pivotal mode only; spherical by Corollary 3.4)"><input type="checkbox" id="ribbon"> ribbon</label>
         <label>duals <select id="duals" style="width:auto;font-size:12px;padding:2px"><option value="vee">∨X (§2.1.2)</option><option value="star">X* (§2.1.3, pivotal)</option></select></label>
         <label>engine <select id="engine" style="width:auto;font-size:12px;padding:2px"><option value="js">JavaScript (offline)</option><option value="wl">Wolfram kernel (notebook)</option></select></label>
         <label>composition <select id="cstyle" style="width:auto;font-size:12px;padding:2px"><option value="juxt">gf (book)</option><option value="circ">g ∘ f</option></select></label>
@@ -180,20 +181,20 @@ svg:hover .port{opacity:.9}
     </section>
 
     <section>
-      <h2>Examples from §2.1–3.2</h2>
+      <h2>Examples from §2.1–3.3</h2>
       <select id="examples"></select>
       <div class="hint" style="margin-top:8px">Syntax: <b>⊗</b> (or <code>(x)</code>). Composition by juxtaposition, <code>(id_Y ⊗ g)(f ⊗ id_U)</code> or <code>g f</code>, binds tightest (<code>g f ⊗ h</code> = (<i>gf</i>) ⊗ <i>h</i>); <b>∘</b> and <b>;</b> (diagrammatic order) bind loosest. <code>id_X</code>, <code>id_{X⊗Y}</code>, <code>ev_X</code>, <code>coev_X</code>, <code>ev~_X</code> (ẽv), <code>coev~_X</code> (c̃oev), <code>∨X</code>, <code>∨f</code>, <code>X*</code>, <code>f*</code>, postfix <b>†</b>, inline types <code>(f : X → Y)</code>. Separate the sides of an equation with <b>=</b>.</div>
     </section>
   </aside>
 </main>
-<footer><span>By Dara O Shayda and Noor Hoshino (星野ヌール) · © Computational Classnotes · CC BY-NC-SA 4.0</span><span>Rules: unit strands · ⊗-coloured strands · level exchange (Fig. 2.1) · (2.1) zigzags · ∨f and (2.2) · pivotal: Figs. 2.2–2.4 · §2.2 caps and cups on ⊗</span></footer>
+<footer><span>By Dara O Shayda and Noor Hoshino (星野ヌール) · © Computational Classnotes · CC BY-NC-SA 4.0</span><span>Rules: unit strands · ⊗-coloured strands · level exchange (Fig. 2.1) · (2.1) zigzags · ∨f and (2.2) · pivotal: Figs. 2.2–2.4 · §2.2–3.3</span></footer>
 
 <script id="core">
 /* ================= CORE: syntax, typing, layout, layered form, rewriting ================= */
 const Core = (() => {
-  const opts = {juxt:true, pivotal:false, spherical:false, symmetric:false};   // pivotal: duals written X* (§2.1.3); otherwise ∨X (§2.1.2)
+  const opts = {juxt:true, pivotal:false, spherical:false, symmetric:false, ribbon:false};   // pivotal: duals written X* (§2.1.3); otherwise ∨X (§2.1.2)
   const UNIT = '𝟙';
-  const isW = c => /[A-Za-z0-9Ͱ-Ͽ′'?∨*~⁻¹]/.test(c);
+  const isW = c => /[A-Za-z0-9Ͱ-Ͽ′'?∨*~⁻¹ˡʳ]/.test(c);
   function tokenize(s) {
     s = s.replace(/𝟙/gu, ' I ').replace(/∗/g, '*').replace(/ẽv/g, 'ev~').replace(/c̃oev/g, 'coev~');
     const out = []; let i = 0;
@@ -295,6 +296,8 @@ const Core = (() => {
     if (m) { const A = objOfSub(m[2]), Bo = objOfSub(m[3]); return m[1] ? {t:'gen', name, dom:[...Bo, ...A], cod:[...A, ...Bo]} : {t:'gen', name, dom:[...A, ...Bo], cod:[...Bo, ...A]}; }
     // §2.3.1: ψ_X : X → X** and its inverse; the editor identifies X** with X (a strict pivotal category)
     m = name.match(/^ψ(⁻¹)?_(.+)$/); if (m && opts.pivotal) { const X = objOfSub(m[2]); return {t:'gen', name, dom:[...X], cod:[...X]}; }
+    // §3.3.1: the twists θˡ_X, θʳ_X : X → X and their inverses θˡ⁻¹_X, θʳ⁻¹_X (braided pivotal categories)
+    m = name.match(/^θ[ˡʳ](⁻¹)?_(.+)$/); if (m && opts.pivotal) { const X = objOfSub(m[2]); return {t:'gen', name, dom:[...X], cod:[...X]}; }
     if (isDualName(name)) { const b = lookupGen(undualName(name), sig); if (b && !b.dom.includes('?') && !b.cod.includes('?')) return dualGen(b); }
     if (name.endsWith('†') && sig[name.slice(0, -1)]) return dagger(lookupGen(name.slice(0, -1), sig));
     return null;
@@ -382,7 +385,7 @@ const Core = (() => {
     let pre = 0; while (name.startsWith('∨')) { pre++; name = name.slice(1); }
     let dag = 0, star = 0;
     // in ev_X*, coev~_X*, ψ_X*, τ_{X*,Y} the star belongs to the subscript, not to the morphism
-    const fixedSub = /^(ev~?|coev~?|ψ(⁻¹)?|τ(⁻¹)?)_/.test(name);
+    const fixedSub = /^(ev~?|coev~?|ψ(⁻¹)?|τ(⁻¹)?|θ[ˡʳ](⁻¹)?)_/.test(name);
     for (;;) { if (fixedSub) break; if (name.endsWith('†')) { dag++; name = name.slice(0, -1); } else if (name.length > 1 && name.endsWith('*')) { star++; name = name.slice(0, -1); } else break; }
     const k = name.indexOf('_');
     let main = k < 0 ? name : name.slice(0, k), sub = k < 0 ? '' : name.slice(k + 1);
@@ -413,7 +416,7 @@ const Core = (() => {
   }
   const typeHTML = t => `${objHTML(t.dom)}<span class="rel">→</span>${objHTML(t.cod)}`;
   const GREEK = {'α':'alpha','β':'beta','γ':'gamma','δ':'delta','ε':'varepsilon','ζ':'zeta','η':'eta','θ':'theta','ι':'iota','κ':'kappa','λ':'lambda','μ':'mu','ν':'nu','ξ':'xi','π':'pi','ρ':'rho','σ':'sigma','τ':'tau','υ':'upsilon','φ':'varphi','χ':'chi','ψ':'psi','ω':'omega','Γ':'Gamma','Δ':'Delta','Θ':'Theta','Λ':'Lambda','Ξ':'Xi','Π':'Pi','Σ':'Sigma','Φ':'Phi','Ψ':'Psi','Ω':'Omega'};
-  const texChars = s => [...s].map(c => GREEK[c] ? `\\${GREEK[c]} ` : c === '′' ? "'" : c === '⊗' ? ' \\otimes ' : c).join('').trim();
+  const texChars = s => [...s].map(c => GREEK[c] ? `\\${GREEK[c]} ` : c === '′' ? "'" : c === '⊗' ? ' \\otimes ' : c === 'ˡ' ? '^{l}' : c === 'ʳ' ? '^{r}' : c).join('').trim();
   function nameTeX(name) {
     const n = splitName(name);
     let m = TILDE[n.main] ? `\\widetilde{\\mathrm{${n.main.slice(0, -1)}}}` : texChars(n.main); if (!n.italic && !TILDE[n.main]) m = `\\mathrm{${m}}`;
@@ -807,7 +810,7 @@ const Core = (() => {
     const cancelRetract = (q, r) => q.B.t === 'gen' && r.B.t === 'gen' && q.a === r.a && ins(q.B).length === 1 && outs(q.B).length === 1 &&
       ins(r.B).length === 1 && eqObj(ins(r.B), outs(q.B)) && eqObj(outs(r.B), ins(q.B)) && retracts.some(([pp, jj]) => pp === r.B.name && jj === q.B.name) ? [] : null;
     // §3.1–3.2: crossings. τ_{X,Y} : X ⊗ Y → Y ⊗ X (X over), τ⁻¹_{Y,X} : X ⊗ Y → Y ⊗ X (the inverse of τ_{Y,X})
-    const TAU = /^τ(⁻¹)?_\{?([^,{}]*),([^{}]*)\}?$/;
+    const TAU = /^τ(⁻¹)?_\{?([^,{}]*),([^{}]*)\}?$/, TW = /^θ([ˡʳ])(⁻¹)?_(.+)$/;
     const tauOf = B => { if (B.t !== 'gen') return null; const m = B.name.match(TAU); return m ? {pos:!m[1], A:objOfSub(m[2]), B:objOfSub(m[3])} : null; };
     const tN = o => o.join('⊗');
     const tauG = (A, Bo) => ({t:'gen', name:'τ_{' + tN(A) + ',' + tN(Bo) + '}', dom:[...A, ...Bo], cod:[...Bo, ...A]});
@@ -825,7 +828,7 @@ const Core = (() => {
     const cross2 = q => { const t = tauOf(q.B); return t && ins(q.B).length === 2 ? t : null; };
     const cancelCross = (q, r) => { const t1 = cross2(q), t2 = cross2(r); if (!t1 || !t2 || q.a !== r.a) return null;
       return t1.pos !== t2.pos && eqObj(t1.A, t2.A) && eqObj(t1.B, t2.B) && eqObj(ins(r.B), outs(q.B)) ? [] : null; };
-    const plainBox = B => B.t === 'gen' && !dualityQ(B) && !TAU.test(B.name) && !/^ψ(⁻¹)?_/.test(B.name);
+    const plainBox = B => B.t === 'gen' && !dualityQ(B) && !TAU.test(B.name) && !/^ψ(⁻¹)?_/.test(B.name) && !TW.test(B.name);
     const naturalTau = (q, r) => {
       const t = cross2(q); if (!t || !plainBox(r.B) || ins(r.B).length !== 1 || outs(r.B).length !== 1) return null;
       const [l, rr] = ins(q.B);
@@ -845,6 +848,53 @@ const Core = (() => {
       }
       return null;
     };
+    // §3.3.1–3.3.3 (ribbon-3.3.wl, sections 60–61): twists. A curl c̃oev_X, τ, ev_X (or coev_X, τ, ẽv_X) folds to a twist box;
+    // layers that do not touch the curl's strands may sit between its three layers (level exchange), and the box takes the crossing's place
+    const twG = (side, inv, X) => ({t:'gen', name:'θ' + side + (inv ? '⁻¹' : '') + '_' + subStr(X), dom:[...X], cod:[...X]});
+    const twistOf = B => { if (B.t !== 'gen') return null; const m = B.name.match(TW); return m ? {side:m[1], inv:!!m[2], X:objOfSub(m[3])} : null; };
+    const twistFold = ld => {
+      const ls = ld.ls, n = ls.length, rs = [ld.src.slice()];
+      for (const l of ls) { const r = rs[rs.length - 1]; rs.push([...r.slice(0, l.a), ...outs(l.B), ...r.slice(l.a + ins(l.B).length)]); }
+      for (let i = 0; i < n; i++) {
+        const {a, B:b} = ls[i]; let type = null, w, x;
+        if (coevtSub(b) != null && outs(b).length === 2) { type = 'L'; w = a; x = outs(b)[1]; }
+        else if (coevSub(b) != null && outs(b).length === 2 && a >= 1) { type = 'R'; w = a - 1; x = outs(b)[0]; }
+        if (!type || rs[i].length <= w || rs[i][w] !== x) continue;
+        let stage = 1, sg, jj, wj; const right = [];
+        const lo = () => stage === 2 && type === 'R' ? w + 1 : w, hi = () => stage === 2 && type === 'L' ? w + 1 : w + 2;
+        for (let j = i + 1; j < n; j++) {
+          const {a:p, B:bb} = ls[j], ni = ins(bb).length, no = outs(bb).length;
+          const tp = type === 'L' ? w + 1 : w, ep = type === 'L' ? w : w + 1, t = cross2(ls[j]);
+          if (stage === 1 && p === tp && t && eqObj(ins(bb), [x, x])) { sg = t.pos; jj = j; wj = w; stage = 2; continue; }
+          if (stage === 1 && ni === 1 && no === 1 && p === (type === 'L' ? w + 2 : w)) { if (type === 'L') right.push(j); continue; }
+          if (stage === 2 && p === ep && ni === 2 && (type === 'L' ? evSub(bb) : evtSub(bb)) === x) {
+            const box = type === 'L' ? (sg ? twG('ˡ', false, [x]) : twG('ʳ', true, [x])) : (sg ? twG('ʳ', false, [x]) : twG('ˡ', true, [x]));
+            const out = [];
+            for (let k = 0; k < n; k++) { if (k === i || k === j) continue; out.push(k === jj ? {a:wj, B:box} : right.includes(k) ? {a:ls[k].a - 2, B:ls[k].B} : ls[k]); }
+            return {src:ld.src, ls:out};
+          }
+          if (ni === 0 ? p <= lo() : p + ni - 1 < lo()) { w += no - ni; continue; }
+          if (p > hi()) { right.push(j); continue; }
+          break;
+        }
+      }
+      return null;
+    };
+    const twInvQ = (s, t) => { const u = twistOf(s), v = twistOf(t); return u && v && u.side === v.side && u.inv !== v.inv && eqObj(u.X, v.X); };
+    const cancelTwist = (q, r) => q.a === r.a && ins(q.B).length === 1 && ins(r.B).length === 1 && twInvQ(q.B, r.B) && eqObj(outs(q.B), ins(r.B)) ? [] : null;
+    const naturalTwist = (q, r) => {
+      const t = twistOf(r.B); if (!t || q.a !== r.a || !plainBox(q.B) || ins(q.B).length !== 1 || outs(q.B).length !== 1 || ins(r.B).length !== 1) return null;
+      if (ins(r.B)[0] !== outs(q.B)[0]) return null;
+      return [{a:q.a, B:twG(t.side, t.inv, ins(q.B))}, {a:q.a, B:q.B}];
+    };
+    const twistTensor = p => {
+      const t = twistOf(p.B); if (!t || !eqObj(ins(p.B), t.X)) return null; const X = t.X, a = p.a;
+      if (!X.length) return [];
+      if (X.length > 1 && !t.inv) { const h = [X[0]], r = X.slice(1);
+        return [{a, B:tauG(h, r)}, {a, B:tauG(r, h)}, {a, B:twG(t.side, false, h)}, {a:a + 1, B:twG(t.side, false, r)}]; }
+      return null;
+    };
+    const ribbonTwist = p => { const t = twistOf(p.B); return t && t.side === 'ʳ' ? [{a:p.a, B:twG('ˡ', t.inv, t.X)}] : null; };
     // §3.1.2 and Remark 3.2.3: a symmetric braiding, τ⁻¹_{Y,X} = τ_{X,Y}
     const symmetricTau = p => { const t = tauOf(p.B); return t && !t.pos ? [{a:p.a, B:tauG(t.B, t.A)}] : null; };
     const cancelSym = (q, r) => { const t1 = cross2(q), t2 = cross2(r); if (!t1 || !t2 || !t1.pos || !t2.pos || q.a !== r.a) return null;
@@ -862,15 +912,19 @@ const Core = (() => {
       {name:'Fig. 2.4 slide through right ev', n:2, fn:slideEvt},
       {name:'Fig. 2.4 slide through right coev', n:2, fn:slideCoevt},
       // §2.3–2.7 (pivotal-2.3-2.7.wl, sections 40–44), in the kernel's order
+      ...(P ? [{name:'twist fold (§3.3.1)', n:'ld', fn:twistFold}] : []),
       ...(P ? [{name:'Lemma 2.3 (X** = X)', n:1, fn:lemma23}, {name:'ψ = id (X** = X)', n:1, fn:psiId},
                {name:'trace symmetry (§2.6.1)', n:'ld', fn:traceTurn}, {name:'inverse boxes', n:2, fn:cancelInv}] : []),
-      ...(P && opts.spherical ? [{name:'sphericity (§2.7.1)', n:'ld', fn:sphericity}] : []),
+      ...(P && (opts.spherical || opts.ribbon) ? [{name:'sphericity (§2.7.1)', n:'ld', fn:sphericity}] : []),
       // §2.7.3 and §3.1–3.2 (braided-2.7-3.2.wl, sections 50–52), in the kernel's order
       {name:'braiding on ⊗ (3.1)–(3.3)', n:1, fn:braidSplit},
       {name:'retract (§2.7.3)', n:2, fn:cancelRetract},
       {name:'R2 (§3.2.2)', n:2, fn:cancelCross},
       {name:'R4, R5: naturality of τ', n:2, fn:naturalTau},
       {name:'R3: Yang–Baxter', n:'ld', fn:yangBaxter},
+      ...(P ? [{name:'twists cancel (Lemma 3.2)', n:2, fn:cancelTwist}, {name:'naturality of θ (Lemma 3.2)', n:2, fn:naturalTwist},
+               {name:'twist on ⊗ (Exercise 3.3.3)', n:1, fn:twistTensor}] : []),
+      ...(P && opts.ribbon ? [{name:'ribbon: θʳ = θˡ (§3.3.2)', n:1, fn:ribbonTwist}] : []),
       ...(opts.symmetric ? [{name:'symmetry (§3.1.2)', n:1, fn:symmetricTau}, {name:'τ_Y,X τ_X,Y = id (§3.1.2)', n:2, fn:cancelSym}] : []),
     ];
   }
@@ -1315,7 +1369,7 @@ function b64enc(str) { const bytes = new TextEncoder().encode(str); let bin = ''
 function b64dec(b) { return new TextDecoder().decode(Uint8Array.from(atob(b), c => c.charCodeAt(0))); }
 function ldPayload(e, S) {
   const ld = Core.toLayered(e);
-  return {src:ld.src, pairings:S.pairings, inverses:S.inverses || [], retracts:S.retracts || [], rightFirst:$('#rightFirst').checked, pivotal:Core.opts.pivotal, spherical:Core.opts.pivotal && Core.opts.spherical, symmetric:Core.opts.symmetric,
+  return {src:ld.src, pairings:S.pairings, inverses:S.inverses || [], retracts:S.retracts || [], rightFirst:$('#rightFirst').checked, pivotal:Core.opts.pivotal, spherical:Core.opts.pivotal && (Core.opts.spherical || Core.opts.ribbon), symmetric:Core.opts.symmetric, ribbon:Core.opts.pivotal && Core.opts.ribbon,
     ls:ld.ls.map(({a, B}) => { const t = Core.typeOf(B); return {a, name:B.t === 'swap' ? '__σ_' + B.a.length : B.name, ins:t.dom, outs:t.cod}; })};
 }
 function ldFromReply(o) {
@@ -1429,7 +1483,7 @@ $('#bSvg').onclick = () => {
   sel = s; render();
 };
 
-/* ---------- examples from §2.1–3.2 (pp. 31–58) & persistence ---------- */
+/* ---------- examples from §2.1–3.3 (pp. 31–62) & persistence ---------- */
 const SIG = {
   cat:  'f : X → Y\ng : Y → Z',
   mon:  'f : X → Y\ng : U → V',
@@ -1446,6 +1500,7 @@ const SIG = {
   iso:  'u : X → Y\nu′ : Y → X\ninverse u u′',
   hs:   'f : X → X\nj : X → Y\np : Y → X\nretract p j',
   br:   'f : X → X\ng : Y → Y',
+  tw:   'g : X → Y\nk : X → X\n# §3.3: the twists θˡ_X, θʳ_X and their inverses θˡ⁻¹_X, θʳ⁻¹_X are built in (pivotal mode)',
   ex215:'# Exercise 2.1.5: a non-degenerate pairing ω with inverse Ω\nω : X ⊗ Y → 𝟙\nΩ : 𝟙 → Y ⊗ X\npairing ω Ω\nf : X → X\nh : X → X\ng : Y → Y',
 };
 const EX = [
@@ -1514,15 +1569,30 @@ const EX = [
   ['Lemma 3.1  an upward strand crosses a box', '(g ⊗ id_X*)τ_{X*,Y} = τ_{X*,Y}(id_X* ⊗ g)', 'br', 'star'],
   ['§3.1.2  a symmetry: τ_{Y,X} τ_{X,Y} = id', 'τ_{Y,X} τ_{X,Y} = id_X ⊗ id_Y', 'br', 'sym'],
   ['Remark 3.2.3  over- and under-passes agree', 'τ⁻¹_{Y,X} = τ_{X,Y}', 'br', 'sym'],
+  ['§3.3.1  the left twist θˡ_X is a curl', '(ev_X ⊗ id_X)(id_X* ⊗ τ_{X,X})(coev~_X ⊗ id_X) = θˡ_X', 'tw', 'star'],
+  ['§3.3.1  the right twist θʳ_X is a curl', '(id_X ⊗ ev~_X)(τ_{X,X} ⊗ id_X*)(id_X ⊗ coev_X) = θʳ_X', 'tw', 'star'],
+  ['Lemma 3.2  (θˡ_X)⁻¹ is the curl with τ⁻¹', '(id_X ⊗ ev~_X)(τ⁻¹_{X,X} ⊗ id_X*)(id_X ⊗ coev_X) = θˡ⁻¹_X', 'tw', 'star'],
+  ['Lemma 3.2  (θʳ_X)⁻¹ is the curl with τ⁻¹', '(ev_X ⊗ id_X)(id_X* ⊗ τ⁻¹_{X,X})(coev~_X ⊗ id_X) = θʳ⁻¹_X', 'tw', 'star'],
+  ['Lemma 3.2  θˡ_X (θˡ_X)⁻¹ = id, the curls drawn out', '(ev_X ⊗ id_X)(id_X* ⊗ τ_{X,X})(coev~_X ⊗ id_X)(id_X ⊗ ev~_X)(τ⁻¹_{X,X} ⊗ id_X*)(id_X ⊗ coev_X) = id_X', 'tw', 'star'],
+  ['Lemma 3.2  (θʳ_X)⁻¹ θʳ_X = id', 'θʳ⁻¹_X θʳ_X = id_X', 'tw', 'star'],
+  ['Lemma 3.2  the twist is natural: θˡ_Y g = g θˡ_X', 'θˡ_Y g = g θˡ_X', 'tw', 'star'],
+  ['Lemma 3.2  naturality of θʳ, curl drawn out', '(id_Y ⊗ ev~_Y)(τ_{Y,Y} ⊗ id_Y*)(id_Y ⊗ coev_Y) g = g θʳ_X', 'tw', 'star'],
+  ['Lemma 3.2  a curl on an upward strand is θˡ_X*', '(ev_X* ⊗ id_X*)(id_X ⊗ τ_{X*,X*})(coev~_X* ⊗ id_X*) = θˡ_X*', 'tw', 'star'],
+  ['Exercise 3.3.3  θ_{X⊗Y} = (θ_X ⊗ θ_Y) τ_{Y,X} τ_{X,Y}', 'θˡ_{X⊗Y} = (θˡ_X ⊗ θˡ_Y) τ_{Y,X} τ_{X,Y}', 'tw', 'star'],
+  ['§3.3.2  ribbon: θˡ_X = θʳ_X', 'θˡ_X = θʳ_X', 'tw', 'rib'],
+  ['Theorem 3.3  R1: θʳ_X (θˡ_X)⁻¹ = id', '(id_X ⊗ ev~_X)(τ_{X,X} ⊗ id_X*)(id_X ⊗ coev_X)(id_X ⊗ ev~_X)(τ⁻¹_{X,X} ⊗ id_X*)(id_X ⊗ coev_X) = id_X', 'tw', 'rib'],
+  ['Corollary 3.4  a ribbon category is spherical', 'ev_X(id_X* ⊗ k)coev~_X = ev~_X(k ⊗ id_X*)coev_X', 'tw', 'rib'],
 ];
 $('#examples').innerHTML = '<option value="">Load an example…</option>' + EX.map((x, i) => `<option value="${i}">${escA(x[0])}</option>`).join('');
 $('#examples').onchange = e => { const x = EX[+e.target.value]; if (!x) return; setDuals(x[3] || 'vee'); $('#sig').value = SIG[x[2]]; $('#expr').value = x[1]; preview(); $('#bE2D').click(); e.target.value = ''; };
 function setDuals(v) { $('#symmetric').checked = v === 'sym' || v === 'symstar'; if (v === 'sym') v = 'vee'; if (v === 'symstar') v = 'star';
-  Core.opts.symmetric = $('#symmetric').checked;
+  $('#ribbon').checked = v === 'rib'; if (v === 'rib') v = 'star';
+  Core.opts.symmetric = $('#symmetric').checked; Core.opts.ribbon = $('#ribbon').checked;
   if (v === 'sph') { v = 'star'; $('#spherical').checked = true; } else if (v === 'star' || v === 'vee') $('#spherical').checked = false;
   $('#duals').value = v; Core.opts.pivotal = v === 'star'; Core.opts.spherical = $('#spherical').checked; }
 $('#spherical').onchange = () => { Core.opts.spherical = $('#spherical').checked; save(); };
 $('#symmetric').onchange = () => { Core.opts.symmetric = $('#symmetric').checked; save(); };
+$('#ribbon').onchange = () => { Core.opts.ribbon = $('#ribbon').checked; save(); };
 $('#duals').onchange = () => { setDuals($('#duals').value); preview(); render(); save(); };
 const KEY = 'ccn-graphical-calculus-tv-v3';
 function save() { try { localStorage.setItem(KEY, JSON.stringify({D, expr:$('#expr').value, sig:$('#sig').value, DIR, engine:$('#engine').value, wlurl:$('#wlurl').value, duals:$('#duals').value})); } catch (_) {} }
