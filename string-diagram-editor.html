@@ -91,6 +91,8 @@ svg:hover .port{opacity:.9}
 .swapbox{fill:transparent;stroke:transparent}
 .node.sel .swapbox{stroke:var(--sel);stroke-dasharray:4 3}
 .temp{fill:none;stroke:var(--sel);stroke-width:2;stroke-dasharray:5 4;pointer-events:none}
+.arrowhd{fill:var(--ink);pointer-events:none}
+.node.sel .capline{stroke:var(--sel)}
 </style>
 </head>
 <body>
@@ -146,6 +148,7 @@ svg:hover .port{opacity:.9}
       <div class="opts">
         <label><input type="checkbox" id="redraw" checked> redraw after simplifying</label>
         <label><input type="checkbox" id="rightFirst"> right zigzag first</label>
+        <label>duals <select id="duals" style="width:auto;font-size:12px;padding:2px"><option value="vee">∨X (§2.1.2)</option><option value="star">X* (§2.1.3, pivotal)</option></select></label>
         <label>engine <select id="engine" style="width:auto;font-size:12px;padding:2px"><option value="js">JavaScript (offline)</option><option value="wl">Wolfram kernel (notebook)</option></select></label>
         <label>composition <select id="cstyle" style="width:auto;font-size:12px;padding:2px"><option value="juxt">gf (book)</option><option value="circ">g ∘ f</option></select></label>
       </div>
@@ -165,7 +168,7 @@ svg:hover .port{opacity:.9}
     <section>
       <h2>Signature</h2>
       <textarea id="sig" spellcheck="false"></textarea>
-      <div class="hint">One box per line, <span style="font-family:var(--math);font-size:15px"><i>f</i> : <i>X</i> ⊗ <i>Y</i> → <i>A</i></span>; 𝟙 (or <code>I</code>, <code>1</code>) is the unit. <code>pairing ω Ω</code> declares a non-degenerate pairing ω with inverse Ω. Built in: <span style="font-family:var(--math);font-size:15px">ev<sub><i>X</i></sub> : <sup>∨</sup><i>X</i> ⊗ <i>X</i> → 𝟙, coev<sub><i>X</i></sub> : 𝟙 → <i>X</i> ⊗ <sup>∨</sup><i>X</i></span>, and <span style="font-family:var(--math);font-size:15px"><sup>∨</sup><i>f</i></span> for every declared <i>f</i>.</div>
+      <div class="hint">One box per line, <span style="font-family:var(--math);font-size:15px"><i>f</i> : <i>X</i> ⊗ <i>Y</i> → <i>A</i></span>; 𝟙 (or <code>I</code>, <code>1</code>) is the unit. <code>pairing ω Ω</code> declares a non-degenerate pairing ω with inverse Ω. Built in, with “duals: ∨X”: <span style="font-family:var(--math);font-size:15px">ev<sub><i>X</i></sub> : <sup>∨</sup><i>X</i> ⊗ <i>X</i> → 𝟙, coev<sub><i>X</i></sub> : 𝟙 → <i>X</i> ⊗ <sup>∨</sup><i>X</i></span> and <span style="font-family:var(--math);font-size:15px"><sup>∨</sup><i>f</i></span>. With “duals: X*” (pivotal, §2.1.3): <span style="font-family:var(--math);font-size:15px">ev<sub><i>X</i></sub> : <i>X</i><sup>*</sup> ⊗ <i>X</i> → 𝟙, ẽv<sub><i>X</i></sub> : <i>X</i> ⊗ <i>X</i><sup>*</sup> → 𝟙, coev<sub><i>X</i></sub> : 𝟙 → <i>X</i> ⊗ <i>X</i><sup>*</sup>, c̃oev<sub><i>X</i></sub> : 𝟙 → <i>X</i><sup>*</sup> ⊗ <i>X</i></span> and <span style="font-family:var(--math);font-size:15px"><i>f</i><sup>*</sup></span>, with X** = X. Both give a dual box for every declared <i>f</i>.</div>
     </section>
 
     <section class="insp">
@@ -176,22 +179,22 @@ svg:hover .port{opacity:.9}
     <section>
       <h2>Examples from §2.1</h2>
       <select id="examples"></select>
-      <div class="hint" style="margin-top:8px">Syntax: <b>⊗</b> (or <code>*</code>). Composition by juxtaposition, <code>(id_Y ⊗ g)(f ⊗ id_U)</code> or <code>g f</code>, binds tightest (<code>g f ⊗ h</code> = (<i>gf</i>) ⊗ <i>h</i>); <b>∘</b> and <b>;</b> (diagrammatic order) bind loosest. <code>id_X</code>, <code>id_{X⊗Y}</code>, <code>ev_X</code>, <code>coev_X</code>, <code>∨X</code>, <code>∨f</code>, postfix <b>†</b>, inline types <code>(f : X → Y)</code>. Separate the sides of an equation with <b>=</b>.</div>
+      <div class="hint" style="margin-top:8px">Syntax: <b>⊗</b> (or <code>(x)</code>). Composition by juxtaposition, <code>(id_Y ⊗ g)(f ⊗ id_U)</code> or <code>g f</code>, binds tightest (<code>g f ⊗ h</code> = (<i>gf</i>) ⊗ <i>h</i>); <b>∘</b> and <b>;</b> (diagrammatic order) bind loosest. <code>id_X</code>, <code>id_{X⊗Y}</code>, <code>ev_X</code>, <code>coev_X</code>, <code>ev~_X</code> (ẽv), <code>coev~_X</code> (c̃oev), <code>∨X</code>, <code>∨f</code>, <code>X*</code>, <code>f*</code>, postfix <b>†</b>, inline types <code>(f : X → Y)</code>. Separate the sides of an equation with <b>=</b>.</div>
     </section>
   </aside>
 </main>
-<footer><span>By Dara O Shayda and Noor Hoshino (星野ヌール) · © Computational Classnotes · CC BY-NC-SA 4.0</span><span>Rules: unit strands · ⊗-coloured strands · level exchange (Fig. 2.1) · (2.1) zigzags · definition of ∨f · (2.2) slides</span></footer>
+<footer><span>By Dara O Shayda and Noor Hoshino (星野ヌール) · © Computational Classnotes · CC BY-NC-SA 4.0</span><span>Rules: unit strands · ⊗-coloured strands · level exchange (Fig. 2.1) · (2.1) zigzags · ∨f and (2.2) · pivotal: Figs. 2.2–2.4</span></footer>
 
 <script id="core">
 /* ================= CORE: syntax, typing, layout, layered form, rewriting ================= */
 const Core = (() => {
-  const opts = {juxt:true};
+  const opts = {juxt:true, pivotal:false};   // pivotal: duals written X* (§2.1.3); otherwise ∨X (§2.1.2)
   const UNIT = '𝟙';
-  const isW = c => /[A-Za-z0-9Ͱ-Ͽ′'?∨]/.test(c);
+  const isW = c => /[A-Za-z0-9Ͱ-Ͽ′'?∨*~]/.test(c);
   function tokenize(s) {
-    s = s.replace(/𝟙/gu, ' I ');
+    s = s.replace(/𝟙/gu, ' I ').replace(/∗/g, '*').replace(/ẽv/g, 'ev~').replace(/c̃oev/g, 'coev~');
     const out = []; let i = 0;
-    const sym = {'⊗':'⊗','∘':'∘','·':'∘',';':';','→':'→','(':'(',')':')',',':',','_':'_','{':'{','}':'}',':':':','†':'†','*':'⊗'};
+    const sym = {'⊗':'⊗','∘':'∘','·':'∘',';':';','→':'→','(':'(',')':')',',':',','_':'_','{':'{','}':'}',':':':','†':'†'};
     while (i < s.length) {
       const c = s[i];
       if (/\s/.test(c)) { i++; continue; }
@@ -211,16 +214,27 @@ const Core = (() => {
   const idOf = obj => ({t:'id', obj:[...obj]});
 
   /* ---- duality ---- */
-  const dualAtom = a => '∨' + a;
+  // §2.1.2 writes the left dual ∨X; in a pivotal category (§2.1.3) the dual is X*, and X** = X (the arc turns round)
+  const flipStar = a => a.endsWith('*') ? a.slice(0, -1) : a + '*';
+  const dualAtom = a => opts.pivotal ? flipStar(a) : '∨' + a;
   const dualObj = o => o.slice().reverse().map(dualAtom);
-  const undualObj = o => { if (!o.every(a => a.startsWith('∨'))) return null; return o.slice().reverse().map(a => a.slice(1)); };
+  const undualObj = o => opts.pivotal ? o.slice().reverse().map(flipStar)
+    : (o.every(a => a.startsWith('∨')) ? o.slice().reverse().map(a => a.slice(1)) : null);
+  const dualName = s => opts.pivotal ? flipStar(s) : '∨' + s;
+  const undualName = s => opts.pivotal ? flipStar(s) : s.slice(1);
+  const isDualName = s => opts.pivotal ? (s.length > 1 && s.endsWith('*')) : s.startsWith('∨');
   const subStr = o => o.length === 1 ? o[0] : '{' + o.join('⊗') + '}';
   const objOfSub = s => { if (s.startsWith('{') && s.endsWith('}')) s = s.slice(1, -1); return s.split('⊗').map(x => x.trim()).filter(x => x && !isUnitWord(x)); };
   const evGen = X => ({t:'gen', name:'ev_' + subStr(X), dom:[...dualObj(X), ...X], cod:[]});
   const coevGen = X => ({t:'gen', name:'coev_' + subStr(X), dom:[], cod:[...X, ...dualObj(X)]});
-  const dualGen = f => ({t:'gen', name:'∨' + f.name, dom:dualObj(f.cod), cod:dualObj(f.dom)});
+  const evtGen = X => ({t:'gen', name:'ev~_' + subStr(X), dom:[...X, ...dualObj(X)], cod:[]});        // ẽv_X : X ⊗ X* → 𝟙
+  const coevtGen = X => ({t:'gen', name:'coev~_' + subStr(X), dom:[], cod:[...dualObj(X), ...X]});    // c̃oev_X : 𝟙 → X* ⊗ X
+  const dualGen = f => ({t:'gen', name:dualName(f.name), dom:dualObj(f.cod), cod:dualObj(f.dom)});
   const evSub = B => B.t === 'gen' && /^ev_/.test(B.name) ? B.name.slice(3) : null;
   const coevSub = B => B.t === 'gen' && /^coev_/.test(B.name) ? B.name.slice(5) : null;
+  const evtSub = B => B.t === 'gen' && /^ev~_/.test(B.name) ? B.name.slice(4) : null;
+  const coevtSub = B => B.t === 'gen' && /^coev~_/.test(B.name) ? B.name.slice(6) : null;
+  const dualityQ = B => evSub(B) != null || coevSub(B) != null || evtSub(B) != null || coevtSub(B) != null;
 
   function dagger(e) {
     switch (e.t) {
@@ -267,7 +281,9 @@ const Core = (() => {
     if (sig[name]) return {t:'gen', name, dom:[...sig[name].dom], cod:[...sig[name].cod]};
     let m = name.match(/^ev_(.+)$/); if (m) return evGen(objOfSub(m[1]));
     m = name.match(/^coev_(.+)$/); if (m) return coevGen(objOfSub(m[1]));
-    if (name.startsWith('∨')) { const b = lookupGen(name.slice(1), sig); if (b && !b.dom.includes('?')) return dualGen(b); }
+    m = name.match(/^ev~_(.+)$/); if (m) return evtGen(objOfSub(m[1]));
+    m = name.match(/^coev~_(.+)$/); if (m) return coevtGen(objOfSub(m[1]));
+    if (isDualName(name)) { const b = lookupGen(undualName(name), sig); if (b && !b.dom.includes('?') && !b.cod.includes('?')) return dualGen(b); }
     if (name.endsWith('†') && sig[name.slice(0, -1)]) return dagger(lookupGen(name.slice(0, -1), sig));
     return null;
   }
@@ -352,19 +368,22 @@ const Core = (() => {
   const esc = s => s.replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
   function splitName(name) {
     let pre = 0; while (name.startsWith('∨')) { pre++; name = name.slice(1); }
-    let dag = 0; while (name.endsWith('†')) { dag++; name = name.slice(0, -1); }
+    let dag = 0, star = 0;
+    for (;;) { if (name.endsWith('†')) { dag++; name = name.slice(0, -1); } else if (name.length > 1 && name.endsWith('*')) { star++; name = name.slice(0, -1); } else break; }
     const k = name.indexOf('_');
     let main = k < 0 ? name : name.slice(0, k), sub = k < 0 ? '' : name.slice(k + 1);
     if (sub.startsWith('{') && sub.endsWith('}')) sub = sub.slice(1, -1);
     const letters = main.replace(/[′'0-9]/g, '');
-    return {pre, main, sub, dag, italic: letters.length <= 1};
+    return {pre, main, sub, dag, star, italic: letters.replace(/~/g, '').length <= 1 && !TILDE[main]};
   }
+  const TILDE = {'ev~':'e\u0303v', 'coev~':'c\u0303oev'};
+  const showMain = m => TILDE[m] || m;
   const subHTML = s => s.split('⊗').map(a => atomHTML(a.trim())).join('<span class="op">⊗</span>');
   function nameHTML(name) {
     const n = splitName(name);
     return '<span class="dv">∨</span>'.repeat(n.pre) +
-      (n.italic ? `<i>${esc(n.main)}</i>` : `<span class="rm">${esc(n.main)}</span>`) +
-      (n.sub ? `<sub>${subHTML(n.sub)}</sub>` : '') + (n.dag ? `<sup>${'†'.repeat(n.dag)}</sup>` : '');
+      (n.italic ? `<i>${esc(n.main)}</i>` : `<span class="rm">${esc(showMain(n.main))}</span>`) +
+      (n.sub ? `<sub>${subHTML(n.sub)}</sub>` : '') + (n.star || n.dag ? `<sup>${'*'.repeat(n.star)}${'†'.repeat(n.dag)}</sup>` : '');
   }
   const atomHTML = a => a === '?' ? '<span class="rm">?</span>' : isUnitWord(a) ? UNIT : nameHTML(a);
   const objHTML = o => o.length ? o.map(atomHTML).join('<span class="op">⊗</span>') : UNIT;
@@ -382,9 +401,9 @@ const Core = (() => {
   const texChars = s => [...s].map(c => GREEK[c] ? `\\${GREEK[c]} ` : c === '′' ? "'" : c === '⊗' ? ' \\otimes ' : c).join('').trim();
   function nameTeX(name) {
     const n = splitName(name);
-    let m = texChars(n.main); if (!n.italic) m = `\\mathrm{${m}}`;
+    let m = TILDE[n.main] ? `\\widetilde{\\mathrm{${n.main.slice(0, -1)}}}` : texChars(n.main); if (!n.italic && !TILDE[n.main]) m = `\\mathrm{${m}}`;
     const sub = n.sub ? n.sub.split('⊗').map(a => nameTeX(a.trim())).join(' \\otimes ') : '';
-    return '{}^{\\vee}'.repeat(n.pre) + m + (sub ? `_{${sub}}` : '') + (n.dag ? `^{${'\\dagger'.repeat(n.dag)}}` : '');
+    return '{}^{\\vee}'.repeat(n.pre) + m + (sub ? `_{${sub}}` : '') + (n.star || n.dag ? `^{${'*'.repeat(n.star)}${'\\dagger'.repeat(n.dag)}}` : '');
   }
   const objTeX = o => o.length ? o.map(a => a === '?' ? '?' : nameTeX(a)).join(' \\otimes ') : '\\mathbb{1}';
   function toTeX(e, ctx = 'top') {
@@ -657,8 +676,9 @@ const Core = (() => {
 
   /* ---- the rules of §2.1, in the notebook's priority order ---- */
   function makeRules(pairings) {
-    const pairQ = (w, o) => w.t === 'gen' && o.t === 'gen' && (pairings.some(([p, q]) => p === w.name && q === o.name) || (evSub(w) != null && evSub(w) === coevSub(o)));
-    const isDual = B => B.t === 'gen' && B.name.startsWith('∨') && undualObj(B.dom) && undualObj(B.cod);
+    const pairQ = (w, o) => w.t === 'gen' && o.t === 'gen' && (pairings.some(([p, q]) => p === w.name && q === o.name) ||
+      (evSub(w) != null && evSub(w) === coevSub(o)) || (evtSub(w) != null && evtSub(w) === coevtSub(o)));
+    const isDual = B => B.t === 'gen' && !dualityQ(B) && isDualName(B.name) && undualObj(B.dom) && undualObj(B.cod);
     // (2.1): Ω directly below ω, joined by one line (|X| = |Y| = 1 as in the notebook; longer colours also work)
     const lens = (w, o) => { const d = ins(w), c = outs(o); for (let k = 1; k < d.length; k++) if (match(c, [...d.slice(k), ...d.slice(0, k)])) return {x:k, y:d.length - k}; return null; };
     const snakeL = (p, q) => { if (ins(p.B).length === 0 && outs(q.B).length === 0 && pairQ(q.B, p.B)) { const L = lens(q.B, p.B); if (L && q.a === p.a + L.y) return []; } return null; };
@@ -667,28 +687,52 @@ const Core = (() => {
     const slideEv = (p, q) => {
       const s = evSub(q.B); if (s == null || !isDual(p.B) || q.a !== p.a) return null;
       const X = objOfSub(s); if (!eqObj(outs(p.B), dualObj(X))) return null;
-      const Y = undualObj(ins(p.B)); const f = {t:'gen', name:p.B.name.slice(1), dom:X, cod:Y};
+      const Y = undualObj(ins(p.B)); const f = {t:'gen', name:undualName(p.B.name), dom:X, cod:Y};
       return [{a:p.a + Y.length, B:f}, {a:p.a, B:evGen(Y)}];
     };
     const slideCoev = (p, q) => {
       const s = coevSub(p.B); if (s == null || !isDual(q.B)) return null;
       const Y = objOfSub(s); if (q.a !== p.a + Y.length || !eqObj(ins(q.B), dualObj(Y))) return null;
-      const X = undualObj(outs(q.B)); const f = {t:'gen', name:q.B.name.slice(1), dom:X, cod:Y};
+      const X = undualObj(outs(q.B)); const f = {t:'gen', name:undualName(q.B.name), dom:X, cod:Y};
       return [{a:p.a, B:coevGen(X)}, {a:p.a, B:f}];
+    };
+    // §2.1.3, Figure 2.4, second line: ẽv_X(id_X ⊗ f*) = ẽv_Y(f ⊗ id_Y*),  (f* ⊗ id_Y)c̃oev_Y = (id_X* ⊗ f)c̃oev_X
+    const slideEvt = (p, q) => {
+      const s = evtSub(q.B); if (s == null || !isDual(p.B)) return null;
+      const X = objOfSub(s); if (q.a !== p.a - X.length || !eqObj(outs(p.B), dualObj(X))) return null;
+      const Y = undualObj(ins(p.B)); const f = {t:'gen', name:undualName(p.B.name), dom:X, cod:Y};
+      return [{a:q.a, B:f}, {a:q.a, B:evtGen(Y)}];
+    };
+    const slideCoevt = (p, q) => {
+      const s = coevtSub(p.B); if (s == null || !isDual(q.B)) return null;
+      const Y = objOfSub(s); if (q.a !== p.a || !eqObj(ins(q.B), dualObj(Y))) return null;
+      const X = undualObj(outs(q.B)); const f = {t:'gen', name:undualName(q.B.name), dom:X, cod:Y};
+      return [{a:p.a, B:coevtGen(X)}, {a:p.a + X.length, B:f}];
     };
     // definition of ∨f, read right to left
     const foldDual = (p, q, r) => {
-      const s = coevSub(p.B), t = evSub(r.B); if (s == null || t == null || q.B.t !== 'gen' || evSub(q.B) != null || coevSub(q.B) != null) return null;
+      const s = coevSub(p.B), t = evSub(r.B); if (s == null || t == null || q.B.t !== 'gen' || dualityQ(q.B)) return null;
       const X = objOfSub(s), Y = objOfSub(t);
       if (!eqObj(ins(q.B), X) || !eqObj(outs(q.B), Y) || q.a !== p.a || r.a !== p.a - Y.length) return null;
       return [{a:p.a - Y.length, B:dualGen(q.B)}];
     };
+    // §2.1.3, Figure 2.3, right: f* = (id_X* ⊗ ẽv_Y)(id_X* ⊗ f ⊗ id_Y*)(c̃oev_X ⊗ id_Y*)
+    const foldDualR = (p, q, r) => {
+      const s = coevtSub(p.B), t = evtSub(r.B); if (s == null || t == null || q.B.t !== 'gen' || dualityQ(q.B)) return null;
+      const X = objOfSub(s), Y = objOfSub(t);
+      if (!eqObj(ins(q.B), X) || !eqObj(outs(q.B), Y) || q.a !== p.a + X.length || r.a !== p.a + X.length) return null;
+      return [{a:p.a, B:dualGen(q.B)}];
+    };
+    const P = opts.pivotal;
     return [
       {name:'(2.1) left zigzag', n:2, fn:snakeL},
       {name:'(2.1) right zigzag', n:2, fn:snakeR},
-      {name:'definition of ∨f', n:3, fn:foldDual},
-      {name:'(2.2) slide through ev', n:2, fn:slideEv},
-      {name:'(2.2) slide through coev', n:2, fn:slideCoev},
+      {name:P ? 'Figure 2.3: f* via ev, coev' : 'definition of ∨f', n:3, fn:foldDual},
+      {name:'Figure 2.3: f* via ẽv, c̃oev', n:3, fn:foldDualR},
+      {name:P ? 'Figure 2.4: slide through ev' : '(2.2) slide through ev', n:2, fn:slideEv},
+      {name:P ? 'Figure 2.4: slide through coev' : '(2.2) slide through coev', n:2, fn:slideCoev},
+      {name:'Figure 2.4: slide through ẽv', n:2, fn:slideEvt},
+      {name:'Figure 2.4: slide through c̃oev', n:2, fn:slideCoevt},
     ];
   }
   function try2(ld, R) {
@@ -732,7 +776,7 @@ const Core = (() => {
     return {e:steps[steps.length - 1].e, steps, key:ldKey(ld), ld};
   }
 
-  return {opts, tokenize, parse, parseSig, typeOf, toText, toHTML, toTeX, typeHTML, objText, objHTML, nameHTML, splitName,
+  return {opts, tokenize, parse, parseSig, typeOf, toText, toHTML, toTeX, typeHTML, objText, objHTML, nameHTML, splitName, showMain,
           toDiagram, fromDiagram, tidy, toLayered, fromLayered, normalize, simplifyTrace, mkComp, mkTens, ldKey};
 })();
 </script>
@@ -769,15 +813,19 @@ function mathText(t, name, fs = 18) {
   const n = Core.splitName(name || '');
   let off = 0; const seg = (txt, o, scale, italic) => { const s = el('tspan', {dy:(o - off) * fs, 'font-size':scale * 100 + '%'}, t); s.textContent = txt; if (italic) s.setAttribute('font-style', 'italic'); off = o; };
   if (n.pre) seg('∨'.repeat(n.pre), -0.4, 0.7, false);
-  seg(n.main, 0, 1, n.italic);
+  seg(Core.showMain(n.main), 0, 1, n.italic);
   if (n.sub) {
-    n.sub.split('⊗').forEach((a, i) => { if (i) seg(' ⊗ ', 0.3, 0.68, false); const m = Core.splitName(a.trim()); if (m.pre) seg('∨'.repeat(m.pre), 0.05, 0.5, false); seg(m.main, 0.3, 0.68, m.italic); });
+    n.sub.split('⊗').forEach((a, i) => { if (i) seg(' ⊗ ', 0.3, 0.68, false); const m = Core.splitName(a.trim()); if (m.pre) seg('∨'.repeat(m.pre), 0.05, 0.5, false); seg(m.main, 0.3, 0.68, m.italic); if (m.star) seg('*'.repeat(m.star), 0.05, 0.5, false); });
   }
-  if (n.dag) seg('†'.repeat(n.dag), -0.45, 0.68, false);
+  if (n.star || n.dag) seg('\u2009' + '*'.repeat(n.star) + '†'.repeat(n.dag), -0.45, 0.68, false);
   if (off) seg('​', 0, 1, false);
 }
 
 /* ---------- render ---------- */
+const baseColour = c => c.replace(/\*+$/, '');
+const capCup = n => !Core.opts.pivotal || n.kind !== 'box' ? null
+  : (/^(ev|ev~)_/.test(n.label) && n.nIn === 2 && n.nOut === 0) ? 'cap'
+  : (/^(coev|coev~)_/.test(n.label) && n.nIn === 0 && n.nOut === 2) ? 'cup' : null;
 function render() {
   const gw = $('#gw'), gn = $('#gn'); gw.innerHTML = ''; gn.innerHTML = '';
   const showT = $('#showTypes').checked;
@@ -787,9 +835,14 @@ function render() {
     const g = el('g', {'data-wire':w.id}, gw);
     el('path', {d, class:'wire' + (sel && sel.type === 'wire' && sel.id === w.id ? ' sel' : '')}, g);
     el('path', {d, class:'wire-hit'}, g);
-    const t = a.outTypes[w.from.port];
+    const t = a.outTypes[w.from.port], piv = Core.opts.pivotal;
+    if (piv && t && t !== '?') {
+      // §2.1.3: an arc coloured X points down (against the reading direction), an arc coloured X* points up
+      const flow = Math.sign(q.y - p.y) || DIR, dir = (t.endsWith('*') ? 1 : -1) * flow, mx = (p.x + q.x) / 2, my = (p.y + q.y) / 2;
+      el('path', {d:`M${mx - 6},${my - 5 * dir} L${mx + 6},${my - 5 * dir} L${mx},${my + 6 * dir} Z`, class:'arrowhd'}, gw);
+    }
     if (showT && t && t !== '?' && a.kind !== 'in' && b.kind !== 'out') {
-      const tx = el('text', {x:(p.x + q.x) / 2 + 7, y:(p.y + q.y) / 2 + 5, class:'tlabel'}, gw); mathText(tx, t, 16);
+      const tx = el('text', {x:(p.x + q.x) / 2 + 9, y:(p.y + q.y) / 2 + 5, class:'tlabel'}, gw); mathText(tx, piv ? baseColour(t) : t, 16);
     }
   }
   for (const n of D.nodes) {
@@ -804,7 +857,8 @@ function render() {
       el('rect', {x:n.x - 18, y:dir > 0 ? n.y + 3 : n.y - 31, width:36, height:28, rx:4, class:'grip'}, g);
       el('circle', {cx:n.x, cy:n.y, r:3, class:'bdot'}, g);
       const t = el('text', {x:n.x, y:n.y + dir * 19, class:'tlabel', 'text-anchor':'middle', 'dominant-baseline':'central'}, g);
-      mathText(t, (n.kind === 'in' ? n.outTypes[0] : n.inTypes[0]) || '?', 16);
+      const c = (n.kind === 'in' ? n.outTypes[0] : n.inTypes[0]) || '?';
+      mathText(t, Core.opts.pivotal ? baseColour(c) : c, 16);
     } else if (n.kind === 'swap') {
       const w = nodeW(n);
       el('rect', {x:n.x - w / 2, y:n.y - BH / 2, width:w, height:BH, class:'swapbox'}, g);
@@ -818,6 +872,13 @@ function render() {
       el('circle', {cx:n.x, cy:n.y, r:9, class:'dot'}, g);
       el('circle', {cx:n.x, cy:n.y, r:22, fill:'transparent'}, g);
       if (n.label) { const t = el('text', {x:n.x + 16, y:n.y - 1, class:'dlbl'}, g); mathText(t, n.label, 18); }
+    } else if (capCup(n)) {
+      // §2.1.3: ev and ẽv are caps, coev and c̃oev are cups
+      const cap = capCup(n) === 'cap', side = cap ? 'in' : 'out', p1 = portPos(n, side, 0), p2 = portPos(n, side, 1);
+      const cy = p1.y + (cap ? DIR : -DIR) * BH * 1.25;
+      el('rect', {x:n.x - nodeW(n) / 2, y:n.y - BH * 0.75, width:nodeW(n), height:BH * 1.5, class:'swapbox'}, g);
+      el('path', {d:`M${p1.x},${p1.y} C${p1.x},${cy} ${p2.x},${cy} ${p2.x},${p2.y}`, class:'swapline capline'}, g);
+      el('title', {}, g).textContent = n.label;
     } else {
       // the book draws every morphism as a box (coupon), including those with source or target 𝟙
       const w = nodeW(n);
@@ -987,10 +1048,11 @@ const escA = s => String(s ?? '').replace(/&/g, '&amp;').replace(/"/g, '&quot;')
 
 /* ---------- keypad ---------- */
 const PADS = {
-  'Book': [['⊗'],['∘'],['→'],['𝟙'],['∨','<sup>∨</sup>□'],['('],[')'],['='],
+  'Book': [['⊗'],['∘'],['→'],['𝟙'],['∨','<sup>∨</sup>□'],['*','□<sup>*</sup>'],['('],[')'],
            ['id_{|}','id<sub>X</sub>','w2'],['ev_{|}','ev<sub>X</sub>','w2'],['coev_{|}','coev<sub>X</sub>','w2'],['_','x<sub>□</sub>'],['⌫','⌫'],
-           ['ω'],['Ω'],['Ω′'],['α'],['β'],['γ'],['′'],['†'],
-           [' : | → ','f : X → Y','w3'],['(| : → )','( f : … )','w3'],['{'],['}']],
+           ['ev~_{|}','ẽv<sub>X</sub>','w2'],['coev~_{|}','c̃oev<sub>X</sub>','w2'],['='],['{'],['}'],['′'],
+           ['ω'],['Ω'],['Ω′'],['α'],['β'],['γ'],['†'],[','],
+           [' : | → ','f : X → Y','w3'],['(| : → )','( f : … )','w3'],[';'],['∘']],
   'Greek': 'αβγδεζηθικλμνξπρστυφχψωΓΔΘΛΞΠΣΦΨΩ'.split('').map(c => [c]),
   'Letters': 'XYZTUVABCDfghkmnpquvwxyz'.split('').map(c => [c]).concat([['_1','x<sub>1</sub>'],['_2','x<sub>2</sub>'],[';'],[','],['σ_{|,}','σ<sub>X,Y</sub>','w2']]),
 };
@@ -1100,7 +1162,7 @@ function b64enc(str) { const bytes = new TextEncoder().encode(str); let bin = ''
 function b64dec(b) { return new TextDecoder().decode(Uint8Array.from(atob(b), c => c.charCodeAt(0))); }
 function ldPayload(e, S) {
   const ld = Core.toLayered(e);
-  return {src:ld.src, pairings:S.pairings, rightFirst:$('#rightFirst').checked,
+  return {src:ld.src, pairings:S.pairings, rightFirst:$('#rightFirst').checked, pivotal:Core.opts.pivotal,
     ls:ld.ls.map(({a, B}) => { const t = Core.typeOf(B); return {a, name:B.t === 'swap' ? '__σ_' + B.a.length : B.name, ins:t.dom, outs:t.cod}; })};
 }
 function ldFromReply(o) {
@@ -1165,7 +1227,7 @@ function mergeSig(e) {
   const S = sig().sig, add = [];
   (function walk(x) {
     if (x.t === 'gen') {
-      const builtin = /^(ev|coev)_/.test(x.name) || x.name.startsWith('∨');
+      const builtin = /^(ev|coev)~?_/.test(x.name) || x.name.startsWith('∨') || (Core.opts.pivotal && x.name.length > 1 && x.name.endsWith('*'));
       if (!S[x.name] && !builtin && !x.dom.includes('?') && !x.cod.includes('?')) { S[x.name] = {dom:x.dom, cod:x.cod}; add.push(`${x.name} : ${Core.objText(x.dom)} → ${Core.objText(x.cod)}`); }
     } else if (x.fs) x.fs.forEach(walk);
   })(e);
@@ -1204,7 +1266,7 @@ $('#bSvg').onclick = () => {
   clone.setAttribute('width', bb.width + 2 * pad); clone.setAttribute('height', bb.height + 2 * pad + 18); clone.removeAttribute('id'); clone.removeAttribute('style');
   const st = document.createElementNS(NS, 'style');
   const F = '"STIX Two Math","Cambria Math","Times New Roman",serif';
-  st.textContent = `.wire,.swapline{fill:none;stroke:#1d1b16;stroke-width:2}.box{fill:#fff;stroke:#1d1b16;stroke-width:1.6}.dot,.bdot{fill:#1d1b16;stroke:#1d1b16}.swapbox{fill:none;stroke:none}
+  st.textContent = `.wire,.swapline{fill:none;stroke:#1d1b16;stroke-width:2}.box{fill:#fff;stroke:#1d1b16;stroke-width:1.6}.dot,.bdot,.arrowhd{fill:#1d1b16;stroke:#1d1b16}.swapbox{fill:none;stroke:none}
   .lbl{font-family:${F};font-size:21px;text-anchor:middle;dominant-baseline:central;fill:#1d1b16}.dlbl{font-family:${F};font-size:18px;dominant-baseline:central}
   .tlabel{font-family:${F};font-size:16px;fill:#2d4a7a}.eqsign{font-family:${F};font-size:34px;text-anchor:middle;dominant-baseline:central}`;
   clone.insertBefore(st, clone.firstChild);
@@ -1222,6 +1284,9 @@ const SIG = {
   unit: 'α : 𝟙 → 𝟙\nβ : 𝟙 → X\nγ : X → 𝟙',
   pair: '# a non-degenerate pairing ω with inverse Ω (and a second inverse Ω′)\nω : X ⊗ Y → 𝟙\nΩ : 𝟙 → Y ⊗ X\nΩ′ : 𝟙 → Y ⊗ X\npairing ω Ω\npairing ω Ω′\n# for the bijection (1.10)\nα : T → Z ⊗ X\nβ : T ⊗ Y → Z',
   dual: 'f : X → Y\n# ev_X : ∨X ⊗ X → 𝟙 and coev_X : 𝟙 → X ⊗ ∨X are built in',
+  piv:  'f : X → Y\n# pivotal (duals: X*). Built in: ev_X : X* ⊗ X → 𝟙, ev~_X (ẽv) : X ⊗ X* → 𝟙,\n# coev_X : 𝟙 → X ⊗ X*, coev~_X (c̃oev) : 𝟙 → X* ⊗ X, and f* : Y* → X*',
+  mixed:'f : X* ⊗ Y → U ⊗ V* ⊗ W',
+  ex215:'# Exercise 2.1.5: a non-degenerate pairing ω with inverse Ω\nω : X ⊗ Y → 𝟙\nΩ : 𝟙 → Y ⊗ X\npairing ω Ω\nf : X → X\nh : X → X\ng : Y → Y',
 };
 const EX = [
   ['§2.1.1  id_X', 'id_X', 'cat'],
@@ -1240,12 +1305,26 @@ const EX = [
   ['(2.2) left: slide through ev', 'ev_X(∨f ⊗ id_X) = ev_Y(id_∨Y ⊗ f)', 'dual'],
   ['(2.2) right: slide through coev', '(id_Y ⊗ ∨f)coev_Y = (f ⊗ id_∨X)coev_X', 'dual'],
   ['Zigzag for ev/coev', '(id_X ⊗ ev_X)(coev_X ⊗ id_X)', 'dual'],
+  ['§2.1.3  id_X*: an arc pointing up', 'id_X*', 'piv', 'star'],
+  ['§2.1.3  f : X* ⊗ Y → U ⊗ V* ⊗ W', 'f', 'mixed', 'star'],
+  ['§2.1.3  caps ev_X, ẽv_X and cups coev_X, c̃oev_X', 'ev_X ⊗ ev~_X ⊗ coev_X ⊗ coev~_X', 'piv', 'star'],
+  ['Figure 2.2  duality identities (1.12)', '(id_X ⊗ ev_X)(coev_X ⊗ id_X) = id_X = (ev~_X ⊗ id_X)(id_X ⊗ coev~_X)', 'piv', 'star'],
+  ['Figure 2.2  duality identities (1.13)', '(ev_X ⊗ id_X*)(id_X* ⊗ coev_X) = id_X* = (id_X* ⊗ ev~_X)(coev~_X ⊗ id_X*)', 'piv', 'star'],
+  ['Figure 2.3  two expressions for f*', 'f* = (ev_Y ⊗ id_X*)(id_Y* ⊗ f ⊗ id_X*)(id_Y* ⊗ coev_X) = (id_X* ⊗ ev~_Y)(id_X* ⊗ f ⊗ id_Y*)(coev~_X ⊗ id_Y*)', 'piv', 'star'],
+  ['Figure 2.4  ev_X(f* ⊗ id_X) = ev_Y(id_Y* ⊗ f)', 'ev_X(f* ⊗ id_X) = ev_Y(id_Y* ⊗ f)', 'piv', 'star'],
+  ['Figure 2.4  (id_Y ⊗ f*)coev_Y = (f ⊗ id_X*)coev_X', '(id_Y ⊗ f*)coev_Y = (f ⊗ id_X*)coev_X', 'piv', 'star'],
+  ['Figure 2.4  ẽv_X(id_X ⊗ f*) = ẽv_Y(f ⊗ id_Y*)', 'ev~_X(id_X ⊗ f*) = ev~_Y(f ⊗ id_Y*)', 'piv', 'star'],
+  ['Figure 2.4  (f* ⊗ id_Y)c̃oev_Y = (id_X* ⊗ f)c̃oev_X', '(f* ⊗ id_Y)coev~_Y = (id_X* ⊗ f)coev~_X', 'piv', 'star'],
+  ['Exercise 2.1.5  ψ(φ(f)) = f', '(ω ⊗ id_X)(id_X ⊗ ((id_Y ⊗ ω)(id_Y ⊗ f ⊗ id_Y)(Ω ⊗ id_Y)) ⊗ id_X)(id_X ⊗ Ω) = f', 'ex215', 'star'],
+  ['Exercise 2.1.5  φ(hf) = φ(f) φ(h)', '(id_Y ⊗ ω)(id_Y ⊗ h f ⊗ id_Y)(Ω ⊗ id_Y) = ((id_Y ⊗ ω)(id_Y ⊗ f ⊗ id_Y)(Ω ⊗ id_Y))((id_Y ⊗ ω)(id_Y ⊗ h ⊗ id_Y)(Ω ⊗ id_Y))', 'ex215', 'star'],
 ];
 $('#examples').innerHTML = '<option value="">Load an example…</option>' + EX.map((x, i) => `<option value="${i}">${escA(x[0])}</option>`).join('');
-$('#examples').onchange = e => { const x = EX[+e.target.value]; if (!x) return; $('#sig').value = SIG[x[2]]; $('#expr').value = x[1]; preview(); $('#bE2D').click(); e.target.value = ''; };
+$('#examples').onchange = e => { const x = EX[+e.target.value]; if (!x) return; setDuals(x[3] || 'vee'); $('#sig').value = SIG[x[2]]; $('#expr').value = x[1]; preview(); $('#bE2D').click(); e.target.value = ''; };
+function setDuals(v) { $('#duals').value = v; Core.opts.pivotal = v === 'star'; }
+$('#duals').onchange = () => { setDuals($('#duals').value); preview(); render(); save(); };
 const KEY = 'ccn-graphical-calculus-tv-v3';
-function save() { try { localStorage.setItem(KEY, JSON.stringify({D, expr:$('#expr').value, sig:$('#sig').value, DIR, engine:$('#engine').value, wlurl:$('#wlurl').value})); } catch (_) {} }
-function load() { try { const j = JSON.parse(localStorage.getItem(KEY) || 'null'); if (j && j.D) { D = j.D; $('#expr').value = j.expr || ''; $('#sig').value = j.sig || ''; DIR = j.DIR || -1; $('#dir').value = String(DIR); if (j.engine) $('#engine').value = j.engine; if (j.wlurl) $('#wlurl').value = j.wlurl; return true; } } catch (_) {} return false; }
+function save() { try { localStorage.setItem(KEY, JSON.stringify({D, expr:$('#expr').value, sig:$('#sig').value, DIR, engine:$('#engine').value, wlurl:$('#wlurl').value, duals:$('#duals').value})); } catch (_) {} }
+function load() { try { const j = JSON.parse(localStorage.getItem(KEY) || 'null'); if (j && j.D) { D = j.D; $('#expr').value = j.expr || ''; $('#sig').value = j.sig || ''; DIR = j.DIR || -1; $('#dir').value = String(DIR); if (j.engine) $('#engine').value = j.engine; if (j.wlurl) $('#wlurl').value = j.wlurl; if (j.duals) setDuals(j.duals); return true; } } catch (_) {} return false; }
 
 $('#wlurl').value = String(CFG.WOLFRAM_URL || '');
 drawPad();
