@@ -1,6 +1,6 @@
 (* ::Package:: *)
 (* Penrose graphical calculus, §2.2 Penrose diagrams and associated morphisms (Turaev & Virelizier, pp. 36–38) *)
-(* Sections 30–36. Needs sections 0–19 of graphical-calculus-2.1-simplify.nb and pivotal-2.1.3.wl (sections 20–27) evaluated first. *)
+(* Sections 30–36. Needs sections 0–19 of graphical-calculus-2.1-simplify.nb and pivotal-2.1.3.wl (sections 20–27) evaluated first; all three live in Desktop/Research/Monoidal Graphical Calculus. *)
 
 
 (* ::Section:: *)

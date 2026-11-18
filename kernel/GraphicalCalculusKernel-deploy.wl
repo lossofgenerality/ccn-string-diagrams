@@ -2,9 +2,10 @@
 (* GraphicalCalculusKernel: the Wolfram engine behind the "Wolfram kernel" option of string-diagram-editor.html.
 
    HOW TO DEPLOY
-   1. Check gcNotebook, gcPivotal and gcPenrose below: graphical-calculus-2.1-simplify.nb (sections 0–19, §2.1.1–2.1.2),
+   1. Keep this file with the engine files in one folder, gcDir below (Desktop/Research/Monoidal Graphical Calculus).
+      Check gcNotebook, gcPivotal and gcPenrose below: graphical-calculus-2.1-simplify.nb (sections 0–19, §2.1.1–2.1.2),
       pivotal-2.1.3.wl (sections 20–27, §2.1.3, which defines rulesP) and penrose-2.2.wl (sections 30–35, §2.2,
-      which defines rulesT), all in Downloads.
+      which defines rulesT), all in gcDir.
    2. Evaluate this whole file in one go: Get["…/GraphicalCalculusKernel-deploy.wl"], or paste it into one cell.
       If any check fails it stops before CloudDeploy, so a half-loaded kernel is never deployed.
       It loads the notebook's engine itself, so the engine and the API code always share one context.
@@ -36,9 +37,10 @@ Begin["GraphicalCalculusKernel`"];
 gcSavedPath = $ContextPath;
 $ContextPath = {"System`"};   (* so leftover Global` symbols (rules, normalize, ...) are not picked up *)
 
-gcNotebook = FileNameJoin[{$HomeDirectory, "Downloads", "graphical-calculus-2.1-simplify.nb"}];
-gcPivotal = FileNameJoin[{$HomeDirectory, "Downloads", "pivotal-2.1.3.wl"}];
-gcPenrose = FileNameJoin[{$HomeDirectory, "Downloads", "penrose-2.2.wl"}];
+gcDir = FileNameJoin[{$HomeDirectory, "Desktop", "Research", "Monoidal Graphical Calculus"}];
+gcNotebook = FileNameJoin[{gcDir, "graphical-calculus-2.1-simplify.nb"}];
+gcPivotal = FileNameJoin[{gcDir, "pivotal-2.1.3.wl"}];
+gcPenrose = FileNameJoin[{gcDir, "penrose-2.2.wl"}];
 
 (* load the notebook's engine: evaluate its Input cells, in order, in the current context.
    Cells stored as text are read with Get; cells stored as boxes with ToExpression. With (not Module)
