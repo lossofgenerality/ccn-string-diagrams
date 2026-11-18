@@ -2,8 +2,8 @@
 (* GraphicalCalculusKernel: the Wolfram engine behind the "Wolfram kernel" option of string-diagram-editor.html.
 
    HOW TO DEPLOY
-   1. Check gcNotebook below points at your graphical-calculus-2.1.3-pivotal.nb. That notebook loads
-      graphical-calculus-2.1-simplify.nb from the same folder and adds the pivotal rules rulesP (§2.1.3).
+   1. Check gcNotebook and gcPivotal below: graphical-calculus-2.1-simplify.nb (sections 0–19, §2.1.1–2.1.2)
+      and pivotal-2.1.3.wl (sections 20–27, §2.1.3, which defines rulesP), both in Downloads.
    2. Evaluate this whole file in one go: Get["…/GraphicalCalculusKernel-deploy.wl"], or paste it into one cell.
       If any check fails it stops before CloudDeploy, so a half-loaded kernel is never deployed.
       It loads the notebook's engine itself, so the engine and the API code always share one context.
@@ -20,8 +20,9 @@
    pivotal: true uses rulesP (duals written X*, ẽv and c̃oev, Figures 2.2–2.4); otherwise rules (§2.1.2, duals ∨X).
    Reply JSON: {"steps_b64": base64 of [[rule, {"src": [...], "ls": [[a, name, ins, outs], ...]}], ...],
                 "engine": "Wolfram 15."}   or   {"error": "..."}
-   Names: "ev_X" <-> Subscript["ev","X"], "coev_X" <-> Subscript["coev","X"], "ev~_X" <-> Subscript["ev~","X"] (ẽv),
-   "coev~_X" <-> Subscript["coev~","X"] (c̃oev); other names are plain strings.
+   Names: "ev_X" <-> Subscript["ev","X"], "coev_X" <-> Subscript["coev","X"],
+   "ev~_X" <-> Subscript[OverTilde["ev"],"X"] (ẽv), "coev~_X" <-> Subscript[OverTilde["coev"],"X"] (c̃oev);
+   other names are plain strings.
    The API only runs the rewrite rules on the data it is sent (no code is evaluated), so it needs no key.
 
    By Dara O Shayda and Noor Hoshino (星野ヌール)
@@ -33,7 +34,8 @@ Begin["GraphicalCalculusKernel`"];
 gcSavedPath = $ContextPath;
 $ContextPath = {"System`"};   (* so leftover Global` symbols (rules, normalize, ...) are not picked up *)
 
-gcNotebook = FileNameJoin[{$HomeDirectory, "Downloads", "graphical-calculus-2.1.3-pivotal.nb"}];
+gcNotebook = FileNameJoin[{$HomeDirectory, "Downloads", "graphical-calculus-2.1-simplify.nb"}];
+gcPivotal = FileNameJoin[{$HomeDirectory, "Downloads", "pivotal-2.1.3.wl"}];
 
 (* load the notebook's engine: evaluate its Input cells, in order, in the current context.
    Cells stored as text are read with Get; cells stored as boxes with ToExpression. With (not Module)
@@ -44,12 +46,15 @@ If[! FileExistsQ[gcNotebook], Print["Notebook not found: ", gcNotebook],
  With[{cells = Cases[Get[gcNotebook], Cell[c_, "Input" | "Code", ___] :> c, Infinity], name = FileNameTake[gcNotebook]},
   Scan[Quiet@Check[TimeConstrained[If[StringQ[#], Get[StringToStream[#]], ToExpression[#, StandardForm]]; Null, 120], Null] &, cells];
   Print["Loaded ", Length[cells], " code cells from ", name]]];
+If[! FileExistsQ[gcPivotal], Print["Pivotal package not found: ", gcPivotal],
+ Quiet[Get[gcPivotal]]; Print["Loaded ", FileNameTake[gcPivotal]]];
 gcReady = AssociationQ[rules] && KeyExistsQ[rules, "(2.1) left zigzag"] && AssociationQ[rulesP] &&
    Length[DownValues[normalize]] > 0 && Length[DownValues[rewriteOnce]] > 0;
 If[! gcReady, Print["The engine (rules, rulesP, normalize, rewriteOnce) did not load in context ", $Context, ". Check gcNotebook."]];
 
-gcSym[s_String] := With[{m = StringCases[s, RegularExpression["^(ev|coev)(~?)_(.+)$"] -> {"$1$2", "$3"}]},
-   If[m === {}, s, Subscript[m[[1, 1]], StringTrim[m[[1, 2]], "{" | "}"]]]];
+gcSym[s_String] := With[{m = StringCases[s, RegularExpression["^(ev|coev)(~?)_(.+)$"] -> {"$1", "$2", "$3"}]},
+   If[m === {}, s, Subscript[If[m[[1, 2]] === "~", OverTilde[m[[1, 1]]], m[[1, 1]]], StringTrim[m[[1, 3]], "{" | "}"]]]];
+gcName[Subscript[OverTilde[h_String], x_String]] := h <> "~_" <> If[StringContainsQ[x, "\[CircleTimes]"], "{" <> x <> "}", x];
 gcName[Subscript[h_String, x_String]] := h <> "_" <> If[StringContainsQ[x, "\[CircleTimes]"], "{" <> x <> "}", x];
 gcName[s_String] := s;
 gcName[other_] := ToString[other, InputForm];
@@ -88,7 +93,7 @@ gcHandler[payloadB64_String] := Module[{j, ld, rs, steps},
    <|"steps_b64" -> BaseEncode[ExportByteArray[{#[[1]], gcFromLD[#[[2]]]} & /@ steps, "RawJSON", "Compact" -> True]],
      "engine" -> "Wolfram " <> ToString[$VersionNumber]|>];
 
-(* quick local checks before deploying: they should print "definition of ∨f" and "Figure 2.4: slide through ẽv" *)
+(* quick local checks before deploying: they should print "definition of ∨f" and "Fig. 2.4 slide through right ev" *)
 gcCheck[payload_Association, expected_String] := With[{r = gcHandler[BaseEncode[ExportByteArray[payload, "RawJSON", "Compact" -> True]]]},
    With[{got = If[KeyExistsQ[r, "steps_b64"], ImportByteArray[BaseDecode[r["steps_b64"]], "RawJSON"][[-1, 1]], r]},
     Print["Check: ", got, If[got === expected, "  ✓", "  ✗ expected " <> expected]]; got === expected]];
@@ -98,7 +103,7 @@ gcReady = gcReady && gcCheck[<|"src" -> {"\[Or]Y"}, "ls" -> {
     <|"a" -> 0, "name" -> "ev_Y", "ins" -> {"\[Or]Y", "Y"}, "outs" -> {}|>}|>, "definition of \[Or]f"];
 gcReady = gcReady && gcCheck[<|"src" -> {"X", "Y*"}, "pivotal" -> True, "ls" -> {
     <|"a" -> 1, "name" -> "f*", "ins" -> {"Y*"}, "outs" -> {"X*"}|>,
-    <|"a" -> 0, "name" -> "ev~_X", "ins" -> {"X", "X*"}, "outs" -> {}|>}|>, "Figure 2.4: slide through e\:0303v"];
+    <|"a" -> 0, "name" -> "ev~_X", "ins" -> {"X", "X*"}, "outs" -> {}|>}|>, "Fig. 2.4 slide through right ev"];
 
 gcDeployed = If[TrueQ[gcReady],
    CloudDeploy[APIFunction[{"payload_b64" -> "String"}, gcHandler[#["payload_b64"]] &, "JSON"],

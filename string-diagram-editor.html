@@ -727,12 +727,13 @@ const Core = (() => {
     return [
       {name:'(2.1) left zigzag', n:2, fn:snakeL},
       {name:'(2.1) right zigzag', n:2, fn:snakeR},
-      {name:P ? 'Figure 2.3: f* via ev, coev' : 'definition of ∨f', n:3, fn:foldDual},
-      {name:'Figure 2.3: f* via ẽv, c̃oev', n:3, fn:foldDualR},
-      {name:P ? 'Figure 2.4: slide through ev' : '(2.2) slide through ev', n:2, fn:slideEv},
-      {name:P ? 'Figure 2.4: slide through coev' : '(2.2) slide through coev', n:2, fn:slideCoev},
-      {name:'Figure 2.4: slide through ẽv', n:2, fn:slideEvt},
-      {name:'Figure 2.4: slide through c̃oev', n:2, fn:slideCoevt},
+      // pivotal names follow pivotal-2.1.3.wl (sections 20–27 of the notebook), which the kernel runs
+      {name:P ? 'Fig. 2.3 fold (left)' : 'definition of ∨f', n:3, fn:foldDual},
+      {name:'Fig. 2.3 fold (right)', n:3, fn:foldDualR},
+      {name:P ? 'Fig. 2.4 slide through ev' : '(2.2) slide through ev', n:2, fn:slideEv},
+      {name:P ? 'Fig. 2.4 slide through coev' : '(2.2) slide through coev', n:2, fn:slideCoev},
+      {name:'Fig. 2.4 slide through right ev', n:2, fn:slideEvt},
+      {name:'Fig. 2.4 slide through right coev', n:2, fn:slideCoevt},
     ];
   }
   function try2(ld, R) {

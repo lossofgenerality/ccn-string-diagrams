@@ -35,7 +35,7 @@ Every Wolfram result is also worked out in JavaScript, and the page reports any 
 
 The “Wolfram kernel” option sends the diagram's layered form to `GraphicalCalculusKernel`, a Wolfram Cloud API that runs the rules of the notebook `graphical-calculus-2.1-simplify.nb`. To redeploy it, evaluate [`kernel/GraphicalCalculusKernel-deploy.wl`](kernel/GraphicalCalculusKernel-deploy.wl) in a signed-in Wolfram session.
 
-Put `graphical-calculus-2.1-simplify.nb` and `graphical-calculus-2.1.3-pivotal.nb` in `~/Downloads`, or edit `gcNotebook` at the top of the `.wl` file. The pivotal notebook loads the 2.1 notebook and adds `rulesP`, which the kernel uses for requests with `pivotal: true`. Then evaluate the whole file in a signed-in Wolfram session. It loads the notebook's engine, runs a check and calls `CloudDeploy`. Deploying under the same name keeps the URL.
+Put `graphical-calculus-2.1-simplify.nb` (sections 0–19) and `pivotal-2.1.3.wl` (sections 20–27, which define `rulesP`) in `~/Downloads`, or edit `gcNotebook` and `gcPivotal` at the top of the `.wl` file. The kernel uses `rulesP` for requests with `pivotal: true`. The editor's `ev~_X` and `coev~_X` become `Subscript[OverTilde["ev"], X]` and `Subscript[OverTilde["coev"], X]` there. CloudDeploy runs only when both checks pass. Then evaluate the whole file in a signed-in Wolfram session. It loads the notebook's engine, runs a check and calls `CloudDeploy`. Deploying under the same name keeps the URL.
 
 ---
 
