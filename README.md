@@ -4,7 +4,7 @@ An editor for the graphical calculus of monoidal categories, after Turaev & Vire
 
 **Live page:** https://lossofgenerality.github.io/ccn-string-diagrams/
 
-**Authors:** Noor Hoshino and Dara
+**Authors:** Dara O Shayda and Noor Hoshino (星野ヌール)
 
 ## Files
 

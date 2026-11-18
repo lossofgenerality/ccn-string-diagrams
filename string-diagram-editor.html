@@ -180,7 +180,7 @@ svg:hover .port{opacity:.9}
     </section>
   </aside>
 </main>
-<footer><span>By Noor Hoshino and Dara · © Computational Classnotes · CC BY-NC-SA 4.0</span><span>Rules: unit strands · ⊗-coloured strands · level exchange (Fig. 2.1) · (2.1) zigzags · definition of ∨f · (2.2) slides</span></footer>
+<footer><span>By Dara O Shayda and Noor Hoshino (星野ヌール) · © Computational Classnotes · CC BY-NC-SA 4.0</span><span>Rules: unit strands · ⊗-coloured strands · level exchange (Fig. 2.1) · (2.1) zigzags · definition of ∨f · (2.2) slides</span></footer>
 
 <script id="core">
 /* ================= CORE: syntax, typing, layout, layered form, rewriting ================= */
@@ -1208,7 +1208,7 @@ $('#bSvg').onclick = () => {
   .lbl{font-family:${F};font-size:21px;text-anchor:middle;dominant-baseline:central;fill:#1d1b16}.dlbl{font-family:${F};font-size:18px;dominant-baseline:central}
   .tlabel{font-family:${F};font-size:16px;fill:#2d4a7a}.eqsign{font-family:${F};font-size:34px;text-anchor:middle;dominant-baseline:central}`;
   clone.insertBefore(st, clone.firstChild);
-  const c = document.createElementNS(NS, 'text'); c.setAttribute('x', bb.x + bb.width + pad - 4); c.setAttribute('y', bb.y + bb.height + 2 * pad + 10); c.setAttribute('text-anchor', 'end'); c.setAttribute('font-size', '10'); c.setAttribute('font-family', 'system-ui,sans-serif'); c.setAttribute('fill', '#6b665a'); c.textContent = '© Computational Classnotes · CC BY-NC-SA 4.0';
+  const c = document.createElementNS(NS, 'text'); c.setAttribute('x', bb.x + bb.width + pad - 4); c.setAttribute('y', bb.y + bb.height + 2 * pad + 10); c.setAttribute('text-anchor', 'end'); c.setAttribute('font-size', '10'); c.setAttribute('font-family', 'system-ui,sans-serif'); c.setAttribute('fill', '#6b665a'); c.textContent = 'By Dara O Shayda and Noor Hoshino (星野ヌール) · © Computational Classnotes · CC BY-NC-SA 4.0';
   clone.appendChild(c);
   download('graphical-calculus.svg', '<?xml version="1.0" encoding="UTF-8"?>\n' + new XMLSerializer().serializeToString(clone), 'image/svg+xml');
   sel = s; render();

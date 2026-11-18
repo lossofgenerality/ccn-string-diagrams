@@ -20,6 +20,7 @@
    Names: "ev_X" <-> Subscript["ev","X"], "coev_X" <-> Subscript["coev","X"]; other names are plain strings.
    The API only runs the rewrite rules on the data it is sent (no code is evaluated), so it needs no key.
 
+   By Dara O Shayda and Noor Hoshino (星野ヌール)
    © Computational Classnotes · CC BY-NC-SA 4.0 *)
 
 gcNotebook = FileNameJoin[{$HomeDirectory, "Downloads", "graphical-calculus-2.1-simplify.nb"}];
