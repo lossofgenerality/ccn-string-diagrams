@@ -2,7 +2,7 @@
 
 **Dara O Shayda and Noor Hoshino (星野ヌール)**
 
-*A guided tour of the examples in the CCN String Diagrams editor, after Turaev & Virelizier, “Monoidal Categories and Topological Field Theory”, Chapter 2.*
+*A guided tour of the examples in the CCN String Diagrams editor, after Turaev & Virelizier, “Monoidal Categories and Topological Field Theory”, Chapter 2, §2.1–2.7 (pp. 31–50).*
 
 © Computational Classnotes · CC BY-NC-SA 4.0
 
@@ -19,7 +19,10 @@ Editor: <https://lossofgenerality.github.io/ccn-string-diagrams/string-diagram-e
 7. §2.1.3 Pivotal categories: Figures 2.2–2.4
 8. Exercise 2.1.5 Pairings and anti-isomorphisms
 9. §2.2 Penrose diagrams
-10. The two engines
+10. §2.3 Double duals and generalized evaluations
+11. §2.4–2.6 Isotopy, traces and dimensions
+12. §2.7 Spherical categories
+13. The two engines
 
 ## 1. The editor
 
@@ -68,6 +71,10 @@ The simplifier works on the **layered form** of a diagram: the source colours, t
 | definition of ∨f / Fig. 2.3 fold (left) | §2.1.2, Fig. 2.3 | fold cup–box–cap into the dual box |
 | Fig. 2.3 fold (right) | Fig. 2.3 | the same with ẽv and c̃oev |
 | (2.2) slide through ev / coev, Fig. 2.4 slides | (2.2), Fig. 2.4 | move a dual box across a cap or cup |
+| Lemma 2.3 (X\*\* = X), ψ = id (X\*\* = X) | §2.3.1 | with $X^{**}=X$: $\mathrm{ev}_{X^*}=\widetilde{\mathrm{ev}}_X$, $\mathrm{coev}_{X^*}=\widetilde{\mathrm{coev}}_X$ and the reverse, and $\psi_X=\mathrm{id}_X$ |
+| trace symmetry (§2.6.1) | §2.6.1 | turn a loop so that its boxes start at the first name in code-point order |
+| inverse boxes | §2.6.2 | cancel $u'u$ and $uu'$ for a declared pair `inverse u u′` |
+| sphericity (§2.7.1) | §2.7.1 | spherical only: a right loop becomes a left loop |
 
 Each step is shown with its rule name. An equation holds when all its sides reach the same normal form. Every rule makes the diagram smaller, so Simplify always stops.
 
@@ -1571,12 +1578,817 @@ $$
 
 The editor reports: *✓ Both sides reduce to the same normal form, so the equation holds.*
 
-## 10. The two engines
+## 10. §2.3 Double duals and generalized evaluations
+
+### §2.3.1  ψ_X = (ẽv_X ⊗ id_X**)(id_X ⊗ coev_X*) = id_X (X** = X)
+
+§2.3.1 defines $\psi_X = (\widetilde{\mathrm{ev}}_X\otimes\mathrm{id}_{X^{**}})(\mathrm{id}_X\otimes\mathrm{coev}_{X^*})\colon X\to X^{**}$. The editor identifies $X^{**}$ with $X$ (a strict pivotal category), so $\psi_X$ should be the identity.
+
+**Type it.** Signature and expression:
+
+```
+f : X → Y
+```
+
+```
+(ev~_X ⊗ id_X)(id_X ⊗ coev_X*) = id_X
+```
+
+**Symbolic.** The editor typesets it as
+
+$$
+(\widetilde{\mathrm{ev}}_{X} \otimes \mathrm{id}_{X}) (\mathrm{id}_{X} \otimes \mathrm{coev}_{X}^{*})
+$$
+
+$$=$$
+
+$$
+\mathrm{id}_{X}
+$$
+
+a morphism from $X$ to $X$.
+
+**Graphical.** Expression → Diagram draws:
+
+![§2.3.1  ψ_X = (ẽv_X ⊗ id_X**)(id_X ⊗ coev_X*) = id_X (X** = X)](img/ex34a.png)
+
+**Simplify.** **Lemma 2.3 (X\*\* = X)** turns the cup $\mathrm{coev}_{X^*}$ into $\widetilde{\mathrm{coev}}_X$; then **(2.1) right zigzag** straightens the arc. The Wolfram notebook keeps $X^{**}$ apart from $X$ and reduces the same picture to a box $\psi_X$ instead.
+
+Steps, side by side: side 1: Lemma 2.3 (X** = X) → (2.1) right zigzag; side 2: already in normal form.
+
+Normal form:
+
+$$
+\mathrm{id}_{X}
+$$
+
+![§2.3.1  ψ_X = (ẽv_X ⊗ id_X**)(id_X ⊗ coev_X*) = id_X (X** = X), simplified](img/ex34b.png)
+
+The editor reports: *✓ Both sides reduce to the same normal form, so the equation holds.*
+
+### Lemma 2.2  ψ_X = φ_X
+
+Lemma 2.2: $\psi_X$ can also be drawn the other way round, $\varphi_X = (\mathrm{id}_{X^{**}}\otimes\mathrm{ev}_X)(\widetilde{\mathrm{coev}}_{X^*}\otimes\mathrm{id}_X)$, and $\psi_X=\varphi_X$.
+
+**Type it.** Signature and expression:
+
+```
+f : X → Y
+```
+
+```
+(ev~_X ⊗ id_X)(id_X ⊗ coev_X*) = (id_X ⊗ ev_X)(coev~_X* ⊗ id_X)
+```
+
+**Symbolic.** The editor typesets it as
+
+$$
+(\widetilde{\mathrm{ev}}_{X} \otimes \mathrm{id}_{X}) (\mathrm{id}_{X} \otimes \mathrm{coev}_{X}^{*})
+$$
+
+$$=$$
+
+$$
+(\mathrm{id}_{X} \otimes \mathrm{ev}_{X}) (\widetilde{\mathrm{coev}}_{X}^{*} \otimes \mathrm{id}_{X})
+$$
+
+a morphism from $X$ to $X$.
+
+**Graphical.** Expression → Diagram draws:
+
+![Lemma 2.2  ψ_X = φ_X](img/ex35a.png)
+
+**Simplify.** Each side needs one rename by Lemma 2.3 and one zigzag, the left side a right zigzag and the right side a left one.
+
+Steps, side by side: side 1: Lemma 2.3 (X** = X) → (2.1) right zigzag; side 2: Lemma 2.3 (X** = X) → (2.1) left zigzag.
+
+Normal form:
+
+$$
+\mathrm{id}_{X}
+$$
+
+![Lemma 2.2  ψ_X = φ_X, simplified](img/ex35b.png)
+
+The editor reports: *✓ Both sides reduce to the same normal form, so the equation holds.*
+
+### Lemma 2.2  ψ⁻¹_X = ϑ_X = ν_X
+
+Lemma 2.2: the inverse $\psi_X^{-1}$ has two pictures, $\vartheta_X = (\mathrm{id}_X\otimes\widetilde{\mathrm{ev}}_{X^*})(\mathrm{coev}_X\otimes\mathrm{id}_{X^{**}})$ and $\nu_X = (\mathrm{ev}_{X^*}\otimes\mathrm{id}_X)(\mathrm{id}_{X^{**}}\otimes\widetilde{\mathrm{coev}}_X)$. Type $\psi_X^{-1}$ as `ψ⁻¹_X`.
+
+**Type it.** Signature and expression:
+
+```
+f : X → Y
+```
+
+```
+ψ⁻¹_X = (id_X ⊗ ev~_X*)(coev_X ⊗ id_X) = (ev_X* ⊗ id_X)(id_X ⊗ coev~_X)
+```
+
+**Symbolic.** The editor typesets it as
+
+$$
+\mathrm{\psi ⁻¹}_{X}
+$$
+
+$$=$$
+
+$$
+(\mathrm{id}_{X} \otimes \widetilde{\mathrm{ev}}_{X}^{*}) (\mathrm{coev}_{X} \otimes \mathrm{id}_{X})
+$$
+
+$$=$$
+
+$$
+(\mathrm{ev}_{X}^{*} \otimes \mathrm{id}_{X}) (\mathrm{id}_{X} \otimes \widetilde{\mathrm{coev}}_{X})
+$$
+
+a morphism from $X$ to $X$.
+
+**Graphical.** Expression → Diagram draws:
+
+![Lemma 2.2  ψ⁻¹_X = ϑ_X = ν_X](img/ex36a.png)
+
+**Simplify.** The box $\psi^{-1}_X$ is the identity when $X^{**}=X$ (**ψ = id (X\*\* = X)**); the two pictures straighten by Lemma 2.3 and a zigzag.
+
+Steps, side by side: side 1: ψ = id (X** = X); side 2: Lemma 2.3 (X** = X) → (2.1) left zigzag; side 3: Lemma 2.3 (X** = X) → (2.1) right zigzag.
+
+Normal form:
+
+$$
+\mathrm{id}_{X}
+$$
+
+![Lemma 2.2  ψ⁻¹_X = ϑ_X = ν_X, simplified](img/ex36b.png)
+
+The editor reports: *✓ Both sides reduce to the same normal form, so the equation holds.*
+
+### Lemma 2.3  ẽv_X = ev_X*(ψ_X ⊗ id_X*)
+
+Lemma 2.3, first formula: $\widetilde{\mathrm{ev}}_X = \mathrm{ev}_{X^*}(\psi_X\otimes\mathrm{id}_{X^*})$. The right evaluation is the left evaluation of $X^*$, corrected by $\psi_X$.
+
+**Type it.** Signature and expression:
+
+```
+f : X → Y
+```
+
+```
+ev~_X = ev_X*(ψ_X ⊗ id_X*)
+```
+
+**Symbolic.** The editor typesets it as
+
+$$
+\widetilde{\mathrm{ev}}_{X} \;=\; \mathrm{ev}_{X}^{*} (\psi_{X} \otimes \mathrm{id}_{X^{*}})
+$$
+
+a morphism from $X \otimes X^{*}$ to $\mathbb{1}$.
+
+**Graphical.** Expression → Diagram draws:
+
+![Lemma 2.3  ẽv_X = ev_X*(ψ_X ⊗ id_X*)](img/ex37a.png)
+
+**Simplify.** On the right side, Lemma 2.3 renames $\mathrm{ev}_{X^*}$ to $\widetilde{\mathrm{ev}}_X$ and the box $\psi_X$ disappears.
+
+Steps, side by side: side 1: already in normal form; side 2: Lemma 2.3 (X** = X) → ψ = id (X** = X).
+
+Normal form:
+
+$$
+\widetilde{\mathrm{ev}}_{X}
+$$
+
+![Lemma 2.3  ẽv_X = ev_X*(ψ_X ⊗ id_X*), simplified](img/ex37b.png)
+
+The editor reports: *✓ Both sides reduce to the same normal form, so the equation holds.*
+
+### Lemma 2.3  c̃oev_X = (id_X* ⊗ ψ⁻¹_X)coev_X*
+
+Lemma 2.3, second formula: $\widetilde{\mathrm{coev}}_X = (\mathrm{id}_{X^*}\otimes\psi_X^{-1})\,\mathrm{coev}_{X^*}$.
+
+**Type it.** Signature and expression:
+
+```
+f : X → Y
+```
+
+```
+coev~_X = (id_X* ⊗ ψ⁻¹_X)coev_X*
+```
+
+**Symbolic.** The editor typesets it as
+
+$$
+\widetilde{\mathrm{coev}}_{X} \;=\; (\mathrm{id}_{X^{*}} \otimes \mathrm{\psi ⁻¹}_{X}) \mathrm{coev}_{X}^{*}
+$$
+
+a morphism from $\mathbb{1}$ to $X^{*} \otimes X$.
+
+**Graphical.** Expression → Diagram draws:
+
+![Lemma 2.3  c̃oev_X = (id_X* ⊗ ψ⁻¹_X)coev_X*](img/ex38a.png)
+
+**Simplify.** The same two steps on the cup. The other two formulas of Lemma 2.3 are in the Wolfram notebook, where $\psi_X$ is a real box.
+
+Steps, side by side: side 1: already in normal form; side 2: Lemma 2.3 (X** = X) → ψ = id (X** = X).
+
+Normal form:
+
+$$
+\widetilde{\mathrm{coev}}_{X}
+$$
+
+![Lemma 2.3  c̃oev_X = (id_X* ⊗ ψ⁻¹_X)coev_X*, simplified](img/ex38b.png)
+
+The editor reports: *✓ Both sides reduce to the same normal form, so the equation holds.*
+
+### §2.3.2  ev_((X,−),(Y,+)) = ev_Y(id_Y* ⊗ ẽv_X ⊗ id_Y) (Lemma 2.4)
+
+§2.3.2: a tuple of signed objects $S$ gives a generalized evaluation $\mathrm{ev}_S$, a nest of caps. The book's example is $\mathrm{ev}_{((X,-),(Y,+))}\colon (Y^*\otimes X)\otimes(X^*\otimes Y)\to\mathbb 1$, with $\widetilde{\mathrm{ev}}_X$ inside $\mathrm{ev}_Y$. Lemma 2.4 says $\mathrm{ev}_S = \mathrm{ev}_{X_S}(\Psi_{S^*}\otimes\mathrm{id})$, and with $X^{**}=X$ the isomorphism $\Psi_{S^*}$ is the identity, so $\mathrm{ev}_S$ is the cap $\mathrm{ev}_{X^*\otimes Y}$.
+
+**Type it.** Signature and expression:
+
+```
+f : X → Y
+```
+
+```
+ev_{X*⊗Y} = ev_Y(id_Y* ⊗ ev~_X ⊗ id_Y)
+```
+
+**Symbolic.** The editor typesets it as
+
+$$
+\mathrm{ev}_{X^{*} \otimes Y}
+$$
+
+$$=$$
+
+$$
+\mathrm{ev}_{Y} (\mathrm{id}_{Y^{*}} \otimes \widetilde{\mathrm{ev}}_{X} \otimes \mathrm{id}_{Y})
+$$
+
+a morphism from $Y^{*} \otimes X \otimes X^{*} \otimes Y$ to $\mathbb{1}$.
+
+**Graphical.** Expression → Diagram draws:
+
+![§2.3.2  ev_((X,−),(Y,+)) = ev_Y(id_Y* ⊗ ẽv_X ⊗ id_Y) (Lemma 2.4)](img/ex39a.png)
+
+**Simplify.** **caps and cups on ⊗** splits $\mathrm{ev}_{X^*\otimes Y}$ into $\mathrm{ev}_{X^*}$ inside $\mathrm{ev}_Y$, and Lemma 2.3 renames $\mathrm{ev}_{X^*}$ to $\widetilde{\mathrm{ev}}_X$.
+
+Steps, side by side: side 1: caps and cups on ⊗ → Lemma 2.3 (X** = X); side 2: already in normal form.
+
+Normal form:
+
+$$
+\mathrm{ev}_{Y} (\mathrm{id}_{Y^{*}} \otimes \widetilde{\mathrm{ev}}_{X} \otimes \mathrm{id}_{Y})
+$$
+
+![§2.3.2  ev_((X,−),(Y,+)) = ev_Y(id_Y* ⊗ ẽv_X ⊗ id_Y) (Lemma 2.4), simplified](img/ex39b.png)
+
+The editor reports: *✓ Both sides reduce to the same normal form, so the equation holds.*
+
+### (2.3)  (id_X_S ⊗ ev_S)(coev_S ⊗ id_X_S) = id_X_S, S = ((X,−),(Y,+))
+
+Formula (2.3): $(\mathrm{id}_{X_S}\otimes\mathrm{ev}_S)(\mathrm{coev}_S\otimes\mathrm{id}_{X_S}) = \mathrm{id}_{X_S}$, so $\mathrm{ev}_S$ is a non-degenerate pairing with inverse $\mathrm{coev}_S$. Here $S = ((X,-),(Y,+))$ and $X_S = X^*\otimes Y$.
+
+**Type it.** Signature and expression:
+
+```
+f : X → Y
+```
+
+```
+(id_X* ⊗ id_Y ⊗ ev_{X*⊗Y})(coev_{X*⊗Y} ⊗ id_X* ⊗ id_Y) = id_X* ⊗ id_Y
+```
+
+**Symbolic.** The editor typesets it as
+
+$$
+\begin{aligned}
+&(\mathrm{id}_{X^{*}} \otimes \mathrm{id}_{Y} \otimes \mathrm{ev}_{X^{*} \otimes Y}) \\
+&\;(\mathrm{coev}_{X^{*} \otimes Y} \otimes \mathrm{id}_{X^{*}} \otimes \mathrm{id}_{Y})
+\end{aligned}
+$$
+
+$$=$$
+
+$$
+\mathrm{id}_{X^{*}} \otimes \mathrm{id}_{Y}
+$$
+
+a morphism from $X^{*} \otimes Y$ to $X^{*} \otimes Y$.
+
+**Graphical.** Expression → Diagram draws:
+
+![(2.3)  (id_X_S ⊗ ev_S)(coev_S ⊗ id_X_S) = id_X_S, S = ((X,−),(Y,+))](img/ex40a.png)
+
+**Simplify.** The nested cap and cup are split, and two left zigzags straighten the two arcs.
+
+Steps, side by side: side 1: caps and cups on ⊗ → caps and cups on ⊗ → (2.1) left zigzag → (2.1) left zigzag; side 2: already in normal form.
+
+Normal form:
+
+$$
+\mathrm{id}_{X^{*} \otimes Y}
+$$
+
+![(2.3)  (id_X_S ⊗ ev_S)(coev_S ⊗ id_X_S) = id_X_S, S = ((X,−),(Y,+)), simplified](img/ex40b.png)
+
+The editor reports: *✓ Both sides reduce to the same normal form, so the equation holds.*
+
+## 11. §2.4–2.6 Isotopy, traces and dimensions
+
+### Lemma 2.5  a box turned through 360°
+
+§2.4, Lemma 2.5 and the naturality of $\psi$ in §2.5.1: a box turned through 360°, with its arcs following it round, is the box itself. With $X^{**}=X$ the turned picture is $f^{**}$, written out as two nested copies of Figure 2.3.
+
+**Type it.** Signature and expression:
+
+```
+f : X → Y
+```
+
+```
+(ev_X* ⊗ id_Y)(id_X ⊗ (ev_Y ⊗ id_X*)(id_Y* ⊗ f ⊗ id_X*)(id_Y* ⊗ coev_X) ⊗ id_Y)(id_X ⊗ coev_Y*) = f
+```
+
+**Symbolic.** The editor typesets it as
+
+$$
+\begin{aligned}
+&(\mathrm{ev}_{X}^{*} \otimes \mathrm{id}_{Y}) \\
+&\;(\mathrm{id}_{X} \otimes ((\mathrm{ev}_{Y} \otimes \mathrm{id}_{X^{*}}) (\mathrm{id}_{Y^{*}} \otimes f \otimes \mathrm{id}_{X^{*}}) (\mathrm{id}_{Y^{*}} \otimes \mathrm{coev}_{X})) \otimes \mathrm{id}_{Y}) \\
+&\;(\mathrm{id}_{X} \otimes \mathrm{coev}_{Y}^{*})
+\end{aligned}
+$$
+
+$$=$$
+
+$$
+f
+$$
+
+a morphism from $X$ to $Y$.
+
+**Graphical.** Expression → Diagram draws:
+
+![Lemma 2.5  a box turned through 360°](img/ex41a.png)
+
+**Simplify.** The inner copy folds into $f^*$; the outer cup and cap are on starred colours, so Lemma 2.3 renames them, $f^*$ slides through the cup and becomes $f$, and a right zigzag straightens the rest.
+
+Steps, side by side: side 1: Fig. 2.3 fold (left) → Lemma 2.3 (X** = X) → Fig. 2.4 slide through right coev → Lemma 2.3 (X** = X) → (2.1) right zigzag; side 2: already in normal form.
+
+Normal form:
+
+$$
+f
+$$
+
+![Lemma 2.5  a box turned through 360°, simplified](img/ex41b.png)
+
+The editor reports: *✓ Both sides reduce to the same normal form, so the equation holds.*
+
+### §2.6.1  tr_l(qp) = tr_l(pq)
+
+§2.6.1: the left trace of $f\colon X\to X$ is the loop $\mathrm{tr}_l(f) = \mathrm{ev}_X(\mathrm{id}_{X^*}\otimes f)\widetilde{\mathrm{coev}}_X$. Traces are symmetric: for $p\colon X\to Y$ and $q\colon Y\to X$, $\mathrm{tr}_l(qp)=\mathrm{tr}_l(pq)$.
+
+**Type it.** Signature and expression:
+
+```
+p : X → Y
+q : Y → X
+k : X → X
+m : Y → Y
+```
+
+```
+ev_X(id_X* ⊗ q p)coev~_X = ev_Y(id_Y* ⊗ p q)coev~_Y
+```
+
+**Symbolic.** The editor typesets it as
+
+$$
+\mathrm{ev}_{X} (\mathrm{id}_{X^{*}} \otimes (q p)) \widetilde{\mathrm{coev}}_{X}
+$$
+
+$$=$$
+
+$$
+\mathrm{ev}_{Y} (\mathrm{id}_{Y^{*}} \otimes (p q)) \widetilde{\mathrm{coev}}_{Y}
+$$
+
+a morphism from $\mathbb{1}$ to $\mathbb{1}$.
+
+**Graphical.** Expression → Diagram draws:
+
+![§2.6.1  tr_l(qp) = tr_l(pq)](img/ex42a.png)
+
+**Simplify.** The rule **trace symmetry (§2.6.1)** turns a loop so that its boxes start at the first name in a fixed order. Both sides become the loop with $p$ then $q$ on it.
+
+Steps, side by side: side 1: already in normal form; side 2: trace symmetry (§2.6.1).
+
+Normal form:
+
+$$
+\mathrm{ev}_{X} (\mathrm{id}_{X^{*}} \otimes (q p)) \widetilde{\mathrm{coev}}_{X}
+$$
+
+![§2.6.1  tr_l(qp) = tr_l(pq), simplified](img/ex42b.png)
+
+The editor reports: *✓ Both sides reduce to the same normal form, so the equation holds.*
+
+### §2.6.1  tr_r(qp) = tr_r(pq)
+
+The right trace is the loop the other way round, $\mathrm{tr}_r(f) = \widetilde{\mathrm{ev}}_X(f\otimes\mathrm{id}_{X^*})\mathrm{coev}_X$, with the box on the left leg. It is symmetric too.
+
+**Type it.** Signature and expression:
+
+```
+p : X → Y
+q : Y → X
+k : X → X
+m : Y → Y
+```
+
+```
+ev~_X(q p ⊗ id_X*)coev_X = ev~_Y(p q ⊗ id_Y*)coev_Y
+```
+
+**Symbolic.** The editor typesets it as
+
+$$
+\widetilde{\mathrm{ev}}_{X} ((q p) \otimes \mathrm{id}_{X^{*}}) \mathrm{coev}_{X}
+$$
+
+$$=$$
+
+$$
+\widetilde{\mathrm{ev}}_{Y} ((p q) \otimes \mathrm{id}_{Y^{*}}) \mathrm{coev}_{Y}
+$$
+
+a morphism from $\mathbb{1}$ to $\mathbb{1}$.
+
+**Graphical.** Expression → Diagram draws:
+
+![§2.6.1  tr_r(qp) = tr_r(pq)](img/ex43a.png)
+
+**Simplify.** **trace symmetry** works on right loops as well.
+
+Steps, side by side: side 1: already in normal form; side 2: trace symmetry (§2.6.1).
+
+Normal form:
+
+$$
+\widetilde{\mathrm{ev}}_{X} ((q p) \otimes \mathrm{id}_{X^{*}}) \mathrm{coev}_{X}
+$$
+
+![§2.6.1  tr_r(qp) = tr_r(pq), simplified](img/ex43b.png)
+
+The editor reports: *✓ Both sides reduce to the same normal form, so the equation holds.*
+
+### §2.6.1  tr_l(k) = tr_r(k*)
+
+§2.6.1: $\mathrm{tr}_l(f) = \mathrm{tr}_r(f^*)$. The right trace of the dual box, on a loop coloured $X^*$, is the left trace of the box.
+
+**Type it.** Signature and expression:
+
+```
+p : X → Y
+q : Y → X
+k : X → X
+m : Y → Y
+```
+
+```
+ev_X(id_X* ⊗ k)coev~_X = ev~_X*(k* ⊗ id_X)coev_X*
+```
+
+**Symbolic.** The editor typesets it as
+
+$$
+\mathrm{ev}_{X} (\mathrm{id}_{X^{*}} \otimes k) \widetilde{\mathrm{coev}}_{X}
+$$
+
+$$=$$
+
+$$
+\widetilde{\mathrm{ev}}_{X}^{*} (k^{*} \otimes \mathrm{id}_{X}) \mathrm{coev}_{X}^{*}
+$$
+
+a morphism from $\mathbb{1}$ to $\mathbb{1}$.
+
+**Graphical.** Expression → Diagram draws:
+
+![§2.6.1  tr_l(k) = tr_r(k*)](img/ex44a.png)
+
+**Simplify.** Lemma 2.3 renames the cup and the cap coloured $X^*$; in between, $f^*$ slides through the cup ($\widetilde{\mathrm{coev}}_X$) to become $f$ on the other leg.
+
+Steps, side by side: side 1: already in normal form; side 2: Lemma 2.3 (X** = X) → Fig. 2.4 slide through right coev → Lemma 2.3 (X** = X).
+
+Normal form:
+
+$$
+\mathrm{ev}_{X} (\mathrm{id}_{X^{*}} \otimes k) \widetilde{\mathrm{coev}}_{X}
+$$
+
+![§2.6.1  tr_l(k) = tr_r(k*), simplified](img/ex44b.png)
+
+The editor reports: *✓ Both sides reduce to the same normal form, so the equation holds.*
+
+### §2.6.1  tr_l(k ⊗ m) = tr_l(tr_l(k)·m)
+
+§2.6.1: $\mathrm{tr}_l(f\otimes g) = \mathrm{tr}_l(\mathrm{tr}_l(f)\cdot g)$. The loop coloured $X\otimes Y$ is a loop on $Y$ with a loop on $X$ inside it.
+
+**Type it.** Signature and expression:
+
+```
+p : X → Y
+q : Y → X
+k : X → X
+m : Y → Y
+```
+
+```
+ev_{X⊗Y}(id_Y* ⊗ id_X* ⊗ k ⊗ m)coev~_{X⊗Y} = ev_Y(id_Y* ⊗ (ev_X(id_X* ⊗ k)coev~_X ⊗ m))coev~_Y
+```
+
+**Symbolic.** The editor typesets it as
+
+$$
+\mathrm{ev}_{X \otimes Y} (\mathrm{id}_{Y^{*}} \otimes \mathrm{id}_{X^{*}} \otimes k \otimes m) \widetilde{\mathrm{coev}}_{X \otimes Y}
+$$
+
+$$=$$
+
+$$
+\footnotesize \mathrm{ev}_{Y} (\mathrm{id}_{Y^{*}} \otimes (\mathrm{ev}_{X} (\mathrm{id}_{X^{*}} \otimes k) \widetilde{\mathrm{coev}}_{X}) \otimes m) \widetilde{\mathrm{coev}}_{Y}
+$$
+
+a morphism from $\mathbb{1}$ to $\mathbb{1}$.
+
+**Graphical.** Expression → Diagram draws:
+
+![§2.6.1  tr_l(k ⊗ m) = tr_l(tr_l(k)·m)](img/ex45a.png)
+
+**Simplify.** Splitting the cap and the cup on $X\otimes Y$ gives exactly the nested loops of the right side.
+
+Steps, side by side: side 1: caps and cups on ⊗ → caps and cups on ⊗; side 2: already in normal form.
+
+Normal form:
+
+$$
+\footnotesize \mathrm{ev}_{Y} (\mathrm{id}_{Y^{*}} \otimes (\mathrm{ev}_{X} (\mathrm{id}_{X^{*}} \otimes k) \widetilde{\mathrm{coev}}_{X}) \otimes m) \widetilde{\mathrm{coev}}_{Y}
+$$
+
+![§2.6.1  tr_l(k ⊗ m) = tr_l(tr_l(k)·m), simplified](img/ex45b.png)
+
+The editor reports: *✓ Both sides reduce to the same normal form, so the equation holds.*
+
+### §2.6.2  dim_l(X) = dim_r(X*)
+
+§2.6.2: $\dim_l(X) = \mathrm{ev}_X\widetilde{\mathrm{coev}}_X$ and $\dim_r(X) = \widetilde{\mathrm{ev}}_X\mathrm{coev}_X$ are the empty loops, and $\dim_l(X) = \dim_r(X^*)$.
+
+**Type it.** Signature and expression:
+
+```
+p : X → Y
+q : Y → X
+k : X → X
+m : Y → Y
+```
+
+```
+ev_X coev~_X = ev~_X* coev_X*
+```
+
+**Symbolic.** The editor typesets it as
+
+$$
+\mathrm{ev}_{X} \widetilde{\mathrm{coev}}_{X} \;=\; \widetilde{\mathrm{ev}}_{X}^{*} \mathrm{coev}_{X}^{*}
+$$
+
+a morphism from $\mathbb{1}$ to $\mathbb{1}$.
+
+**Graphical.** Expression → Diagram draws:
+
+![§2.6.2  dim_l(X) = dim_r(X*)](img/ex46a.png)
+
+**Simplify.** Lemma 2.3 renames the cup and the cap of the right side, which turns the right loop on $X^*$ into the left loop on $X$.
+
+Steps, side by side: side 1: already in normal form; side 2: Lemma 2.3 (X** = X) → Lemma 2.3 (X** = X).
+
+Normal form:
+
+$$
+\mathrm{ev}_{X} \widetilde{\mathrm{coev}}_{X}
+$$
+
+![§2.6.2  dim_l(X) = dim_r(X*), simplified](img/ex46b.png)
+
+The editor reports: *✓ Both sides reduce to the same normal form, so the equation holds.*
+
+### §2.6.2  isomorphic objects have the same dimension
+
+§2.6.2: isomorphic objects have the same dimensions. For an isomorphism $u\colon X\to Y$ with inverse $u'$, $\dim_l(X) = \mathrm{tr}_l(u'u) = \mathrm{tr}_l(uu') = \dim_l(Y)$. The signature line `inverse u u′` declares $u'$ the inverse of $u$.
+
+**Type it.** Signature and expression:
+
+```
+u : X → Y
+u′ : Y → X
+inverse u u′
+```
+
+```
+ev_X(id_X* ⊗ u′ u)coev~_X = ev_Y(id_Y* ⊗ u u′)coev~_Y
+```
+
+**Symbolic.** The editor typesets it as
+
+$$
+\mathrm{ev}_{X} (\mathrm{id}_{X^{*}} \otimes (u' u)) \widetilde{\mathrm{coev}}_{X}
+$$
+
+$$=$$
+
+$$
+\mathrm{ev}_{Y} (\mathrm{id}_{Y^{*}} \otimes (u u')) \widetilde{\mathrm{coev}}_{Y}
+$$
+
+a morphism from $\mathbb{1}$ to $\mathbb{1}$.
+
+**Graphical.** Expression → Diagram draws:
+
+![§2.6.2  isomorphic objects have the same dimension](img/ex47a.png)
+
+**Simplify.** **trace symmetry** first turns the right side so that it starts at $u$, then **inverse boxes** cancels $u'u$ on both sides, leaving $\dim_l(X)$.
+
+Steps, side by side: side 1: inverse boxes; side 2: trace symmetry (§2.6.1) → inverse boxes.
+
+Normal form:
+
+$$
+\mathrm{ev}_{X} \widetilde{\mathrm{coev}}_{X}
+$$
+
+![§2.6.2  isomorphic objects have the same dimension, simplified](img/ex47b.png)
+
+The editor reports: *✓ Both sides reduce to the same normal form, so the equation holds.*
+
+## 12. §2.7 Spherical categories
+
+### §2.7.1  spherical: tr_l(k) = tr_r(k)
+
+§2.7.1: a spherical category is a pivotal category whose left and right traces agree, $\mathrm{tr}_l(f) = \mathrm{tr}_r(f)$. This example switches on **spherical** under the buttons.
+
+**Type it.** Signature and expression:
+
+```
+p : X → Y
+q : Y → X
+k : X → X
+m : Y → Y
+```
+
+```
+ev_X(id_X* ⊗ k)coev~_X = ev~_X(k ⊗ id_X*)coev_X
+```
+
+**Symbolic.** The editor typesets it as
+
+$$
+\mathrm{ev}_{X} (\mathrm{id}_{X^{*}} \otimes k) \widetilde{\mathrm{coev}}_{X}
+$$
+
+$$=$$
+
+$$
+\widetilde{\mathrm{ev}}_{X} (k \otimes \mathrm{id}_{X^{*}}) \mathrm{coev}_{X}
+$$
+
+a morphism from $\mathbb{1}$ to $\mathbb{1}$.
+
+**Graphical.** Expression → Diagram draws:
+
+![§2.7.1  spherical: tr_l(k) = tr_r(k)](img/ex48a.png)
+
+**Simplify.** With **spherical** on, the rule **sphericity (§2.7.1)** turns a right loop into a left loop. Without it the two traces stay apart, as they should: the Wolfram notebook gives a pivotal category of weighted vector spaces (Example 2.7.2) where they differ.
+
+Steps, side by side: side 1: already in normal form; side 2: sphericity (§2.7.1).
+
+Normal form:
+
+$$
+\mathrm{ev}_{X} (\mathrm{id}_{X^{*}} \otimes k) \widetilde{\mathrm{coev}}_{X}
+$$
+
+![§2.7.1  spherical: tr_l(k) = tr_r(k), simplified](img/ex48b.png)
+
+The editor reports: *✓ Both sides reduce to the same normal form, so the equation holds.*
+
+### §2.7.1  spherical: dim_l(X) = dim_r(X)
+
+In a spherical category the left and right dimensions agree, and $\dim(X)$ is the dimension of $X$.
+
+**Type it.** Signature and expression:
+
+```
+p : X → Y
+q : Y → X
+k : X → X
+m : Y → Y
+```
+
+```
+ev_X coev~_X = ev~_X coev_X
+```
+
+**Symbolic.** The editor typesets it as
+
+$$
+\mathrm{ev}_{X} \widetilde{\mathrm{coev}}_{X} \;=\; \widetilde{\mathrm{ev}}_{X} \mathrm{coev}_{X}
+$$
+
+a morphism from $\mathbb{1}$ to $\mathbb{1}$.
+
+**Graphical.** Expression → Diagram draws:
+
+![§2.7.1  spherical: dim_l(X) = dim_r(X)](img/ex49a.png)
+
+**Simplify.** **sphericity** turns the empty right loop into the empty left loop.
+
+Steps, side by side: side 1: already in normal form; side 2: sphericity (§2.7.1).
+
+Normal form:
+
+$$
+\mathrm{ev}_{X} \widetilde{\mathrm{coev}}_{X}
+$$
+
+![§2.7.1  spherical: dim_l(X) = dim_r(X), simplified](img/ex49b.png)
+
+The editor reports: *✓ Both sides reduce to the same normal form, so the equation holds.*
+
+### Lemma 2.9  a loop pushed across ∞: tr_r(qp) = tr_l(pq)
+
+Lemma 2.9: in a spherical category, a closed diagram may be moved on the sphere $S^2$. Pushing a strand across the point at infinity turns a right trace into a left trace; here $\mathrm{tr}_r(qp)$ on $X$ becomes $\mathrm{tr}_l(pq)$ on $Y$.
+
+**Type it.** Signature and expression:
+
+```
+p : X → Y
+q : Y → X
+k : X → X
+m : Y → Y
+```
+
+```
+ev~_X(q p ⊗ id_X*)coev_X = ev_Y(id_Y* ⊗ p q)coev~_Y
+```
+
+**Symbolic.** The editor typesets it as
+
+$$
+\widetilde{\mathrm{ev}}_{X} ((q p) \otimes \mathrm{id}_{X^{*}}) \mathrm{coev}_{X}
+$$
+
+$$=$$
+
+$$
+\mathrm{ev}_{Y} (\mathrm{id}_{Y^{*}} \otimes (p q)) \widetilde{\mathrm{coev}}_{Y}
+$$
+
+a morphism from $\mathbb{1}$ to $\mathbb{1}$.
+
+**Graphical.** Expression → Diagram draws:
+
+![Lemma 2.9  a loop pushed across ∞: tr_r(qp) = tr_l(pq)](img/ex50a.png)
+
+**Simplify.** The left side goes through **sphericity**, the right side through **trace symmetry**, and both end as the left loop with $p$ then $q$ on it.
+
+Steps, side by side: side 1: sphericity (§2.7.1); side 2: trace symmetry (§2.6.1).
+
+Normal form:
+
+$$
+\mathrm{ev}_{X} (\mathrm{id}_{X^{*}} \otimes (q p)) \widetilde{\mathrm{coev}}_{X}
+$$
+
+![Lemma 2.9  a loop pushed across ∞: tr_r(qp) = tr_l(pq), simplified](img/ex50b.png)
+
+The editor reports: *✓ Both sides reduce to the same normal form, so the equation holds.*
+
+## 13. The two engines
 
 Simplify can run on either of two engines, chosen with **engine** under the buttons:
 
 - **JavaScript (offline):** a port of the Wolfram notebook engine, with the same layered form, the same level exchange and the same rules in the same order. It needs no network.
 - **Wolfram kernel:** the page sends the layered form to the `GraphicalCalculusKernel` API in the Wolfram Cloud, which runs the rules of the Wolfram notebooks (`graphical-calculus-2.1-simplify.nb`, `pivotal-2.1.3.wl`, `penrose-2.2.wl`). The page then compares the kernel's answer with the JavaScript engine and reports any difference.
+
+For §2.3–2.7 the editor works in a strict pivotal category: it identifies $X^{**}$ with $X$ and $\psi_X$ with $\mathrm{id}_X$. The Wolfram notebook `graphical-calculus-2.3-2.7.nb` keeps $X^{**}$ apart from $X$, draws $\psi_X$ as a box, and proves Lemmas 2.2–2.4, Exercise 2.3.3 and Theorem 2.7 (strand by strand) with it; for the editor's inputs the kernel uses the strict forms of the same rules.
 
 On every example in this document, both engines give the same sequence of rules and the same result. In the Wolfram notebooks the same identities are also checked in vector spaces, where $\otimes$ is the Kronecker product and composition is the matrix product.
 
