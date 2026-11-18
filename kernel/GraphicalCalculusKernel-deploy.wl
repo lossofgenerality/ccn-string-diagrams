@@ -2,8 +2,9 @@
 (* GraphicalCalculusKernel: the Wolfram engine behind the "Wolfram kernel" option of string-diagram-editor.html.
 
    HOW TO DEPLOY
-   1. Check gcNotebook and gcPivotal below: graphical-calculus-2.1-simplify.nb (sections 0–19, §2.1.1–2.1.2)
-      and pivotal-2.1.3.wl (sections 20–27, §2.1.3, which defines rulesP), both in Downloads.
+   1. Check gcNotebook, gcPivotal and gcPenrose below: graphical-calculus-2.1-simplify.nb (sections 0–19, §2.1.1–2.1.2),
+      pivotal-2.1.3.wl (sections 20–27, §2.1.3, which defines rulesP) and penrose-2.2.wl (sections 30–35, §2.2,
+      which defines rulesT), all in Downloads.
    2. Evaluate this whole file in one go: Get["…/GraphicalCalculusKernel-deploy.wl"], or paste it into one cell.
       If any check fails it stops before CloudDeploy, so a half-loaded kernel is never deployed.
       It loads the notebook's engine itself, so the engine and the API code always share one context.
@@ -17,7 +18,8 @@
    POST payload_b64 = base64 of UTF-8 JSON
      {"src": [colours], "ls": [{"a": n, "name": "f", "ins": [...], "outs": [...]}, ...],
       "pairings": [["ω","Ω"], ...], "rightFirst": false, "pivotal": false}
-   pivotal: true uses rulesP (duals written X*, ẽv and c̃oev, Figures 2.2–2.4); otherwise rules (§2.1.2, duals ∨X).
+   pivotal: true uses rulesT (duals written X*, ẽv and c̃oev, Figures 2.2–2.4, and the §2.2 rules for caps and cups
+   on a tensor product); otherwise rules (§2.1.2, duals ∨X).
    Reply JSON: {"steps_b64": base64 of [[rule, {"src": [...], "ls": [[a, name, ins, outs], ...]}], ...],
                 "engine": "Wolfram 15."}   or   {"error": "..."}
    Names: "ev_X" <-> Subscript["ev","X"], "coev_X" <-> Subscript["coev","X"],
@@ -36,6 +38,7 @@ $ContextPath = {"System`"};   (* so leftover Global` symbols (rules, normalize, 
 
 gcNotebook = FileNameJoin[{$HomeDirectory, "Downloads", "graphical-calculus-2.1-simplify.nb"}];
 gcPivotal = FileNameJoin[{$HomeDirectory, "Downloads", "pivotal-2.1.3.wl"}];
+gcPenrose = FileNameJoin[{$HomeDirectory, "Downloads", "penrose-2.2.wl"}];
 
 (* load the notebook's engine: evaluate its Input cells, in order, in the current context.
    Cells stored as text are read with Get; cells stored as boxes with ToExpression. With (not Module)
@@ -48,9 +51,11 @@ If[! FileExistsQ[gcNotebook], Print["Notebook not found: ", gcNotebook],
   Print["Loaded ", Length[cells], " code cells from ", name]]];
 If[! FileExistsQ[gcPivotal], Print["Pivotal package not found: ", gcPivotal],
  Quiet[Get[gcPivotal]]; Print["Loaded ", FileNameTake[gcPivotal]]];
-gcReady = AssociationQ[rules] && KeyExistsQ[rules, "(2.1) left zigzag"] && AssociationQ[rulesP] &&
+If[! FileExistsQ[gcPenrose], Print["Penrose package not found: ", gcPenrose],
+ Quiet[Get[gcPenrose]]; Print["Loaded ", FileNameTake[gcPenrose]]];
+gcReady = AssociationQ[rules] && KeyExistsQ[rules, "(2.1) left zigzag"] && AssociationQ[rulesP] && AssociationQ[rulesT] &&
    Length[DownValues[normalize]] > 0 && Length[DownValues[rewriteOnce]] > 0;
-If[! gcReady, Print["The engine (rules, rulesP, normalize, rewriteOnce) did not load in context ", $Context, ". Check gcNotebook."]];
+If[! gcReady, Print["The engine (rules, rulesP, normalize, rewriteOnce) did not load in context ", $Context, ". Check gcNotebook, gcPivotal and gcPenrose."]];
 
 gcSym[s_String] := With[{m = StringCases[s, RegularExpression["^(ev|coev)(~?)_(.+)$"] -> {"$1", "$2", "$3"}]},
    If[m === {}, s, Subscript[If[m[[1, 2]] === "~", OverTilde[m[[1, 1]]], m[[1, 1]]], StringTrim[m[[1, 3]], "{" | "}"]]]];
@@ -78,14 +83,18 @@ gcTrace[ld_LD, rs_] := Module[{l = normalize[ld], steps, r},
     l = normalize[r[[2]]]; If[! MatchQ[l, LD[_List, _List]], Return[$Failed]]; AppendTo[steps, {r[[1]], l}]];
    steps];
 
+(* "right zigzag first": the two zigzag rules change places, everything else keeps its order (as in the editor) *)
+gcRightFirst[rs_Association] := With[{k = Keys[rs], i = First[FirstPosition[Keys[rs], "(2.1) left zigzag"]]},
+   AssociationThread[#, Lookup[rs, #]] &[Join[Take[k, i - 1], {k[[i + 1]], k[[i]]}, Drop[k, i + 1]]]];
+
 gcHandler[payloadB64_String] := Module[{j, ld, rs, steps},
    j = Quiet@Check[ImportByteArray[BaseDecode[payloadB64], "RawJSON"], $Failed];
    If[! AssociationQ[j] || ! ListQ[j["src"]] || ! ListQ[j["ls"]], Return[<|"error" -> "bad payload"|>]];
    If[Length[j["ls"]] > 60, Return[<|"error" -> "diagram too large (more than 60 boxes)"|>]];
    ld = Quiet@Check[gcToLD[j], $Failed];
    If[! gcValidQ[ld], Return[<|"error" -> "the layered form does not fit together (colours or positions)"|>]];
-   rs = If[TrueQ[j["pivotal"]], rulesP, rules];
-   rs = If[TrueQ[j["rightFirst"]], Join[KeyTake[rs, {"(2.1) right zigzag"}], rs], rs];
+   rs = If[TrueQ[j["pivotal"]], rulesT, rules];
+   rs = If[TrueQ[j["rightFirst"]], gcRightFirst[rs], rs];
    steps = Block[{pairings = Replace[Lookup[j, "pairings", {}], Except[_List] -> {}]},
      TimeConstrained[Quiet@gcTrace[ld, rs], 40, $Aborted]];
    If[steps === $Aborted, Return[<|"error" -> "time limit reached"|>]];
@@ -93,7 +102,8 @@ gcHandler[payloadB64_String] := Module[{j, ld, rs, steps},
    <|"steps_b64" -> BaseEncode[ExportByteArray[{#[[1]], gcFromLD[#[[2]]]} & /@ steps, "RawJSON", "Compact" -> True]],
      "engine" -> "Wolfram " <> ToString[$VersionNumber]|>];
 
-(* quick local checks before deploying: they should print "definition of ∨f" and "Fig. 2.4 slide through right ev" *)
+(* quick local checks before deploying: they should print "definition of ∨f", "Fig. 2.4 slide through right ev"
+   and "caps and cups on ⊗" *)
 gcCheck[payload_Association, expected_String] := With[{r = gcHandler[BaseEncode[ExportByteArray[payload, "RawJSON", "Compact" -> True]]]},
    With[{got = If[KeyExistsQ[r, "steps_b64"], ImportByteArray[BaseDecode[r["steps_b64"]], "RawJSON"][[-1, 1]], r]},
     Print["Check: ", got, If[got === expected, "  ✓", "  ✗ expected " <> expected]]; got === expected]];
@@ -104,6 +114,8 @@ gcReady = gcReady && gcCheck[<|"src" -> {"\[Or]Y"}, "ls" -> {
 gcReady = gcReady && gcCheck[<|"src" -> {"X", "Y*"}, "pivotal" -> True, "ls" -> {
     <|"a" -> 1, "name" -> "f*", "ins" -> {"Y*"}, "outs" -> {"X*"}|>,
     <|"a" -> 0, "name" -> "ev~_X", "ins" -> {"X", "X*"}, "outs" -> {}|>}|>, "Fig. 2.4 slide through right ev"];
+gcReady = gcReady && gcCheck[<|"src" -> {"X*", "Y*", "Y", "X"}, "pivotal" -> True, "ls" -> {
+    <|"a" -> 0, "name" -> "ev_{Y\[CircleTimes]X}", "ins" -> {"X*", "Y*", "Y", "X"}, "outs" -> {}|>}|>, "caps and cups on \[CircleTimes]"];
 
 gcDeployed = If[TrueQ[gcReady],
    CloudDeploy[APIFunction[{"payload_b64" -> "String"}, gcHandler[#["payload_b64"]] &, "JSON"],

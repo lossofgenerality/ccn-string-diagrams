@@ -98,7 +98,7 @@ svg:hover .port{opacity:.9}
 <body>
 <header>
   <h1><a href="index.html" style="color:inherit;text-decoration:none">CCN String Diagrams</a></h1>
-  <span class="sub">after Turaev &amp; Virelizier, <i>Monoidal Categories and Topological Field Theory</i>, §2.1 · read bottom → top · ⊗ = side by side · <i>gf</i> = <i>f</i> below <i>g</i></span>
+  <span class="sub">after Turaev &amp; Virelizier, <i>Monoidal Categories and Topological Field Theory</i>, §2.1–2.2 · read bottom → top · ⊗ = side by side · <i>gf</i> = <i>f</i> below <i>g</i></span>
 </header>
 <main>
   <div id="stage">
@@ -168,7 +168,7 @@ svg:hover .port{opacity:.9}
     <section>
       <h2>Signature</h2>
       <textarea id="sig" spellcheck="false"></textarea>
-      <div class="hint">One box per line, <span style="font-family:var(--math);font-size:15px"><i>f</i> : <i>X</i> ⊗ <i>Y</i> → <i>A</i></span>; 𝟙 (or <code>I</code>, <code>1</code>) is the unit. <code>pairing ω Ω</code> declares a non-degenerate pairing ω with inverse Ω. Built in, with “duals: ∨X”: <span style="font-family:var(--math);font-size:15px">ev<sub><i>X</i></sub> : <sup>∨</sup><i>X</i> ⊗ <i>X</i> → 𝟙, coev<sub><i>X</i></sub> : 𝟙 → <i>X</i> ⊗ <sup>∨</sup><i>X</i></span> and <span style="font-family:var(--math);font-size:15px"><sup>∨</sup><i>f</i></span>. With “duals: X*” (pivotal, §2.1.3): <span style="font-family:var(--math);font-size:15px">ev<sub><i>X</i></sub> : <i>X</i><sup>*</sup> ⊗ <i>X</i> → 𝟙, ẽv<sub><i>X</i></sub> : <i>X</i> ⊗ <i>X</i><sup>*</sup> → 𝟙, coev<sub><i>X</i></sub> : 𝟙 → <i>X</i> ⊗ <i>X</i><sup>*</sup>, c̃oev<sub><i>X</i></sub> : 𝟙 → <i>X</i><sup>*</sup> ⊗ <i>X</i></span> and <span style="font-family:var(--math);font-size:15px"><i>f</i><sup>*</sup></span>, with X** = X. Both give a dual box for every declared <i>f</i>.</div>
+      <div class="hint">One box per line, <span style="font-family:var(--math);font-size:15px"><i>f</i> : <i>X</i> ⊗ <i>Y</i> → <i>A</i></span>; 𝟙 (or <code>I</code>, <code>1</code>) is the unit. <code>pairing ω Ω</code> declares a non-degenerate pairing ω with inverse Ω. Built in, with “duals: ∨X”: <span style="font-family:var(--math);font-size:15px">ev<sub><i>X</i></sub> : <sup>∨</sup><i>X</i> ⊗ <i>X</i> → 𝟙, coev<sub><i>X</i></sub> : 𝟙 → <i>X</i> ⊗ <sup>∨</sup><i>X</i></span> and <span style="font-family:var(--math);font-size:15px"><sup>∨</sup><i>f</i></span>. With “duals: X*” (pivotal, §2.1.3): <span style="font-family:var(--math);font-size:15px">ev<sub><i>X</i></sub> : <i>X</i><sup>*</sup> ⊗ <i>X</i> → 𝟙, ẽv<sub><i>X</i></sub> : <i>X</i> ⊗ <i>X</i><sup>*</sup> → 𝟙, coev<sub><i>X</i></sub> : 𝟙 → <i>X</i> ⊗ <i>X</i><sup>*</sup>, c̃oev<sub><i>X</i></sub> : 𝟙 → <i>X</i><sup>*</sup> ⊗ <i>X</i></span> and <span style="font-family:var(--math);font-size:15px"><i>f</i><sup>*</sup></span>, with X** = X. Both give a dual box for every declared <i>f</i>. Caps and cups on a tensor product, such as <code>ev_{Y⊗X}</code>, split into nested caps and cups (§2.2).</div>
     </section>
 
     <section class="insp">
@@ -177,13 +177,13 @@ svg:hover .port{opacity:.9}
     </section>
 
     <section>
-      <h2>Examples from §2.1</h2>
+      <h2>Examples from §2.1–2.2</h2>
       <select id="examples"></select>
       <div class="hint" style="margin-top:8px">Syntax: <b>⊗</b> (or <code>(x)</code>). Composition by juxtaposition, <code>(id_Y ⊗ g)(f ⊗ id_U)</code> or <code>g f</code>, binds tightest (<code>g f ⊗ h</code> = (<i>gf</i>) ⊗ <i>h</i>); <b>∘</b> and <b>;</b> (diagrammatic order) bind loosest. <code>id_X</code>, <code>id_{X⊗Y}</code>, <code>ev_X</code>, <code>coev_X</code>, <code>ev~_X</code> (ẽv), <code>coev~_X</code> (c̃oev), <code>∨X</code>, <code>∨f</code>, <code>X*</code>, <code>f*</code>, postfix <b>†</b>, inline types <code>(f : X → Y)</code>. Separate the sides of an equation with <b>=</b>.</div>
     </section>
   </aside>
 </main>
-<footer><span>By Dara O Shayda and Noor Hoshino (星野ヌール) · © Computational Classnotes · CC BY-NC-SA 4.0</span><span>Rules: unit strands · ⊗-coloured strands · level exchange (Fig. 2.1) · (2.1) zigzags · ∨f and (2.2) · pivotal: Figs. 2.2–2.4</span></footer>
+<footer><span>By Dara O Shayda and Noor Hoshino (星野ヌール) · © Computational Classnotes · CC BY-NC-SA 4.0</span><span>Rules: unit strands · ⊗-coloured strands · level exchange (Fig. 2.1) · (2.1) zigzags · ∨f and (2.2) · pivotal: Figs. 2.2–2.4 · §2.2 caps and cups on ⊗</span></footer>
 
 <script id="core">
 /* ================= CORE: syntax, typing, layout, layered form, rewriting ================= */
@@ -723,8 +723,21 @@ const Core = (() => {
       if (!eqObj(ins(q.B), X) || !eqObj(outs(q.B), Y) || q.a !== p.a + X.length || r.a !== p.a + X.length) return null;
       return [{a:p.a, B:dualGen(q.B)}];
     };
+    // §2.2: a cap or cup on a tensor product is a pair of nested caps or cups (penrose-2.2.wl, section 30)
+    //   ev_(Y⊗X) = ev_X(id_X* ⊗ ev_Y ⊗ id_X),   coev_(Y⊗X) = (id_Y ⊗ coev_X ⊗ id_Y*)coev_Y,  and the same for ẽv, c̃oev
+    const nestCaps = p => {
+      const B = p.B, a = p.a; if (B.t !== 'gen') return null;
+      const sub = evSub(B) ?? coevSub(B) ?? evtSub(B) ?? coevtSub(B); if (sub == null) return null;
+      const X = objOfSub(sub); if (X.length < 2) return null;
+      const h = [X[0]], r = X.slice(1), nr = r.length;
+      if (evSub(B) != null) return [{a:a + nr, B:evGen(h)}, {a, B:evGen(r)}];
+      if (coevSub(B) != null) return [{a, B:coevGen(h)}, {a:a + 1, B:coevGen(r)}];
+      if (evtSub(B) != null) return [{a:a + 1, B:evtGen(r)}, {a, B:evtGen(h)}];
+      return [{a, B:coevtGen(r)}, {a:a + nr, B:coevtGen(h)}];
+    };
     const P = opts.pivotal;
     return [
+      ...(P ? [{name:'caps and cups on ⊗', n:1, fn:nestCaps}] : []),
       {name:'(2.1) left zigzag', n:2, fn:snakeL},
       {name:'(2.1) right zigzag', n:2, fn:snakeR},
       // pivotal names follow pivotal-2.1.3.wl (sections 20–27 of the notebook), which the kernel runs
@@ -735,6 +748,10 @@ const Core = (() => {
       {name:'Fig. 2.4 slide through right ev', n:2, fn:slideEvt},
       {name:'Fig. 2.4 slide through right coev', n:2, fn:slideCoevt},
     ];
+  }
+  function try1(ld, R) {
+    for (let k = 0; k < ld.ls.length; k++) { const rep = R.fn(ld.ls[k]); if (rep) return {src:ld.src, ls:[...ld.ls.slice(0, k), ...rep, ...ld.ls.slice(k + 1)]}; }
+    return null;
   }
   function try2(ld, R) {
     const ls = ld.ls;
@@ -760,7 +777,7 @@ const Core = (() => {
   }
   function simplifyTrace(e, o = {}) {
     let rules = makeRules(o.pairings || []);
-    if (o.rightFirst) rules = [rules[1], rules[0], ...rules.slice(2)];
+    if (o.rightFirst) { const i = rules.findIndex(R => R.name === '(2.1) left zigzag'); rules = [...rules.slice(0, i), rules[i + 1], rules[i], ...rules.slice(i + 2)]; }
     const pretty = ld => tidy(fromLayered(ld), {symmetric:o.symmetric});
     let ld = normalize(toLayered(e));
     const steps = [{rule:'start', e:pretty(ld)}];
@@ -768,7 +785,7 @@ const Core = (() => {
     const seen = new Set([ldKey(ld)]);
     for (let it = 0; it < 50; it++) {
       let hit = null;
-      for (const R of rules) { const r = R.n === 2 ? try2(ld, R) : try3(ld, R); if (r) { hit = {name:R.name, ld:r}; break; } }
+      for (const R of rules) { const r = R.n === 1 ? try1(ld, R) : R.n === 2 ? try2(ld, R) : try3(ld, R); if (r) { hit = {name:R.name, ld:r}; break; } }
       if (!hit) break;
       ld = normalize(hit.ld); const k = ldKey(ld);
       steps.push({rule:hit.name, e:pretty(ld)});
@@ -1277,7 +1294,7 @@ $('#bSvg').onclick = () => {
   sel = s; render();
 };
 
-/* ---------- examples from §2.1 (pp. 31–33) & persistence ---------- */
+/* ---------- examples from §2.1–2.2 (pp. 31–38) & persistence ---------- */
 const SIG = {
   cat:  'f : X → Y\ng : Y → Z',
   mon:  'f : X → Y\ng : U → V',
@@ -1287,6 +1304,8 @@ const SIG = {
   dual: 'f : X → Y\n# ev_X : ∨X ⊗ X → 𝟙 and coev_X : 𝟙 → X ⊗ ∨X are built in',
   piv:  'f : X → Y\n# pivotal (duals: X*). Built in: ev_X : X* ⊗ X → 𝟙, ev~_X (ẽv) : X ⊗ X* → 𝟙,\n# coev_X : 𝟙 → X ⊗ X*, coev~_X (c̃oev) : 𝟙 → X* ⊗ X, and f* : Y* → X*',
   mixed:'f : X* ⊗ Y → U ⊗ V* ⊗ W',
+  pen:  '# §2.2, Figure 2.5 (pp. 37–38)\ng : X ⊗ Z* → X ⊗ V\nh : A → Y* ⊗ B\nk : 𝟙 → Z* ⊗ Y\nl : 𝟙 → 𝟙',
+  ten:  'f : X → Y\n# caps and cups on a tensor product: ev_{Y⊗X}, coev_{Y⊗X}, ev~_{Y⊗X}, coev~_{Y⊗X}',
   ex215:'# Exercise 2.1.5: a non-degenerate pairing ω with inverse Ω\nω : X ⊗ Y → 𝟙\nΩ : 𝟙 → Y ⊗ X\npairing ω Ω\nf : X → X\nh : X → X\ng : Y → Y',
 };
 const EX = [
@@ -1318,6 +1337,12 @@ const EX = [
   ['Figure 2.4  (f* ⊗ id_Y)c̃oev_Y = (id_X* ⊗ f)c̃oev_X', '(f* ⊗ id_Y)coev~_Y = (id_X* ⊗ f)coev~_X', 'piv', 'star'],
   ['Exercise 2.1.5  ψ(φ(f)) = f', '(ω ⊗ id_X)(id_X ⊗ ((id_Y ⊗ ω)(id_Y ⊗ f ⊗ id_Y)(Ω ⊗ id_Y)) ⊗ id_X)(id_X ⊗ Ω) = f', 'ex215', 'star'],
   ['Exercise 2.1.5  φ(hf) = φ(f) φ(h)', '(id_Y ⊗ ω)(id_Y ⊗ h f ⊗ id_Y)(Ω ⊗ id_Y) = ((id_Y ⊗ ω)(id_Y ⊗ f ⊗ id_Y)(Ω ⊗ id_Y))((id_Y ⊗ ω)(id_Y ⊗ h ⊗ id_Y)(Ω ⊗ id_Y))', 'ex215', 'star'],
+  ['§2.2  caps and cups on ⊗: ev_(Y⊗X) = ev_X(id_X* ⊗ ev_Y ⊗ id_X)', 'ev_{Y⊗X} = ev_X(id_X* ⊗ ev_Y ⊗ id_X)', 'ten', 'star'],
+  ['§2.2  caps and cups on ⊗: coev_(Y⊗X) = (id_Y ⊗ coev_X ⊗ id_Y*)coev_Y', 'coev_{Y⊗X} = (id_Y ⊗ coev_X ⊗ id_Y*)coev_Y', 'ten', 'star'],
+  ['§2.2  caps and cups on ⊗: ẽv and c̃oev', 'ev~_{Y⊗X} ⊗ coev~_{Y⊗X} = ev~_Y(id_Y ⊗ ev~_X ⊗ id_Y*) ⊗ (id_X* ⊗ coev~_Y ⊗ id_X)coev~_X', 'ten', 'star'],
+  ['Exercise 2.2.5  (?*₂)⁻¹ ?*₂ = id', '(ev_X ⊗ ev_{Y⊗X} ⊗ id_X* ⊗ id_Y*)(id_X* ⊗ ev_Y ⊗ id_X ⊗ id_X* ⊗ id_Y* ⊗ id_Y ⊗ id_X ⊗ id_X* ⊗ id_Y*)(id_X* ⊗ id_Y* ⊗ id_Y ⊗ id_X ⊗ id_X* ⊗ id_Y* ⊗ id_Y ⊗ coev_X ⊗ id_Y*)(id_X* ⊗ id_Y* ⊗ coev_{Y⊗X} ⊗ coev_Y) = id_X* ⊗ id_Y*', 'ten', 'star'],
+  ['Figure 2.5  a Penrose diagram, strip by strip (p. 38)', '(id_U ⊗ id_U* ⊗ id_A* ⊗ ev_X ⊗ id_V ⊗ id_B)(coev_U ⊗ id_A* ⊗ id_X* ⊗ g ⊗ ev~_Y ⊗ id_B)(id_A* ⊗ ev_X ⊗ coev~_X ⊗ id_Z* ⊗ id_Y ⊗ h ⊗ l)(id_A* ⊗ id_X* ⊗ ev~_X ⊗ id_X ⊗ k ⊗ id_A)(id_A* ⊗ coev~_X ⊗ coev~_X ⊗ id_A)', 'pen', 'star'],
+  ['Lemma 2.1  Figure 2.5 with its zigzag straightened', '(id_U ⊗ id_U* ⊗ id_A* ⊗ ev_X ⊗ id_V ⊗ id_B)(coev_U ⊗ id_A* ⊗ id_X* ⊗ g ⊗ ev~_Y ⊗ id_B)(id_A* ⊗ ev_X ⊗ coev~_X ⊗ id_Z* ⊗ id_Y ⊗ h ⊗ l)(id_A* ⊗ id_X* ⊗ ev~_X ⊗ id_X ⊗ k ⊗ id_A)(id_A* ⊗ coev~_X ⊗ coev~_X ⊗ id_A) = (id_U ⊗ id_U* ⊗ id_A* ⊗ ev_X ⊗ id_V ⊗ id_B)(coev_U ⊗ id_A* ⊗ id_X* ⊗ g ⊗ ev~_Y ⊗ id_B)(id_A* ⊗ ev_X ⊗ coev~_X ⊗ id_Z* ⊗ id_Y ⊗ h ⊗ l)(id_A* ⊗ id_X* ⊗ id_X ⊗ k ⊗ id_A)(id_A* ⊗ coev~_X ⊗ id_A)', 'pen', 'star'],
 ];
 $('#examples').innerHTML = '<option value="">Load an example…</option>' + EX.map((x, i) => `<option value="${i}">${escA(x[0])}</option>`).join('');
 $('#examples').onchange = e => { const x = EX[+e.target.value]; if (!x) return; setDuals(x[3] || 'vee'); $('#sig').value = SIG[x[2]]; $('#expr').value = x[1]; preview(); $('#bE2D').click(); e.target.value = ''; };

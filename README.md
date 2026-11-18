@@ -13,6 +13,7 @@ An editor for the graphical calculus of monoidal categories, after Turaev & Vire
 | `index.html` | The landing page |
 | `string-diagram-editor.html` | The editor: a single self-contained page that runs offline |
 | `kernel/GraphicalCalculusKernel-deploy.wl` | Deploys the Wolfram Cloud API behind the editor's “Wolfram kernel” engine |
+| `kernel/penrose-2.2.wl` | §2.2 in Wolfram: caps and cups on tensor products (`rulesT`), Exercise 2.2.5, signed objects, Penrose diagrams by strips, Figure 2.5 and Lemma 2.1 checks |
 
 ## The editor
 
@@ -21,6 +22,7 @@ An editor for the graphical calculus of monoidal categories, after Turaev & Vire
 - **Expression → Diagram** and **Diagram → Expression**. Equations are written with `=` between the sides.
 - **Simplify**, which applies the rules of §2.1 in priority order and shows every step: level exchange (Figure 2.1), the (2.1) left and right zigzags, the definition of ∨f, and the (2.2) slides through ev and coev. When an equation is entered, the two sides are compared by their normal forms.
 - **Pivotal categories (§2.1.3)**, with the “duals: X*” setting: oriented arcs (an X arc points down, an X* arc points up), ev and ẽv drawn as caps, coev and c̃oev drawn as cups, and the rules for the duality identities (Figure 2.2), the two expressions for f* (Figure 2.3) and the dual morphism identities (Figure 2.4). Type ẽv and c̃oev as `ev~_X` and `coev~_X`, and duals as `X*` and `f*`.
+- **Penrose diagrams (§2.2)**, also with “duals: X*”: caps and cups on a tensor product split into nested caps and cups, ev_(Y⊗X) = ev_X(id_X* ⊗ ev_Y ⊗ id_X) and the same for coev, ẽv and c̃oev. Type them as `ev_{Y⊗X}`. The examples include Exercise 2.2.5 ((?*₂)⁻¹ ?*₂ = id), Figure 2.5 typed in strip by strip as on p. 38, and Lemma 2.1 (Figure 2.5 with its zigzag straightened gives the same morphism).
 
 It uses the book's conventions. Diagrams read bottom to top (sources at the bottom, so in `gf` the box `f` sits below `g`), composition is written by juxtaposition (`gf`) and binds tighter than ⊗, and the unit is 𝟙.
 
@@ -35,7 +37,7 @@ Every Wolfram result is also worked out in JavaScript, and the page reports any 
 
 The “Wolfram kernel” option sends the diagram's layered form to `GraphicalCalculusKernel`, a Wolfram Cloud API that runs the rules of the notebook `graphical-calculus-2.1-simplify.nb`. To redeploy it, evaluate [`kernel/GraphicalCalculusKernel-deploy.wl`](kernel/GraphicalCalculusKernel-deploy.wl) in a signed-in Wolfram session.
 
-Put `graphical-calculus-2.1-simplify.nb` (sections 0–19) and `pivotal-2.1.3.wl` (sections 20–27, which define `rulesP`) in `~/Downloads`, or edit `gcNotebook` and `gcPivotal` at the top of the `.wl` file. The kernel uses `rulesP` for requests with `pivotal: true`. The editor's `ev~_X` and `coev~_X` become `Subscript[OverTilde["ev"], X]` and `Subscript[OverTilde["coev"], X]` there. CloudDeploy runs only when both checks pass. Then evaluate the whole file in a signed-in Wolfram session. It loads the notebook's engine, runs a check and calls `CloudDeploy`. Deploying under the same name keeps the URL.
+Put `graphical-calculus-2.1-simplify.nb` (sections 0–19), `pivotal-2.1.3.wl` (sections 20–27, which define `rulesP`) and `penrose-2.2.wl` (sections 30–35, which define `rulesT`; a copy is in `kernel/`) in `~/Downloads`, or edit `gcNotebook`, `gcPivotal` and `gcPenrose` at the top of the `.wl` file. The kernel uses `rulesT`, which is `rulesP` with the §2.2 rules for caps and cups on a tensor product, for requests with `pivotal: true`. The editor's `ev~_X` and `coev~_X` become `Subscript[OverTilde["ev"], X]` and `Subscript[OverTilde["coev"], X]` there. CloudDeploy runs only when all three checks pass. Then evaluate the whole file in a signed-in Wolfram session. It loads the notebook's engine, runs a check and calls `CloudDeploy`. Deploying under the same name keeps the URL.
 
 ---
 

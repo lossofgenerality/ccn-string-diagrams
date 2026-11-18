@@ -71,7 +71,7 @@ a{color:var(--accent2)}
     <div class="card"><h3>Box-and-arcs editor</h3><p>Boxes, boxes with source or target 𝟙, dots, arc ends and “=” signs. Drag between ports to draw arcs, edit colours, undo, save and export SVG.</p></div>
     <div class="card"><h3>Maths keypad</h3><p>⊗, ∘, 𝟙, <span class="m"><sup style="font-size:.7em">∨</sup>X</span>, id, ev, coev, ω, Ω, Ω′, Greek letters and subscripts, typeset as in the book while you type.</p></div>
     <div class="card"><h3>Expression ⇄ diagram</h3><p>Turns <span class="m">(id<sub>Y</sub> ⊗ <i>g</i>)(<i>f</i> ⊗ id<sub>U</sub>)</span> into a picture and reads a picture back as an expression, side by side for equations.</p></div>
-    <div class="card"><h3>Simplifier, two engines</h3><p>Level exchange (Fig. 2.1), the (2.1) zigzags, the definition of <span class="m"><sup style="font-size:.7em">∨</sup><i>f</i></span>, the (2.2) slides and, for pivotal categories, Figures 2.2–2.4, step by step. It runs offline in JavaScript, or on the Wolfram notebook engine in the cloud, and the two engines are checked against each other.</p></div>
+    <div class="card"><h3>Simplifier, two engines</h3><p>Level exchange (Fig. 2.1), the (2.1) zigzags, the definition of <span class="m"><sup style="font-size:.7em">∨</sup><i>f</i></span>, the (2.2) slides and, for pivotal categories, Figures 2.2–2.4 and the §2.2 caps and cups on tensor products, step by step. It runs offline in JavaScript, or on the Wolfram notebook engine in the cloud, and the two engines are checked against each other.</p></div>
   </div>
 
   <h2>Conventions (from §2.1)</h2>
@@ -81,6 +81,7 @@ a{color:var(--accent2)}
     <li>The unit is 𝟙, and its strands are erased. Every morphism is drawn as a box.</li>
     <li>Built in: <span class="m">ev<sub><i>X</i></sub> : <sup style="font-size:.7em">∨</sup><i>X</i> ⊗ <i>X</i> → 𝟙</span> and <span class="m">coev<sub><i>X</i></sub> : 𝟙 → <i>X</i> ⊗ <sup style="font-size:.7em">∨</sup><i>X</i></span>. Declare a pairing with its inverse with <code>pairing ω Ω</code>.</li>
     <li>Pivotal categories (§2.1.3): with <i>duals: X*</i>, every arc carries an arrow. An arc coloured <span class="m"><i>X</i></span> points down and an arc coloured <span class="m"><i>X</i><sup>*</sup></span> points up. <span class="m">ev, ẽv</span> are caps and <span class="m">coev, c̃oev</span> are cups, and the simplifier knows the duality identities (Figure 2.2), the two expressions for <span class="m"><i>f</i><sup>*</sup></span> (Figure 2.3) and the dual morphism identities (Figure 2.4).</li>
+    <li>Penrose diagrams (§2.2): a cap or cup on a tensor product, such as <span class="m">ev<sub><i>Y</i>⊗<i>X</i></sub></span>, splits into nested caps or cups. Figure 2.5 can be typed in strip by strip, as on p. 38.</li>
   </ul>
 
   <footer><span>By Dara O Shayda and Noor Hoshino (星野ヌール) · © Computational Classnotes · CC BY-NC-SA 4.0</span><span>Source: V. Turaev, A. Virelizier, <i>Monoidal Categories and Topological Field Theory</i>, Progress in Mathematics 322, Springer 2017, §2.1.</span></footer>
