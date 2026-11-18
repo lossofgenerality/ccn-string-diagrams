@@ -4,7 +4,8 @@
    HOW TO DEPLOY
    1. Check gcNotebook below points at your graphical-calculus-2.1.3-pivotal.nb. That notebook loads
       graphical-calculus-2.1-simplify.nb from the same folder and adds the pivotal rules rulesP (§2.1.3).
-   2. Evaluate this whole file (paste it into one cell of a NEW notebook, or Get it).
+   2. Evaluate this whole file in one go: Get["…/GraphicalCalculusKernel-deploy.wl"], or paste it into one cell.
+      If any check fails it stops before CloudDeploy, so a half-loaded kernel is never deployed.
       It loads the notebook's engine itself, so the engine and the API code always share one context.
       You do not need to evaluate the simplify notebook first.
    3. CloudDeploy copies every definition the API uses into the cloud object.
@@ -26,20 +27,26 @@
    By Dara O Shayda and Noor Hoshino (星野ヌール)
    © Computational Classnotes · CC BY-NC-SA 4.0 *)
 
+(* Everything below lives in its own context, so the ClearAll["Global`*"] at the top of the notebooks
+   cannot wipe the loader or the API code, even when this file is evaluated in a Global` notebook. *)
+Begin["GraphicalCalculusKernel`"];
+gcSavedPath = $ContextPath;
+$ContextPath = {"System`"};   (* so leftover Global` symbols (rules, normalize, ...) are not picked up *)
+
 gcNotebook = FileNameJoin[{$HomeDirectory, "Downloads", "graphical-calculus-2.1.3-pivotal.nb"}];
 
 (* load the notebook's engine: evaluate its Input cells, in order, in the current context.
-   Cells stored as text are read with Get; cells stored as boxes with ToExpression. *)
-gcRun[c_String] := Get[StringToStream[c]];
-gcRun[c_] := ToExpression[c, StandardForm];
-Module[{nb, cells, path = gcNotebook},
- If[! FileExistsQ[path], Print["Notebook not found: ", path]; Abort[]];
- nb = Get[path];
- cells = Cases[nb, Cell[c_, "Input" | "Code", ___] :> c, Infinity];
- Scan[Quiet@Check[TimeConstrained[gcRun[#]; Null, 120], Null] &, cells];
- Print["Loaded ", Length[cells], " code cells from ", FileNameTake[path]]];
-If[! (AssociationQ[rules] && KeyExistsQ[rules, "(2.1) left zigzag"] && AssociationQ[rulesP] && Length[DownValues[normalize]] > 0 && Length[DownValues[rewriteOnce]] > 0),
- Print["The engine (rules, rulesP, normalize, rewriteOnce) did not load in context ", $Context, ". Check gcNotebook."]; Abort[]];
+   Cells stored as text are read with Get; cells stored as boxes with ToExpression. With (not Module)
+   puts the values straight into the code, so nothing here depends on a variable that could be cleared. *)
+(* gcReady stays False unless every step below succeeds; CloudDeploy at the end runs only when it is True *)
+gcReady = False;
+If[! FileExistsQ[gcNotebook], Print["Notebook not found: ", gcNotebook],
+ With[{cells = Cases[Get[gcNotebook], Cell[c_, "Input" | "Code", ___] :> c, Infinity], name = FileNameTake[gcNotebook]},
+  Scan[Quiet@Check[TimeConstrained[If[StringQ[#], Get[StringToStream[#]], ToExpression[#, StandardForm]]; Null, 120], Null] &, cells];
+  Print["Loaded ", Length[cells], " code cells from ", name]]];
+gcReady = AssociationQ[rules] && KeyExistsQ[rules, "(2.1) left zigzag"] && AssociationQ[rulesP] &&
+   Length[DownValues[normalize]] > 0 && Length[DownValues[rewriteOnce]] > 0;
+If[! gcReady, Print["The engine (rules, rulesP, normalize, rewriteOnce) did not load in context ", $Context, ". Check gcNotebook."]];
 
 gcSym[s_String] := With[{m = StringCases[s, RegularExpression["^(ev|coev)(~?)_(.+)$"] -> {"$1$2", "$3"}]},
    If[m === {}, s, Subscript[m[[1, 1]], StringTrim[m[[1, 2]], "{" | "}"]]]];
@@ -82,17 +89,21 @@ gcHandler[payloadB64_String] := Module[{j, ld, rs, steps},
      "engine" -> "Wolfram " <> ToString[$VersionNumber]|>];
 
 (* quick local checks before deploying: they should print "definition of ∨f" and "Figure 2.4: slide through ẽv" *)
-gcCheck[payload_Association] := With[{r = gcHandler[BaseEncode[ExportByteArray[payload, "RawJSON", "Compact" -> True]]]},
-   If[KeyExistsQ[r, "steps_b64"], Print["Check: ", ImportByteArray[BaseDecode[r["steps_b64"]], "RawJSON"][[-1, 1]]],
-    Print["Check failed: ", r]; Abort[]]];
-gcCheck[<|"src" -> {"\[Or]Y"}, "ls" -> {
+gcCheck[payload_Association, expected_String] := With[{r = gcHandler[BaseEncode[ExportByteArray[payload, "RawJSON", "Compact" -> True]]]},
+   With[{got = If[KeyExistsQ[r, "steps_b64"], ImportByteArray[BaseDecode[r["steps_b64"]], "RawJSON"][[-1, 1]], r]},
+    Print["Check: ", got, If[got === expected, "  ✓", "  ✗ expected " <> expected]]; got === expected]];
+gcReady = gcReady && gcCheck[<|"src" -> {"\[Or]Y"}, "ls" -> {
     <|"a" -> 1, "name" -> "coev_X", "ins" -> {}, "outs" -> {"X", "\[Or]X"}|>,
     <|"a" -> 1, "name" -> "f", "ins" -> {"X"}, "outs" -> {"Y"}|>,
-    <|"a" -> 0, "name" -> "ev_Y", "ins" -> {"\[Or]Y", "Y"}, "outs" -> {}|>}|>];
-gcCheck[<|"src" -> {"X", "Y*"}, "pivotal" -> True, "ls" -> {
+    <|"a" -> 0, "name" -> "ev_Y", "ins" -> {"\[Or]Y", "Y"}, "outs" -> {}|>}|>, "definition of \[Or]f"];
+gcReady = gcReady && gcCheck[<|"src" -> {"X", "Y*"}, "pivotal" -> True, "ls" -> {
     <|"a" -> 1, "name" -> "f*", "ins" -> {"Y*"}, "outs" -> {"X*"}|>,
-    <|"a" -> 0, "name" -> "ev~_X", "ins" -> {"X", "X*"}, "outs" -> {}|>}|>];
+    <|"a" -> 0, "name" -> "ev~_X", "ins" -> {"X", "X*"}, "outs" -> {}|>}|>, "Figure 2.4: slide through e\:0303v"];
 
-CloudDeploy[
- APIFunction[{"payload_b64" -> "String"}, gcHandler[#["payload_b64"]] &, "JSON"],
- "GraphicalCalculusKernel", Permissions -> "Public"]
+gcDeployed = If[TrueQ[gcReady],
+   CloudDeploy[APIFunction[{"payload_b64" -> "String"}, gcHandler[#["payload_b64"]] &, "JSON"],
+    "GraphicalCalculusKernel", Permissions -> "Public"],
+   "Not deployed: a check failed (see the messages above). The live kernel was left unchanged."];
+$ContextPath = gcSavedPath;
+End[];
+GraphicalCalculusKernel`gcDeployed
