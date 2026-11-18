@@ -89,6 +89,7 @@ svg:hover .port{opacity:.9}
 .node.sel .grip{fill:#c2410c22}
 .swapline{fill:none;stroke:var(--ink);stroke-width:2;pointer-events:none}
 .swapbox{fill:transparent;stroke:transparent}
+.swaphalo{fill:none;stroke:var(--paper,#fbf9f4);stroke-width:11;pointer-events:none}
 .node.sel .swapbox{stroke:var(--sel);stroke-dasharray:4 3}
 .temp{fill:none;stroke:var(--sel);stroke-width:2;stroke-dasharray:5 4;pointer-events:none}
 .arrowhd{fill:var(--ink);pointer-events:none}
@@ -98,7 +99,7 @@ svg:hover .port{opacity:.9}
 <body>
 <header>
   <h1><a href="index.html" style="color:inherit;text-decoration:none">CCN String Diagrams</a></h1>
-  <span class="sub">after Turaev &amp; Virelizier, <i>Monoidal Categories and Topological Field Theory</i>, §2.1–2.7 · read bottom → top · ⊗ = side by side · <i>gf</i> = <i>f</i> below <i>g</i></span>
+  <span class="sub">after Turaev &amp; Virelizier, <i>Monoidal Categories and Topological Field Theory</i>, §2.1–3.2 · read bottom → top · ⊗ = side by side · <i>gf</i> = <i>f</i> below <i>g</i></span>
 </header>
 <main>
   <div id="stage">
@@ -149,6 +150,7 @@ svg:hover .port{opacity:.9}
         <label><input type="checkbox" id="redraw" checked> redraw after simplifying</label>
         <label><input type="checkbox" id="rightFirst"> right zigzag first</label>
         <label title="§2.7: left and right traces agree (pivotal mode only)"><input type="checkbox" id="spherical"> spherical</label>
+        <label title="§3.1.2: the braiding is a symmetry, τ⁻¹_{Y,X} = τ_{X,Y}"><input type="checkbox" id="symmetric"> symmetric</label>
         <label>duals <select id="duals" style="width:auto;font-size:12px;padding:2px"><option value="vee">∨X (§2.1.2)</option><option value="star">X* (§2.1.3, pivotal)</option></select></label>
         <label>engine <select id="engine" style="width:auto;font-size:12px;padding:2px"><option value="js">JavaScript (offline)</option><option value="wl">Wolfram kernel (notebook)</option></select></label>
         <label>composition <select id="cstyle" style="width:auto;font-size:12px;padding:2px"><option value="juxt">gf (book)</option><option value="circ">g ∘ f</option></select></label>
@@ -178,7 +180,7 @@ svg:hover .port{opacity:.9}
     </section>
 
     <section>
-      <h2>Examples from §2.1–2.7</h2>
+      <h2>Examples from §2.1–3.2</h2>
       <select id="examples"></select>
       <div class="hint" style="margin-top:8px">Syntax: <b>⊗</b> (or <code>(x)</code>). Composition by juxtaposition, <code>(id_Y ⊗ g)(f ⊗ id_U)</code> or <code>g f</code>, binds tightest (<code>g f ⊗ h</code> = (<i>gf</i>) ⊗ <i>h</i>); <b>∘</b> and <b>;</b> (diagrammatic order) bind loosest. <code>id_X</code>, <code>id_{X⊗Y}</code>, <code>ev_X</code>, <code>coev_X</code>, <code>ev~_X</code> (ẽv), <code>coev~_X</code> (c̃oev), <code>∨X</code>, <code>∨f</code>, <code>X*</code>, <code>f*</code>, postfix <b>†</b>, inline types <code>(f : X → Y)</code>. Separate the sides of an equation with <b>=</b>.</div>
     </section>
@@ -189,7 +191,7 @@ svg:hover .port{opacity:.9}
 <script id="core">
 /* ================= CORE: syntax, typing, layout, layered form, rewriting ================= */
 const Core = (() => {
-  const opts = {juxt:true, pivotal:false, spherical:false};   // pivotal: duals written X* (§2.1.3); otherwise ∨X (§2.1.2)
+  const opts = {juxt:true, pivotal:false, spherical:false, symmetric:false};   // pivotal: duals written X* (§2.1.3); otherwise ∨X (§2.1.2)
   const UNIT = '𝟙';
   const isW = c => /[A-Za-z0-9Ͱ-Ͽ′'?∨*~⁻¹]/.test(c);
   function tokenize(s) {
@@ -261,13 +263,15 @@ const Core = (() => {
   }
 
   function parseSig(text) {
-    const sig = {}, pairings = [], inverses = [], errs = [];
+    const sig = {}, pairings = [], inverses = [], retracts = [], errs = [];
     text.split(/\n/).forEach((line, ln) => {
       line = line.replace(/(#|\/\/).*$/, '').trim(); if (!line) return;
       const pm = line.match(/^pairing\s+(\S+)\s*,?\s+(\S+)$/);
       if (pm) { pairings.push([pm[1], pm[2]]); return; }
       const im = line.match(/^inverse\s+(\S+)\s*,?\s+(\S+)$/);
       if (im) { inverses.push([im[1], im[2]]); return; }
+      const rm = line.match(/^retract\s+(\S+)\s*,?\s+(\S+)$/);
+      if (rm) { retracts.push([rm[1], rm[2]]); return; }
       const k = line.indexOf(':'); if (k < 0) { errs.push(`Signature line ${ln + 1}: missing “:”`); return; }
       const name = line.slice(0, k).replace(/\s+/g, '');
       try {
@@ -277,7 +281,7 @@ const Core = (() => {
         sig[name] = {dom, cod};
       } catch (e) { errs.push(`Signature line ${ln + 1}: ${e.message}`); }
     });
-    return {sig, pairings, inverses, errs};
+    return {sig, pairings, inverses, retracts, errs};
   }
 
   function lookupGen(name, sig) {
@@ -286,6 +290,9 @@ const Core = (() => {
     m = name.match(/^coev_(.+)$/); if (m) return coevGen(objOfSub(m[1]));
     m = name.match(/^ev~_(.+)$/); if (m) return evtGen(objOfSub(m[1]));
     m = name.match(/^coev~_(.+)$/); if (m) return coevtGen(objOfSub(m[1]));
+    // §3.1.1: the braiding τ_{X,Y} : X ⊗ Y → Y ⊗ X and τ⁻¹_{Y,X} : X ⊗ Y → Y ⊗ X, the inverse of τ_{Y,X}
+    m = name.match(/^τ(⁻¹)?_\{?([^,{}]*),([^{}]*)\}?$/);
+    if (m) { const A = objOfSub(m[2]), Bo = objOfSub(m[3]); return m[1] ? {t:'gen', name, dom:[...Bo, ...A], cod:[...A, ...Bo]} : {t:'gen', name, dom:[...A, ...Bo], cod:[...Bo, ...A]}; }
     // §2.3.1: ψ_X : X → X** and its inverse; the editor identifies X** with X (a strict pivotal category)
     m = name.match(/^ψ(⁻¹)?_(.+)$/); if (m && opts.pivotal) { const X = objOfSub(m[2]); return {t:'gen', name, dom:[...X], cod:[...X]}; }
     if (isDualName(name)) { const b = lookupGen(undualName(name), sig); if (b && !b.dom.includes('?') && !b.cod.includes('?')) return dualGen(b); }
@@ -680,7 +687,7 @@ const Core = (() => {
   }
 
   /* ---- the rules of §2.1, in the notebook's priority order ---- */
-  function makeRules(pairings, inverses = []) {
+  function makeRules(pairings, inverses = [], retracts = []) {
     const pairQ = (w, o) => w.t === 'gen' && o.t === 'gen' && (pairings.some(([p, q]) => p === w.name && q === o.name) ||
       (evSub(w) != null && evSub(w) === coevSub(o)) || (evtSub(w) != null && evtSub(w) === coevtSub(o)));
     const isDual = B => B.t === 'gen' && !dualityQ(B) && isDualName(B.name) && undualObj(B.dom) && undualObj(B.cod);
@@ -793,6 +800,52 @@ const Core = (() => {
       }
       return null;
     };
+    // §2.7.3: a retraction, p j = id (signature line “retract p j”)
+    const cancelRetract = (q, r) => q.B.t === 'gen' && r.B.t === 'gen' && q.a === r.a && ins(q.B).length === 1 && outs(q.B).length === 1 &&
+      ins(r.B).length === 1 && eqObj(ins(r.B), outs(q.B)) && eqObj(outs(r.B), ins(q.B)) && retracts.some(([pp, jj]) => pp === r.B.name && jj === q.B.name) ? [] : null;
+    // §3.1–3.2: crossings. τ_{X,Y} : X ⊗ Y → Y ⊗ X (X over), τ⁻¹_{Y,X} : X ⊗ Y → Y ⊗ X (the inverse of τ_{Y,X})
+    const TAU = /^τ(⁻¹)?_\{?([^,{}]*),([^{}]*)\}?$/;
+    const tauOf = B => { if (B.t !== 'gen') return null; const m = B.name.match(TAU); return m ? {pos:!m[1], A:objOfSub(m[2]), B:objOfSub(m[3])} : null; };
+    const tN = o => o.join('⊗');
+    const tauG = (A, Bo) => ({t:'gen', name:'τ_{' + tN(A) + ',' + tN(Bo) + '}', dom:[...A, ...Bo], cod:[...Bo, ...A]});
+    const tauIG = (A, Bo) => ({t:'gen', name:'τ⁻¹_{' + tN(A) + ',' + tN(Bo) + '}', dom:[...Bo, ...A], cod:[...A, ...Bo]});   // inverse of τ_{A,B}
+    const crossing = (pos, l, r) => pos ? tauG([l], [r]) : tauIG([r], [l]);
+    const braidSplit = p => {
+      const t = tauOf(p.B); if (!t) return null; const a = p.a, A = t.A, Bo = t.B;
+      if (!A.length || !Bo.length) return [];
+      if (t.pos && Bo.length > 1) return [{a, B:tauG(A, [Bo[0]])}, {a:a + 1, B:tauG(A, Bo.slice(1))}];
+      if (t.pos && A.length > 1) return [{a:a + 1, B:tauG(A.slice(1), Bo)}, {a, B:tauG([A[0]], Bo)}];
+      if (!t.pos && Bo.length > 1) return [{a:a + 1, B:tauIG(A, Bo.slice(1))}, {a, B:tauIG(A, [Bo[0]])}];
+      if (!t.pos && A.length > 1) return [{a, B:tauIG([A[0]], Bo)}, {a:a + 1, B:tauIG(A.slice(1), Bo)}];
+      return null;
+    };
+    const cross2 = q => { const t = tauOf(q.B); return t && ins(q.B).length === 2 ? t : null; };
+    const cancelCross = (q, r) => { const t1 = cross2(q), t2 = cross2(r); if (!t1 || !t2 || q.a !== r.a) return null;
+      return t1.pos !== t2.pos && eqObj(t1.A, t2.A) && eqObj(t1.B, t2.B) && eqObj(ins(r.B), outs(q.B)) ? [] : null; };
+    const plainBox = B => B.t === 'gen' && !dualityQ(B) && !TAU.test(B.name) && !/^ψ(⁻¹)?_/.test(B.name);
+    const naturalTau = (q, r) => {
+      const t = cross2(q); if (!t || !plainBox(r.B) || ins(r.B).length !== 1 || outs(r.B).length !== 1) return null;
+      const [l, rr] = ins(q.B);
+      if (r.a === q.a && ins(r.B)[0] === rr) return [{a:q.a + 1, B:r.B}, {a:q.a, B:crossing(t.pos, l, outs(r.B)[0])}];
+      if (r.a === q.a + 1 && ins(r.B)[0] === l) return [{a:q.a, B:r.B}, {a:q.a, B:crossing(t.pos, outs(r.B)[0], rr)}];
+      return null;
+    };
+    const yangBaxter = ld => {
+      let row = ld.src.slice(); const ls = ld.ls;
+      for (let k = 0; k + 2 < ls.length; k++) {
+        const c1 = ls[k], c2 = ls[k + 1], c3 = ls[k + 2], t1 = cross2(c1), t2 = cross2(c2), t3 = cross2(c3);
+        if (t1 && t2 && t3 && c2.a === c1.a + 1 && c3.a === c1.a && t1.pos === t2.pos && t2.pos === t3.pos) {
+          const a = c1.a, x = row[a], y = row[a + 1], z = row[a + 2], e = t1.pos;
+          return {src:ld.src, ls:[...ls.slice(0, k), {a:a + 1, B:crossing(e, y, z)}, {a, B:crossing(e, x, z)}, {a:a + 1, B:crossing(e, x, y)}, ...ls.slice(k + 3)]};
+        }
+        row = [...row.slice(0, c1.a), ...outs(c1.B), ...row.slice(c1.a + ins(c1.B).length)];
+      }
+      return null;
+    };
+    // §3.1.2 and Remark 3.2.3: a symmetric braiding, τ⁻¹_{Y,X} = τ_{X,Y}
+    const symmetricTau = p => { const t = tauOf(p.B); return t && !t.pos ? [{a:p.a, B:tauG(t.B, t.A)}] : null; };
+    const cancelSym = (q, r) => { const t1 = cross2(q), t2 = cross2(r); if (!t1 || !t2 || !t1.pos || !t2.pos || q.a !== r.a) return null;
+      return eqObj(ins(r.B), outs(q.B)) ? [] : null; };
     const P = opts.pivotal;
     return [
       ...(P ? [{name:'caps and cups on ⊗', n:1, fn:nestCaps}] : []),
@@ -809,6 +862,13 @@ const Core = (() => {
       ...(P ? [{name:'Lemma 2.3 (X** = X)', n:1, fn:lemma23}, {name:'ψ = id (X** = X)', n:1, fn:psiId},
                {name:'trace symmetry (§2.6.1)', n:'ld', fn:traceTurn}, {name:'inverse boxes', n:2, fn:cancelInv}] : []),
       ...(P && opts.spherical ? [{name:'sphericity (§2.7.1)', n:'ld', fn:sphericity}] : []),
+      // §2.7.3 and §3.1–3.2 (braided-2.7-3.2.wl, sections 50–52), in the kernel's order
+      {name:'braiding on ⊗ (3.1)–(3.3)', n:1, fn:braidSplit},
+      {name:'retract (§2.7.3)', n:2, fn:cancelRetract},
+      {name:'R2 (§3.2.2)', n:2, fn:cancelCross},
+      {name:'R4, R5: naturality of τ', n:2, fn:naturalTau},
+      {name:'R3: Yang–Baxter', n:'ld', fn:yangBaxter},
+      ...(opts.symmetric ? [{name:'symmetry (§3.1.2)', n:1, fn:symmetricTau}, {name:'τ_Y,X τ_X,Y = id (§3.1.2)', n:2, fn:cancelSym}] : []),
     ];
   }
   function try1(ld, R) {
@@ -838,7 +898,7 @@ const Core = (() => {
     return null;
   }
   function simplifyTrace(e, o = {}) {
-    let rules = makeRules(o.pairings || [], o.inverses || []);
+    let rules = makeRules(o.pairings || [], o.inverses || [], o.retracts || []);
     if (o.rightFirst) { const i = rules.findIndex(R => R.name === '(2.1) left zigzag'); rules = [...rules.slice(0, i), rules[i + 1], rules[i], ...rules.slice(i + 2)]; }
     const pretty = ld => tidy(fromLayered(ld), {symmetric:o.symmetric});
     let ld = normalize(toLayered(e));
@@ -903,6 +963,8 @@ function mathText(t, name, fs = 18) {
 
 /* ---------- render ---------- */
 const baseColour = c => c.replace(/\*+$/, '');
+// §3.2.1: τ_{X,Y} and τ⁻¹_{Y,X} on two lines are drawn as crossings, the over-pass unbroken (Figure 3.1)
+const braidOf = n => n.kind === 'box' && n.nIn === 2 && n.nOut === 2 && /^τ(⁻¹)?_/.test(n.label || '') ? (n.label.startsWith('τ⁻¹') ? 'neg' : 'pos') : null;
 const capCup = n => !Core.opts.pivotal || n.kind !== 'box' ? null
   : (/^(ev|ev~)_/.test(n.label) && n.nIn === 2 && n.nOut === 0) ? 'cap'
   : (/^(coev|coev~)_/.test(n.label) && n.nIn === 0 && n.nOut === 2) ? 'cup' : null;
@@ -952,6 +1014,14 @@ function render() {
       el('circle', {cx:n.x, cy:n.y, r:9, class:'dot'}, g);
       el('circle', {cx:n.x, cy:n.y, r:22, fill:'transparent'}, g);
       if (n.label) { const t = el('text', {x:n.x + 16, y:n.y - 1, class:'dlbl'}, g); mathText(t, n.label, 18); }
+    } else if (braidOf(n)) {
+      const pos = braidOf(n) === 'pos', i0 = portPos(n, 'in', 0), i1 = portPos(n, 'in', 1), o0 = portPos(n, 'out', 0), o1 = portPos(n, 'out', 1);
+      const over = pos ? wirePath(i0, o1) : wirePath(i1, o0), under = pos ? wirePath(i1, o0) : wirePath(i0, o1);
+      el('rect', {x:n.x - nodeW(n) / 2, y:n.y - BH / 2, width:nodeW(n), height:BH, class:'swapbox'}, g);
+      el('path', {d:under, class:'swapline'}, g);
+      el('path', {d:over, class:'swaphalo'}, g);
+      el('path', {d:over, class:'swapline'}, g);
+      el('title', {}, g).textContent = n.label;
     } else if (capCup(n)) {
       // §2.1.3: ev and ẽv are caps, coev and c̃oev are cups
       const cap = capCup(n) === 'cap', side = cap ? 'in' : 'out', p1 = portPos(n, side, 0), p2 = portPos(n, side, 1);
@@ -1242,7 +1312,7 @@ function b64enc(str) { const bytes = new TextEncoder().encode(str); let bin = ''
 function b64dec(b) { return new TextDecoder().decode(Uint8Array.from(atob(b), c => c.charCodeAt(0))); }
 function ldPayload(e, S) {
   const ld = Core.toLayered(e);
-  return {src:ld.src, pairings:S.pairings, inverses:S.inverses || [], rightFirst:$('#rightFirst').checked, pivotal:Core.opts.pivotal, spherical:Core.opts.pivotal && Core.opts.spherical,
+  return {src:ld.src, pairings:S.pairings, inverses:S.inverses || [], retracts:S.retracts || [], rightFirst:$('#rightFirst').checked, pivotal:Core.opts.pivotal, spherical:Core.opts.pivotal && Core.opts.spherical, symmetric:Core.opts.symmetric,
     ls:ld.ls.map(({a, B}) => { const t = Core.typeOf(B); return {a, name:B.t === 'swap' ? '__σ_' + B.a.length : B.name, ins:t.dom, outs:t.cod}; })};
 }
 function ldFromReply(o) {
@@ -1275,7 +1345,7 @@ $('#bSimp').onclick = async () => {
   if (!es && !$('#expr').value.trim() && D.nodes.length) { try { es = diagramToExprs().es; } catch (err) { showError(err.message); return; } }
   if (!es) { showError($('#perr').textContent || 'Nothing to simplify.'); return; }
   const S = sig();
-  const jsRs = es.map(e => Core.simplifyTrace(e, {pairings:S.pairings, inverses:S.inverses, rightFirst:$('#rightFirst').checked}));
+  const jsRs = es.map(e => Core.simplifyTrace(e, {pairings:S.pairings, inverses:S.inverses, retracts:S.retracts, rightFirst:$('#rightFirst').checked}));
   let rs = jsRs, note = '';
   if ($('#engine').value === 'wl') {
     const b = $('#bSimp'); b.disabled = true; b.textContent = 'Asking Wolfram…';
@@ -1356,7 +1426,7 @@ $('#bSvg').onclick = () => {
   sel = s; render();
 };
 
-/* ---------- examples from §2.1–2.7 (pp. 31–50) & persistence ---------- */
+/* ---------- examples from §2.1–3.2 (pp. 31–58) & persistence ---------- */
 const SIG = {
   cat:  'f : X → Y\ng : Y → Z',
   mon:  'f : X → Y\ng : U → V',
@@ -1371,6 +1441,8 @@ const SIG = {
   dd:   'f : X → Y\n# §2.3: ψ_X : X → X** (the editor identifies X** with X, so ψ_X = id_X)',
   tr:   'p : X → Y\nq : Y → X\nk : X → X\nm : Y → Y',
   iso:  'u : X → Y\nu′ : Y → X\ninverse u u′',
+  hs:   'f : X → X\nj : X → Y\np : Y → X\nretract p j',
+  br:   'f : X → X\ng : Y → Y',
   ex215:'# Exercise 2.1.5: a non-degenerate pairing ω with inverse Ω\nω : X ⊗ Y → 𝟙\nΩ : 𝟙 → Y ⊗ X\npairing ω Ω\nf : X → X\nh : X → X\ng : Y → Y',
 };
 const EX = [
@@ -1425,12 +1497,29 @@ const EX = [
   ['§2.7.1  spherical: tr_l(k) = tr_r(k)', 'ev_X(id_X* ⊗ k)coev~_X = ev~_X(k ⊗ id_X*)coev_X', 'tr', 'sph'],
   ['§2.7.1  spherical: dim_l(X) = dim_r(X)', 'ev_X coev~_X = ev~_X coev_X', 'tr', 'sph'],
   ['Lemma 2.9  a loop pushed across ∞: tr_r(qp) = tr_l(pq)', 'ev~_X(q p ⊗ id_X*)coev_X = ev_Y(id_Y* ⊗ p q)coev~_Y', 'tr', 'sph'],
+  ['§2.7.3  Lemma 2.10: tr_l(j f p) = tr_l(f)', 'ev_Y(id_Y* ⊗ j f p)coev~_Y = ev_X(id_X* ⊗ f)coev~_X', 'hs', 'star'],
+  ['(3.1)  τ_{X,Y⊗Z} = (id_Y ⊗ τ_{X,Z})(τ_{X,Y} ⊗ id_Z)', 'τ_{X,Y⊗Z} = (id_Y ⊗ τ_{X,Z})(τ_{X,Y} ⊗ id_Z)', 'br', 'vee'],
+  ['(3.2)  τ_{X⊗Y,Z} = (τ_{X,Z} ⊗ id_Y)(id_X ⊗ τ_{Y,Z})', 'τ_{X⊗Y,Z} = (τ_{X,Z} ⊗ id_Y)(id_X ⊗ τ_{Y,Z})', 'br', 'vee'],
+  ['§3.1.1  naturality: τ_{X,Y}(f ⊗ g) = (g ⊗ f)τ_{X,Y}', 'τ_{X,Y}(f ⊗ g) = (g ⊗ f)τ_{X,Y}', 'br', 'vee'],
+  ['Exercise 3.1.12  the Yang–Baxter equation', '(τ_{Y,Z} ⊗ id_X)(id_Y ⊗ τ_{X,Z})(τ_{X,Y} ⊗ id_Z) = (id_Z ⊗ τ_{X,Y})(τ_{X,Z} ⊗ id_Y)(id_X ⊗ τ_{Y,Z})', 'br', 'vee'],
+  ['Exercise 3.1.12  naturality for τ_{Y,Z} gives Yang–Baxter', 'τ_{X,Z⊗Y}(id_X ⊗ τ_{Y,Z}) = (τ_{Y,Z} ⊗ id_X)τ_{X,Y⊗Z}', 'br', 'vee'],
+  ['Figure 3.1  the two crossings', 'τ_{X,Y} ⊗ τ⁻¹_{Y,X}', 'br', 'vee'],
+  ['R2  τ⁻¹_{X,Y} τ_{X,Y} = id', 'τ⁻¹_{X,Y} τ_{X,Y} = id_X ⊗ id_Y', 'br', 'vee'],
+  ['R3  with inverse crossings', '(τ⁻¹_{Z,Y} ⊗ id_X)(id_Y ⊗ τ⁻¹_{Z,X})(τ⁻¹_{Y,X} ⊗ id_Z) = (id_Z ⊗ τ⁻¹_{Y,X})(τ⁻¹_{Z,X} ⊗ id_Y)(id_X ⊗ τ⁻¹_{Z,Y})', 'br', 'vee'],
+  ['R4  a strand passes over a box', '(id_Y ⊗ f)τ_{X,Y} = τ_{X,Y}(f ⊗ id_Y)', 'br', 'vee'],
+  ['R5  a strand passes under a box', '(id_Y ⊗ f)τ⁻¹_{Y,X} = τ⁻¹_{Y,X}(f ⊗ id_Y)', 'br', 'vee'],
+  ['Lemma 3.1  an upward strand crosses a box', '(g ⊗ id_X*)τ_{X*,Y} = τ_{X*,Y}(id_X* ⊗ g)', 'br', 'star'],
+  ['§3.1.2  a symmetry: τ_{Y,X} τ_{X,Y} = id', 'τ_{Y,X} τ_{X,Y} = id_X ⊗ id_Y', 'br', 'sym'],
+  ['Remark 3.2.3  over- and under-passes agree', 'τ⁻¹_{Y,X} = τ_{X,Y}', 'br', 'sym'],
 ];
 $('#examples').innerHTML = '<option value="">Load an example…</option>' + EX.map((x, i) => `<option value="${i}">${escA(x[0])}</option>`).join('');
 $('#examples').onchange = e => { const x = EX[+e.target.value]; if (!x) return; setDuals(x[3] || 'vee'); $('#sig').value = SIG[x[2]]; $('#expr').value = x[1]; preview(); $('#bE2D').click(); e.target.value = ''; };
-function setDuals(v) { if (v === 'sph') { v = 'star'; $('#spherical').checked = true; } else if (v === 'star' || v === 'vee') $('#spherical').checked = false;
+function setDuals(v) { $('#symmetric').checked = v === 'sym' || v === 'symstar'; if (v === 'sym') v = 'vee'; if (v === 'symstar') v = 'star';
+  Core.opts.symmetric = $('#symmetric').checked;
+  if (v === 'sph') { v = 'star'; $('#spherical').checked = true; } else if (v === 'star' || v === 'vee') $('#spherical').checked = false;
   $('#duals').value = v; Core.opts.pivotal = v === 'star'; Core.opts.spherical = $('#spherical').checked; }
 $('#spherical').onchange = () => { Core.opts.spherical = $('#spherical').checked; save(); };
+$('#symmetric').onchange = () => { Core.opts.symmetric = $('#symmetric').checked; save(); };
 $('#duals').onchange = () => { setDuals($('#duals').value); preview(); render(); save(); };
 const KEY = 'ccn-graphical-calculus-tv-v3';
 function save() { try { localStorage.setItem(KEY, JSON.stringify({D, expr:$('#expr').value, sig:$('#sig').value, DIR, engine:$('#engine').value, wlurl:$('#wlurl').value, duals:$('#duals').value})); } catch (_) {} }

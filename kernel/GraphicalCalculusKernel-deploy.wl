@@ -5,8 +5,8 @@
    1. Keep this file with the engine files in one folder, gcDir below (Desktop/Research/Monoidal Graphical Calculus).
       Check gcNotebook, gcPivotal, gcPenrose and gcDuals below: graphical-calculus-2.1-simplify.nb (sections 0–19,
       §2.1.1–2.1.2), pivotal-2.1.3.wl (sections 20–27, §2.1.3, which defines rulesP), penrose-2.2.wl (sections 30–35,
-      §2.2, which defines rulesT) and pivotal-2.3-2.7.wl (sections 40–47, §2.3–2.7, which defines rulesD and rulesS),
-      all in gcDir.
+      §2.2, which defines rulesT), pivotal-2.3-2.7.wl (sections 40–47, §2.3–2.7, which defines rulesD and rulesS) and
+      braided-2.7-3.2.wl (sections 50–55, §2.7.3 and §3.1–3.2, which defines rulesB, rulesDB, rulesSB), all in gcDir.
    2. Evaluate this whole file in one go: Get["…/GraphicalCalculusKernel-deploy.wl"], or paste it into one cell.
       If any check fails it stops before CloudDeploy, so a half-loaded kernel is never deployed.
       It loads the notebook's engine itself, so the engine and the API code always share one context.
@@ -19,15 +19,18 @@
    PROTOCOL (the same base64-JSON style as LaplacianLabKernel and CameraKernel)
    POST payload_b64 = base64 of UTF-8 JSON
      {"src": [colours], "ls": [{"a": n, "name": "f", "ins": [...], "outs": [...]}, ...],
-      "pairings": [["ω","Ω"], ...], "inverses": [["u","u′"], ...], "rightFirst": false, "pivotal": false, "spherical": false}
+      "pairings": [["ω","Ω"], ...], "inverses": [["u","u′"], ...], "retracts": [["p","j"], ...], "rightFirst": false, "pivotal": false,
+      "spherical": false, "symmetric": false}
    pivotal: true uses rulesD (duals written X*, ẽv and c̃oev, Figures 2.2–2.4, the §2.2 rules for caps and cups on a
    tensor product, and the §2.3–2.6 rules: Lemma 2.3, ψ, trace symmetry, inverse boxes); with spherical: true it uses
-   rulesS, which adds sphericity (§2.7.1). Otherwise it uses rules (§2.1.2, duals ∨X).
+   rulesS, which adds sphericity (§2.7.1). Otherwise it uses rules (§2.1.2, duals ∨X). Every set also has the braiding
+   rules of §3.1–3.2 (rulesB, rulesDB, rulesSB); symmetric: true adds the symmetry rules of §3.1.2.
    Reply JSON: {"steps_b64": base64 of [[rule, {"src": [...], "ls": [[a, name, ins, outs], ...]}], ...],
                 "engine": "Wolfram 15."}   or   {"error": "..."}
    Names: "ev_X" <-> Subscript["ev","X"], "coev_X" <-> Subscript["coev","X"],
    "ev~_X" <-> Subscript[OverTilde["ev"],"X"] (ẽv), "coev~_X" <-> Subscript[OverTilde["coev"],"X"] (c̃oev),
-   "ψ_X" <-> Subscript["ψ","X"], "ψ⁻¹_X" <-> Subscript[Superscript["ψ","-1"],"X"];
+   "ψ_X" <-> Subscript["ψ","X"], "ψ⁻¹_X" <-> Subscript[Superscript["ψ","-1"],"X"],
+   "τ_{X,Y}" <-> Subscript["τ","X,Y"], "τ⁻¹_{Y,X}" <-> Subscript[Superscript["τ","-1"],"Y,X"];
    other names are plain strings.
    The API only runs the rewrite rules on the data it is sent (no code is evaluated), so it needs no key.
 
@@ -45,6 +48,7 @@ gcNotebook = FileNameJoin[{gcDir, "graphical-calculus-2.1-simplify.nb"}];
 gcPivotal = FileNameJoin[{gcDir, "pivotal-2.1.3.wl"}];
 gcPenrose = FileNameJoin[{gcDir, "penrose-2.2.wl"}];
 gcDuals = FileNameJoin[{gcDir, "pivotal-2.3-2.7.wl"}];
+gcBraid = FileNameJoin[{gcDir, "braided-2.7-3.2.wl"}];
 
 (* load the notebook's engine: evaluate its Input cells, in order, in the current context.
    Cells stored as text are read with Get; cells stored as boxes with ToExpression. With (not Module)
@@ -61,16 +65,22 @@ If[! FileExistsQ[gcPenrose], Print["Penrose package not found: ", gcPenrose],
  Quiet[Get[gcPenrose]]; Print["Loaded ", FileNameTake[gcPenrose]]];
 If[! FileExistsQ[gcDuals], Print["§2.3–2.7 package not found: ", gcDuals],
  Quiet[Get[gcDuals]]; Print["Loaded ", FileNameTake[gcDuals]]];
+If[! FileExistsQ[gcBraid], Print["§3.1–3.2 package not found: ", gcBraid],
+ Quiet[Get[gcBraid]]; Print["Loaded ", FileNameTake[gcBraid]]];
 gcReady = AssociationQ[rules] && KeyExistsQ[rules, "(2.1) left zigzag"] && AssociationQ[rulesP] && AssociationQ[rulesT] &&
-   AssociationQ[rulesD] && AssociationQ[rulesS] &&
+   AssociationQ[rulesD] && AssociationQ[rulesS] && AssociationQ[rulesB] && AssociationQ[rulesDB] && AssociationQ[rulesSB] &&
    Length[DownValues[normalize]] > 0 && Length[DownValues[rewriteOnce]] > 0;
-If[! gcReady, Print["The engine (rules, rulesP, normalize, rewriteOnce) did not load in context ", $Context, ". Check gcNotebook, gcPivotal, gcPenrose and gcDuals."]];
+If[! gcReady, Print["The engine (rules, rulesP, normalize, rewriteOnce) did not load in context ", $Context, ". Check gcNotebook, gcPivotal, gcPenrose, gcDuals and gcBraid."]];
 
 gcSym[s_String] := With[{m = StringCases[s, RegularExpression["^(ev|coev)(~?)_(.+)$"] -> {"$1", "$2", "$3"}]},
    Which[m =!= {}, Subscript[If[m[[1, 2]] === "~", OverTilde[m[[1, 1]]], m[[1, 1]]], StringTrim[m[[1, 3]], "{" | "}"]],
+    StringStartsQ[s, "\[Tau]\:207b\:00b9_"], Subscript[Superscript["\[Tau]", "-1"], StringTrim[StringDrop[s, 4], "{" | "}"]],
+    StringStartsQ[s, "\[Tau]_"], Subscript["\[Tau]", StringTrim[StringDrop[s, 2], "{" | "}"]],
     StringStartsQ[s, "\[Psi]\:207b\:00b9_"], Subscript[Superscript["\[Psi]", "-1"], StringTrim[StringDrop[s, 4], "{" | "}"]],
     StringStartsQ[s, "\[Psi]_"], Subscript["\[Psi]", StringTrim[StringDrop[s, 2], "{" | "}"]],
     True, s]];
+gcName[Subscript["\[Tau]", x_String]] := "\[Tau]_{" <> x <> "}";
+gcName[Subscript[Superscript["\[Tau]", "-1"], x_String]] := "\[Tau]\:207b\:00b9_{" <> x <> "}";
 gcName[Subscript[Superscript["\[Psi]", "-1"], x_String]] := "\[Psi]\:207b\:00b9_" <> If[StringContainsQ[x, "\[CircleTimes]"], "{" <> x <> "}", x];
 gcName[Subscript[OverTilde[h_String], x_String]] := h <> "~_" <> If[StringContainsQ[x, "\[CircleTimes]"], "{" <> x <> "}", x];
 gcName[Subscript[h_String, x_String]] := h <> "_" <> If[StringContainsQ[x, "\[CircleTimes]"], "{" <> x <> "}", x];
@@ -106,10 +116,12 @@ gcHandler[payloadB64_String] := Module[{j, ld, rs, steps},
    If[Length[j["ls"]] > 60, Return[<|"error" -> "diagram too large (more than 60 boxes)"|>]];
    ld = Quiet@Check[gcToLD[j], $Failed];
    If[! gcValidQ[ld], Return[<|"error" -> "the layered form does not fit together (colours or positions)"|>]];
-   rs = If[TrueQ[j["pivotal"]], If[TrueQ[j["spherical"]], rulesS, rulesD], rules];
+   rs = If[TrueQ[j["pivotal"]], If[TrueQ[j["spherical"]], rulesSB, rulesDB], rulesB];
+   rs = If[TrueQ[j["symmetric"]], withSymmetry[rs], rs];
    rs = If[TrueQ[j["rightFirst"]], gcRightFirst[rs], rs];
    steps = Block[{pairings = Replace[Lookup[j, "pairings", {}], Except[_List] -> {}],
-      inverses = Replace[Lookup[j, "inverses", {}], Except[_List] -> {}]},
+      inverses = Replace[Lookup[j, "inverses", {}], Except[_List] -> {}],
+      retracts = Replace[Lookup[j, "retracts", {}], Except[_List] -> {}]},
      TimeConstrained[Quiet@gcTrace[ld, rs], 40, $Aborted]];
    If[steps === $Aborted, Return[<|"error" -> "time limit reached"|>]];
    If[! ListQ[steps], Return[<|"error" -> "the engine did not return a layered form (are rules/normalize loaded in this context?)"|>]];
@@ -117,7 +129,7 @@ gcHandler[payloadB64_String] := Module[{j, ld, rs, steps},
      "engine" -> "Wolfram " <> ToString[$VersionNumber]|>];
 
 (* quick local checks before deploying: they should print "definition of ∨f", "Fig. 2.4 slide through right ev",
-   "caps and cups on ⊗", "(2.1) right zigzag" (ψ_X written out, X** = X) and "trace symmetry (§2.6.1)" *)
+   "caps and cups on ⊗", "(2.1) right zigzag" (ψ_X written out, X** = X), "trace symmetry (§2.6.1)" and "R3: Yang–Baxter" *)
 gcCheck[payload_Association, expected_String] := With[{r = gcHandler[BaseEncode[ExportByteArray[payload, "RawJSON", "Compact" -> True]]]},
    With[{got = If[KeyExistsQ[r, "steps_b64"], ImportByteArray[BaseDecode[r["steps_b64"]], "RawJSON"][[-1, 1]], r]},
     Print["Check: ", got, If[got === expected, "  ✓", "  ✗ expected " <> expected]]; got === expected]];
@@ -138,6 +150,10 @@ gcReady = gcReady && gcCheck[<|"src" -> {}, "pivotal" -> True, "ls" -> {
     <|"a" -> 1, "name" -> "q", "ins" -> {"X"}, "outs" -> {"Y"}|>,
     <|"a" -> 1, "name" -> "p", "ins" -> {"Y"}, "outs" -> {"X"}|>,
     <|"a" -> 0, "name" -> "ev_X", "ins" -> {"X*", "X"}, "outs" -> {}|>}|>, "trace symmetry (\[Section]2.6.1)"];
+gcReady = gcReady && gcCheck[<|"src" -> {"X", "Y", "Z"}, "ls" -> {
+    <|"a" -> 0, "name" -> "\[Tau]_{X,Y}", "ins" -> {"X", "Y"}, "outs" -> {"Y", "X"}|>,
+    <|"a" -> 1, "name" -> "\[Tau]_{X,Z}", "ins" -> {"X", "Z"}, "outs" -> {"Z", "X"}|>,
+    <|"a" -> 0, "name" -> "\[Tau]_{Y,Z}", "ins" -> {"Y", "Z"}, "outs" -> {"Z", "Y"}|>}|>, "R3: Yang\[Dash]Baxter"];
 
 gcDeployed = If[TrueQ[gcReady],
    CloudDeploy[APIFunction[{"payload_b64" -> "String"}, gcHandler[#["payload_b64"]] &, "JSON"],
