@@ -98,7 +98,7 @@ svg:hover .port{opacity:.9}
 <body>
 <header>
   <h1><a href="index.html" style="color:inherit;text-decoration:none">CCN String Diagrams</a></h1>
-  <span class="sub">after Turaev &amp; Virelizier, <i>Monoidal Categories and Topological Field Theory</i>, §2.1–2.2 · read bottom → top · ⊗ = side by side · <i>gf</i> = <i>f</i> below <i>g</i></span>
+  <span class="sub">after Turaev &amp; Virelizier, <i>Monoidal Categories and Topological Field Theory</i>, §2.1–2.7 · read bottom → top · ⊗ = side by side · <i>gf</i> = <i>f</i> below <i>g</i></span>
 </header>
 <main>
   <div id="stage">
@@ -148,6 +148,7 @@ svg:hover .port{opacity:.9}
       <div class="opts">
         <label><input type="checkbox" id="redraw" checked> redraw after simplifying</label>
         <label><input type="checkbox" id="rightFirst"> right zigzag first</label>
+        <label title="§2.7: left and right traces agree (pivotal mode only)"><input type="checkbox" id="spherical"> spherical</label>
         <label>duals <select id="duals" style="width:auto;font-size:12px;padding:2px"><option value="vee">∨X (§2.1.2)</option><option value="star">X* (§2.1.3, pivotal)</option></select></label>
         <label>engine <select id="engine" style="width:auto;font-size:12px;padding:2px"><option value="js">JavaScript (offline)</option><option value="wl">Wolfram kernel (notebook)</option></select></label>
         <label>composition <select id="cstyle" style="width:auto;font-size:12px;padding:2px"><option value="juxt">gf (book)</option><option value="circ">g ∘ f</option></select></label>
@@ -177,7 +178,7 @@ svg:hover .port{opacity:.9}
     </section>
 
     <section>
-      <h2>Examples from §2.1–2.2</h2>
+      <h2>Examples from §2.1–2.7</h2>
       <select id="examples"></select>
       <div class="hint" style="margin-top:8px">Syntax: <b>⊗</b> (or <code>(x)</code>). Composition by juxtaposition, <code>(id_Y ⊗ g)(f ⊗ id_U)</code> or <code>g f</code>, binds tightest (<code>g f ⊗ h</code> = (<i>gf</i>) ⊗ <i>h</i>); <b>∘</b> and <b>;</b> (diagrammatic order) bind loosest. <code>id_X</code>, <code>id_{X⊗Y}</code>, <code>ev_X</code>, <code>coev_X</code>, <code>ev~_X</code> (ẽv), <code>coev~_X</code> (c̃oev), <code>∨X</code>, <code>∨f</code>, <code>X*</code>, <code>f*</code>, postfix <b>†</b>, inline types <code>(f : X → Y)</code>. Separate the sides of an equation with <b>=</b>.</div>
     </section>
@@ -188,9 +189,9 @@ svg:hover .port{opacity:.9}
 <script id="core">
 /* ================= CORE: syntax, typing, layout, layered form, rewriting ================= */
 const Core = (() => {
-  const opts = {juxt:true, pivotal:false};   // pivotal: duals written X* (§2.1.3); otherwise ∨X (§2.1.2)
+  const opts = {juxt:true, pivotal:false, spherical:false};   // pivotal: duals written X* (§2.1.3); otherwise ∨X (§2.1.2)
   const UNIT = '𝟙';
-  const isW = c => /[A-Za-z0-9Ͱ-Ͽ′'?∨*~]/.test(c);
+  const isW = c => /[A-Za-z0-9Ͱ-Ͽ′'?∨*~⁻¹]/.test(c);
   function tokenize(s) {
     s = s.replace(/𝟙/gu, ' I ').replace(/∗/g, '*').replace(/ẽv/g, 'ev~').replace(/c̃oev/g, 'coev~');
     const out = []; let i = 0;
@@ -260,11 +261,13 @@ const Core = (() => {
   }
 
   function parseSig(text) {
-    const sig = {}, pairings = [], errs = [];
+    const sig = {}, pairings = [], inverses = [], errs = [];
     text.split(/\n/).forEach((line, ln) => {
       line = line.replace(/(#|\/\/).*$/, '').trim(); if (!line) return;
       const pm = line.match(/^pairing\s+(\S+)\s*,?\s+(\S+)$/);
       if (pm) { pairings.push([pm[1], pm[2]]); return; }
+      const im = line.match(/^inverse\s+(\S+)\s*,?\s+(\S+)$/);
+      if (im) { inverses.push([im[1], im[2]]); return; }
       const k = line.indexOf(':'); if (k < 0) { errs.push(`Signature line ${ln + 1}: missing “:”`); return; }
       const name = line.slice(0, k).replace(/\s+/g, '');
       try {
@@ -274,7 +277,7 @@ const Core = (() => {
         sig[name] = {dom, cod};
       } catch (e) { errs.push(`Signature line ${ln + 1}: ${e.message}`); }
     });
-    return {sig, pairings, errs};
+    return {sig, pairings, inverses, errs};
   }
 
   function lookupGen(name, sig) {
@@ -283,6 +286,8 @@ const Core = (() => {
     m = name.match(/^coev_(.+)$/); if (m) return coevGen(objOfSub(m[1]));
     m = name.match(/^ev~_(.+)$/); if (m) return evtGen(objOfSub(m[1]));
     m = name.match(/^coev~_(.+)$/); if (m) return coevtGen(objOfSub(m[1]));
+    // §2.3.1: ψ_X : X → X** and its inverse; the editor identifies X** with X (a strict pivotal category)
+    m = name.match(/^ψ(⁻¹)?_(.+)$/); if (m && opts.pivotal) { const X = objOfSub(m[2]); return {t:'gen', name, dom:[...X], cod:[...X]}; }
     if (isDualName(name)) { const b = lookupGen(undualName(name), sig); if (b && !b.dom.includes('?') && !b.cod.includes('?')) return dualGen(b); }
     if (name.endsWith('†') && sig[name.slice(0, -1)]) return dagger(lookupGen(name.slice(0, -1), sig));
     return null;
@@ -675,10 +680,12 @@ const Core = (() => {
   }
 
   /* ---- the rules of §2.1, in the notebook's priority order ---- */
-  function makeRules(pairings) {
+  function makeRules(pairings, inverses = []) {
     const pairQ = (w, o) => w.t === 'gen' && o.t === 'gen' && (pairings.some(([p, q]) => p === w.name && q === o.name) ||
       (evSub(w) != null && evSub(w) === coevSub(o)) || (evtSub(w) != null && evtSub(w) === coevtSub(o)));
     const isDual = B => B.t === 'gen' && !dualityQ(B) && isDualName(B.name) && undualObj(B.dom) && undualObj(B.cod);
+    // with X** = X the kernel's folds and slides only see caps and cups on unstarred colours (a starred one goes through Lemma 2.3)
+    const plain = X => !opts.pivotal || X.every(a => !a.endsWith('*'));
     // (2.1): Ω directly below ω, joined by one line (|X| = |Y| = 1 as in the notebook; longer colours also work)
     const lens = (w, o) => { const d = ins(w), c = outs(o); for (let k = 1; k < d.length; k++) if (match(c, [...d.slice(k), ...d.slice(0, k)])) return {x:k, y:d.length - k}; return null; };
     const snakeL = (p, q) => { if (ins(p.B).length === 0 && outs(q.B).length === 0 && pairQ(q.B, p.B)) { const L = lens(q.B, p.B); if (L && q.a === p.a + L.y) return []; } return null; };
@@ -686,40 +693,40 @@ const Core = (() => {
     // (2.2): slide ∨f through ev or coev
     const slideEv = (p, q) => {
       const s = evSub(q.B); if (s == null || !isDual(p.B) || q.a !== p.a) return null;
-      const X = objOfSub(s); if (!eqObj(outs(p.B), dualObj(X))) return null;
-      const Y = undualObj(ins(p.B)); const f = {t:'gen', name:undualName(p.B.name), dom:X, cod:Y};
+      const X = objOfSub(s); if (!plain(X) || !eqObj(outs(p.B), dualObj(X))) return null;
+      const Y = undualObj(ins(p.B)); if (!plain(Y)) return null; const f = {t:'gen', name:undualName(p.B.name), dom:X, cod:Y};
       return [{a:p.a + Y.length, B:f}, {a:p.a, B:evGen(Y)}];
     };
     const slideCoev = (p, q) => {
       const s = coevSub(p.B); if (s == null || !isDual(q.B)) return null;
-      const Y = objOfSub(s); if (q.a !== p.a + Y.length || !eqObj(ins(q.B), dualObj(Y))) return null;
-      const X = undualObj(outs(q.B)); const f = {t:'gen', name:undualName(q.B.name), dom:X, cod:Y};
+      const Y = objOfSub(s); if (!plain(Y) || q.a !== p.a + Y.length || !eqObj(ins(q.B), dualObj(Y))) return null;
+      const X = undualObj(outs(q.B)); if (!plain(X)) return null; const f = {t:'gen', name:undualName(q.B.name), dom:X, cod:Y};
       return [{a:p.a, B:coevGen(X)}, {a:p.a, B:f}];
     };
     // §2.1.3, Figure 2.4, second line: ẽv_X(id_X ⊗ f*) = ẽv_Y(f ⊗ id_Y*),  (f* ⊗ id_Y)c̃oev_Y = (id_X* ⊗ f)c̃oev_X
     const slideEvt = (p, q) => {
       const s = evtSub(q.B); if (s == null || !isDual(p.B)) return null;
-      const X = objOfSub(s); if (q.a !== p.a - X.length || !eqObj(outs(p.B), dualObj(X))) return null;
-      const Y = undualObj(ins(p.B)); const f = {t:'gen', name:undualName(p.B.name), dom:X, cod:Y};
+      const X = objOfSub(s); if (!plain(X) || q.a !== p.a - X.length || !eqObj(outs(p.B), dualObj(X))) return null;
+      const Y = undualObj(ins(p.B)); if (!plain(Y)) return null; const f = {t:'gen', name:undualName(p.B.name), dom:X, cod:Y};
       return [{a:q.a, B:f}, {a:q.a, B:evtGen(Y)}];
     };
     const slideCoevt = (p, q) => {
       const s = coevtSub(p.B); if (s == null || !isDual(q.B)) return null;
-      const Y = objOfSub(s); if (q.a !== p.a || !eqObj(ins(q.B), dualObj(Y))) return null;
-      const X = undualObj(outs(q.B)); const f = {t:'gen', name:undualName(q.B.name), dom:X, cod:Y};
+      const Y = objOfSub(s); if (!plain(Y) || q.a !== p.a || !eqObj(ins(q.B), dualObj(Y))) return null;
+      const X = undualObj(outs(q.B)); if (!plain(X)) return null; const f = {t:'gen', name:undualName(q.B.name), dom:X, cod:Y};
       return [{a:p.a, B:coevtGen(X)}, {a:p.a + X.length, B:f}];
     };
     // definition of ∨f, read right to left
     const foldDual = (p, q, r) => {
       const s = coevSub(p.B), t = evSub(r.B); if (s == null || t == null || q.B.t !== 'gen' || dualityQ(q.B)) return null;
-      const X = objOfSub(s), Y = objOfSub(t);
+      const X = objOfSub(s), Y = objOfSub(t); if (!plain(X) || !plain(Y)) return null;
       if (!eqObj(ins(q.B), X) || !eqObj(outs(q.B), Y) || q.a !== p.a || r.a !== p.a - Y.length) return null;
       return [{a:p.a - Y.length, B:dualGen(q.B)}];
     };
     // §2.1.3, Figure 2.3, right: f* = (id_X* ⊗ ẽv_Y)(id_X* ⊗ f ⊗ id_Y*)(c̃oev_X ⊗ id_Y*)
     const foldDualR = (p, q, r) => {
       const s = coevtSub(p.B), t = evtSub(r.B); if (s == null || t == null || q.B.t !== 'gen' || dualityQ(q.B)) return null;
-      const X = objOfSub(s), Y = objOfSub(t);
+      const X = objOfSub(s), Y = objOfSub(t); if (!plain(X) || !plain(Y)) return null;
       if (!eqObj(ins(q.B), X) || !eqObj(outs(q.B), Y) || q.a !== p.a + X.length || r.a !== p.a + X.length) return null;
       return [{a:p.a, B:dualGen(q.B)}];
     };
@@ -735,6 +742,57 @@ const Core = (() => {
       if (evtSub(B) != null) return [{a:a + 1, B:evtGen(r)}, {a, B:evtGen(h)}];
       return [{a, B:coevtGen(r)}, {a:a + nr, B:coevtGen(h)}];
     };
+    // §2.3.1, Lemma 2.3 with X** = X and ψ_X = id_X: a cap or cup coloured X* is the other cap or cup coloured X
+    const lemma23 = p => {
+      const B = p.B; if (B.t !== 'gen') return null;
+      const one = s => { const o = objOfSub(s); return o.length === 1 && o[0].endsWith('*') ? o[0].slice(0, -1) : null; };
+      let x;
+      if ((x = evSub(B) != null ? one(evSub(B)) : null)) return [{a:p.a, B:evtGen([x])}];
+      if ((x = evtSub(B) != null ? one(evtSub(B)) : null)) return [{a:p.a, B:evGen([x])}];
+      if ((x = coevSub(B) != null ? one(coevSub(B)) : null)) return [{a:p.a, B:coevtGen([x])}];
+      if ((x = coevtSub(B) != null ? one(coevtSub(B)) : null)) return [{a:p.a, B:coevGen([x])}];
+      return null;
+    };
+    const psiId = p => p.B.t === 'gen' && /^ψ(⁻¹)?_/.test(p.B.name) && eqObj(ins(p.B), outs(p.B)) ? [] : null;
+    // inverse boxes: u⁻¹ directly above u on the same line cancel (signature line “inverse u u′”)
+    const invQ = (s, t) => inverses.some(([u, v]) => (u === s && v === t) || (u === t && v === s));
+    const cancelInv = (p, q) => p.B.t === 'gen' && q.B.t === 'gen' && p.a === q.a && ins(p.B).length === 1 && outs(p.B).length === 1 &&
+      ins(q.B).length === 1 && outs(q.B).length === 1 && eqObj(outs(p.B), ins(q.B)) && eqObj(ins(p.B), outs(q.B)) && invQ(p.B.name, q.B.name) ? [] : null;
+    // §2.6.1 trace symmetry: a loop whose boxes sit on one leg is turned to start at the first box in code-point order;
+    // §2.7.1 sphericity (spherical categories only): a right loop ẽv_X (f ⊗ id) coev_X becomes the left loop ev_X (id ⊗ f) c̃oev_X
+    const oneLine = B => B.t === 'gen' && !dualityQ(B) && ins(B).length === 1 && outs(B).length === 1;
+    const loopAt = (ls, i) => {
+      const c = ls[i]; if (c.B.t !== 'gen' || ins(c.B).length || outs(c.B).length !== 2) return null;
+      const left = coevtSub(c.B) != null; if (!left && coevSub(c.B) == null) return null;
+      const side = left ? c.a + 1 : c.a; let j = i + 1; const chain = [];
+      while (j < ls.length && ls[j].a === side && oneLine(ls[j].B)) { chain.push(ls[j].B); j++; }
+      if (j >= ls.length || ls[j].a !== c.a || ls[j].B.t !== 'gen' || outs(ls[j].B).length) return null;
+      if (left ? evSub(ls[j].B) == null : evtSub(ls[j].B) == null) return null;
+      const sub = left ? coevtSub(c.B) : coevSub(c.B); if (objOfSub(sub).length !== 1) return null;
+      return {i, j, a:c.a, left, chain, x:objOfSub(sub)[0]};
+    };
+    const loopLayers = (a, left, chain, x0) => {
+      const x = chain.length ? ins(chain[0])[0] : x0;
+      return left ? [{a, B:coevtGen([x])}, ...chain.map(B => ({a:a + 1, B})), {a, B:evGen([x])}]
+                  : [{a, B:coevGen([x])}, ...chain.map(B => ({a, B})), {a, B:evtGen([x])}];
+    };
+    const keyOf = ch => ch.map(B => B.name).join('|');
+    const traceTurn = ld => {
+      for (let i = 0; i < ld.ls.length; i++) {
+        const L = loopAt(ld.ls, i); if (!L || L.chain.length < 2) continue;
+        let best = L.chain;
+        for (let r = 1; r < L.chain.length; r++) { const c = [...L.chain.slice(r), ...L.chain.slice(0, r)]; if (keyOf(c) < keyOf(best)) best = c; }
+        if (best !== L.chain) return {src:ld.src, ls:[...ld.ls.slice(0, L.i), ...loopLayers(L.a, L.left, best, L.x), ...ld.ls.slice(L.j + 1)]};
+      }
+      return null;
+    };
+    const sphericity = ld => {
+      for (let i = 0; i < ld.ls.length; i++) {
+        const L = loopAt(ld.ls, i); if (!L || L.left) continue;
+        return {src:ld.src, ls:[...ld.ls.slice(0, L.i), ...loopLayers(L.a, true, L.chain, L.x), ...ld.ls.slice(L.j + 1)]};
+      }
+      return null;
+    };
     const P = opts.pivotal;
     return [
       ...(P ? [{name:'caps and cups on ⊗', n:1, fn:nestCaps}] : []),
@@ -747,6 +805,10 @@ const Core = (() => {
       {name:P ? 'Fig. 2.4 slide through coev' : '(2.2) slide through coev', n:2, fn:slideCoev},
       {name:'Fig. 2.4 slide through right ev', n:2, fn:slideEvt},
       {name:'Fig. 2.4 slide through right coev', n:2, fn:slideCoevt},
+      // §2.3–2.7 (pivotal-2.3-2.7.wl, sections 40–44), in the kernel's order
+      ...(P ? [{name:'Lemma 2.3 (X** = X)', n:1, fn:lemma23}, {name:'ψ = id (X** = X)', n:1, fn:psiId},
+               {name:'trace symmetry (§2.6.1)', n:'ld', fn:traceTurn}, {name:'inverse boxes', n:2, fn:cancelInv}] : []),
+      ...(P && opts.spherical ? [{name:'sphericity (§2.7.1)', n:'ld', fn:sphericity}] : []),
     ];
   }
   function try1(ld, R) {
@@ -776,7 +838,7 @@ const Core = (() => {
     return null;
   }
   function simplifyTrace(e, o = {}) {
-    let rules = makeRules(o.pairings || []);
+    let rules = makeRules(o.pairings || [], o.inverses || []);
     if (o.rightFirst) { const i = rules.findIndex(R => R.name === '(2.1) left zigzag'); rules = [...rules.slice(0, i), rules[i + 1], rules[i], ...rules.slice(i + 2)]; }
     const pretty = ld => tidy(fromLayered(ld), {symmetric:o.symmetric});
     let ld = normalize(toLayered(e));
@@ -785,7 +847,7 @@ const Core = (() => {
     const seen = new Set([ldKey(ld)]);
     for (let it = 0; it < 50; it++) {
       let hit = null;
-      for (const R of rules) { const r = R.n === 1 ? try1(ld, R) : R.n === 2 ? try2(ld, R) : try3(ld, R); if (r) { hit = {name:R.name, ld:r}; break; } }
+      for (const R of rules) { const r = R.n === 'ld' ? R.fn(ld) : R.n === 1 ? try1(ld, R) : R.n === 2 ? try2(ld, R) : try3(ld, R); if (r) { hit = {name:R.name, ld:r}; break; } }
       if (!hit) break;
       ld = normalize(hit.ld); const k = ldKey(ld);
       steps.push({rule:hit.name, e:pretty(ld)});
@@ -1180,7 +1242,7 @@ function b64enc(str) { const bytes = new TextEncoder().encode(str); let bin = ''
 function b64dec(b) { return new TextDecoder().decode(Uint8Array.from(atob(b), c => c.charCodeAt(0))); }
 function ldPayload(e, S) {
   const ld = Core.toLayered(e);
-  return {src:ld.src, pairings:S.pairings, rightFirst:$('#rightFirst').checked, pivotal:Core.opts.pivotal,
+  return {src:ld.src, pairings:S.pairings, inverses:S.inverses || [], rightFirst:$('#rightFirst').checked, pivotal:Core.opts.pivotal, spherical:Core.opts.pivotal && Core.opts.spherical,
     ls:ld.ls.map(({a, B}) => { const t = Core.typeOf(B); return {a, name:B.t === 'swap' ? '__σ_' + B.a.length : B.name, ins:t.dom, outs:t.cod}; })};
 }
 function ldFromReply(o) {
@@ -1213,7 +1275,7 @@ $('#bSimp').onclick = async () => {
   if (!es && !$('#expr').value.trim() && D.nodes.length) { try { es = diagramToExprs().es; } catch (err) { showError(err.message); return; } }
   if (!es) { showError($('#perr').textContent || 'Nothing to simplify.'); return; }
   const S = sig();
-  const jsRs = es.map(e => Core.simplifyTrace(e, {pairings:S.pairings, rightFirst:$('#rightFirst').checked}));
+  const jsRs = es.map(e => Core.simplifyTrace(e, {pairings:S.pairings, inverses:S.inverses, rightFirst:$('#rightFirst').checked}));
   let rs = jsRs, note = '';
   if ($('#engine').value === 'wl') {
     const b = $('#bSimp'); b.disabled = true; b.textContent = 'Asking Wolfram…';
@@ -1294,7 +1356,7 @@ $('#bSvg').onclick = () => {
   sel = s; render();
 };
 
-/* ---------- examples from §2.1–2.2 (pp. 31–38) & persistence ---------- */
+/* ---------- examples from §2.1–2.7 (pp. 31–50) & persistence ---------- */
 const SIG = {
   cat:  'f : X → Y\ng : Y → Z',
   mon:  'f : X → Y\ng : U → V',
@@ -1306,6 +1368,9 @@ const SIG = {
   mixed:'f : X* ⊗ Y → U ⊗ V* ⊗ W',
   pen:  '# §2.2, Figure 2.5 (pp. 37–38)\ng : X ⊗ Z* → X ⊗ V\nh : A → Y* ⊗ B\nk : 𝟙 → Z* ⊗ Y\nl : 𝟙 → 𝟙',
   ten:  'f : X → Y\n# caps and cups on a tensor product: ev_{Y⊗X}, coev_{Y⊗X}, ev~_{Y⊗X}, coev~_{Y⊗X}',
+  dd:   'f : X → Y\n# §2.3: ψ_X : X → X** (the editor identifies X** with X, so ψ_X = id_X)',
+  tr:   'p : X → Y\nq : Y → X\nk : X → X\nm : Y → Y',
+  iso:  'u : X → Y\nu′ : Y → X\ninverse u u′',
   ex215:'# Exercise 2.1.5: a non-degenerate pairing ω with inverse Ω\nω : X ⊗ Y → 𝟙\nΩ : 𝟙 → Y ⊗ X\npairing ω Ω\nf : X → X\nh : X → X\ng : Y → Y',
 };
 const EX = [
@@ -1343,10 +1408,29 @@ const EX = [
   ['Exercise 2.2.5  (?*₂)⁻¹ ?*₂ = id', '(ev_X ⊗ ev_{Y⊗X} ⊗ id_X* ⊗ id_Y*)(id_X* ⊗ ev_Y ⊗ id_X ⊗ id_X* ⊗ id_Y* ⊗ id_Y ⊗ id_X ⊗ id_X* ⊗ id_Y*)(id_X* ⊗ id_Y* ⊗ id_Y ⊗ id_X ⊗ id_X* ⊗ id_Y* ⊗ id_Y ⊗ coev_X ⊗ id_Y*)(id_X* ⊗ id_Y* ⊗ coev_{Y⊗X} ⊗ coev_Y) = id_X* ⊗ id_Y*', 'ten', 'star'],
   ['Figure 2.5  a Penrose diagram, strip by strip (p. 38)', '(id_U ⊗ id_U* ⊗ id_A* ⊗ ev_X ⊗ id_V ⊗ id_B)(coev_U ⊗ id_A* ⊗ id_X* ⊗ g ⊗ ev~_Y ⊗ id_B)(id_A* ⊗ ev_X ⊗ coev~_X ⊗ id_Z* ⊗ id_Y ⊗ h ⊗ l)(id_A* ⊗ id_X* ⊗ ev~_X ⊗ id_X ⊗ k ⊗ id_A)(id_A* ⊗ coev~_X ⊗ coev~_X ⊗ id_A)', 'pen', 'star'],
   ['Lemma 2.1  Figure 2.5 with its zigzag straightened', '(id_U ⊗ id_U* ⊗ id_A* ⊗ ev_X ⊗ id_V ⊗ id_B)(coev_U ⊗ id_A* ⊗ id_X* ⊗ g ⊗ ev~_Y ⊗ id_B)(id_A* ⊗ ev_X ⊗ coev~_X ⊗ id_Z* ⊗ id_Y ⊗ h ⊗ l)(id_A* ⊗ id_X* ⊗ ev~_X ⊗ id_X ⊗ k ⊗ id_A)(id_A* ⊗ coev~_X ⊗ coev~_X ⊗ id_A) = (id_U ⊗ id_U* ⊗ id_A* ⊗ ev_X ⊗ id_V ⊗ id_B)(coev_U ⊗ id_A* ⊗ id_X* ⊗ g ⊗ ev~_Y ⊗ id_B)(id_A* ⊗ ev_X ⊗ coev~_X ⊗ id_Z* ⊗ id_Y ⊗ h ⊗ l)(id_A* ⊗ id_X* ⊗ id_X ⊗ k ⊗ id_A)(id_A* ⊗ coev~_X ⊗ id_A)', 'pen', 'star'],
+  ['§2.3.1  ψ_X = (ẽv_X ⊗ id_X**)(id_X ⊗ coev_X*) = id_X (X** = X)', '(ev~_X ⊗ id_X)(id_X ⊗ coev_X*) = id_X', 'dd', 'star'],
+  ['Lemma 2.2  ψ_X = φ_X', '(ev~_X ⊗ id_X)(id_X ⊗ coev_X*) = (id_X ⊗ ev_X)(coev~_X* ⊗ id_X)', 'dd', 'star'],
+  ['Lemma 2.2  ψ⁻¹_X = ϑ_X = ν_X', 'ψ⁻¹_X = (id_X ⊗ ev~_X*)(coev_X ⊗ id_X) = (ev_X* ⊗ id_X)(id_X ⊗ coev~_X)', 'dd', 'star'],
+  ['Lemma 2.3  ẽv_X = ev_X*(ψ_X ⊗ id_X*)', 'ev~_X = ev_X*(ψ_X ⊗ id_X*)', 'dd', 'star'],
+  ['Lemma 2.3  c̃oev_X = (id_X* ⊗ ψ⁻¹_X)coev_X*', 'coev~_X = (id_X* ⊗ ψ⁻¹_X)coev_X*', 'dd', 'star'],
+  ['§2.3.2  ev_((X,−),(Y,+)) = ev_Y(id_Y* ⊗ ẽv_X ⊗ id_Y) (Lemma 2.4)', 'ev_{X*⊗Y} = ev_Y(id_Y* ⊗ ev~_X ⊗ id_Y)', 'dd', 'star'],
+  ['(2.3)  (id_X_S ⊗ ev_S)(coev_S ⊗ id_X_S) = id_X_S, S = ((X,−),(Y,+))', '(id_X* ⊗ id_Y ⊗ ev_{X*⊗Y})(coev_{X*⊗Y} ⊗ id_X* ⊗ id_Y) = id_X* ⊗ id_Y', 'dd', 'star'],
+  ['Lemma 2.5  a box turned through 360°', '(ev_X* ⊗ id_Y)(id_X ⊗ (ev_Y ⊗ id_X*)(id_Y* ⊗ f ⊗ id_X*)(id_Y* ⊗ coev_X) ⊗ id_Y)(id_X ⊗ coev_Y*) = f', 'dd', 'star'],
+  ['§2.6.1  tr_l(qp) = tr_l(pq)', 'ev_X(id_X* ⊗ q p)coev~_X = ev_Y(id_Y* ⊗ p q)coev~_Y', 'tr', 'star'],
+  ['§2.6.1  tr_r(qp) = tr_r(pq)', 'ev~_X(q p ⊗ id_X*)coev_X = ev~_Y(p q ⊗ id_Y*)coev_Y', 'tr', 'star'],
+  ['§2.6.1  tr_l(k) = tr_r(k*)', 'ev_X(id_X* ⊗ k)coev~_X = ev~_X*(k* ⊗ id_X)coev_X*', 'tr', 'star'],
+  ['§2.6.1  tr_l(k ⊗ m) = tr_l(tr_l(k)·m)', 'ev_{X⊗Y}(id_Y* ⊗ id_X* ⊗ k ⊗ m)coev~_{X⊗Y} = ev_Y(id_Y* ⊗ (ev_X(id_X* ⊗ k)coev~_X ⊗ m))coev~_Y', 'tr', 'star'],
+  ['§2.6.2  dim_l(X) = dim_r(X*)', 'ev_X coev~_X = ev~_X* coev_X*', 'tr', 'star'],
+  ['§2.6.2  isomorphic objects have the same dimension', 'ev_X(id_X* ⊗ u′ u)coev~_X = ev_Y(id_Y* ⊗ u u′)coev~_Y', 'iso', 'star'],
+  ['§2.7.1  spherical: tr_l(k) = tr_r(k)', 'ev_X(id_X* ⊗ k)coev~_X = ev~_X(k ⊗ id_X*)coev_X', 'tr', 'sph'],
+  ['§2.7.1  spherical: dim_l(X) = dim_r(X)', 'ev_X coev~_X = ev~_X coev_X', 'tr', 'sph'],
+  ['Lemma 2.9  a loop pushed across ∞: tr_r(qp) = tr_l(pq)', 'ev~_X(q p ⊗ id_X*)coev_X = ev_Y(id_Y* ⊗ p q)coev~_Y', 'tr', 'sph'],
 ];
 $('#examples').innerHTML = '<option value="">Load an example…</option>' + EX.map((x, i) => `<option value="${i}">${escA(x[0])}</option>`).join('');
 $('#examples').onchange = e => { const x = EX[+e.target.value]; if (!x) return; setDuals(x[3] || 'vee'); $('#sig').value = SIG[x[2]]; $('#expr').value = x[1]; preview(); $('#bE2D').click(); e.target.value = ''; };
-function setDuals(v) { $('#duals').value = v; Core.opts.pivotal = v === 'star'; }
+function setDuals(v) { if (v === 'sph') { v = 'star'; $('#spherical').checked = true; } else if (v === 'star' || v === 'vee') $('#spherical').checked = false;
+  $('#duals').value = v; Core.opts.pivotal = v === 'star'; Core.opts.spherical = $('#spherical').checked; }
+$('#spherical').onchange = () => { Core.opts.spherical = $('#spherical').checked; save(); };
 $('#duals').onchange = () => { setDuals($('#duals').value); preview(); render(); save(); };
 const KEY = 'ccn-graphical-calculus-tv-v3';
 function save() { try { localStorage.setItem(KEY, JSON.stringify({D, expr:$('#expr').value, sig:$('#sig').value, DIR, engine:$('#engine').value, wlurl:$('#wlurl').value, duals:$('#duals').value})); } catch (_) {} }
