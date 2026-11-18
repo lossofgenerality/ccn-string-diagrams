@@ -14,7 +14,7 @@ An editor for the graphical calculus of monoidal categories, after Turaev & Vire
 | `string-diagram-editor.html` | The editor: a single self-contained page that runs offline |
 | `kernel/GraphicalCalculusKernel-deploy.wl` | Deploys the Wolfram Cloud API behind the editor's “Wolfram kernel” engine |
 | `kernel/penrose-2.2.wl` | §2.2 in Wolfram: caps and cups on tensor products (`rulesT`), Exercise 2.2.5, signed objects, Penrose diagrams by strips, Figure 2.5 and Lemma 2.1 checks |
-| `docs/introduction-to-ccn-string-diagrams.md` (and `.pdf`) | Introduction to CCN String Diagrams: every example in the editor, with its expression, its diagram and what Simplify does |
+| `docs/introduction-to-ccn-string-diagrams.md` (and `.pdf`) | Introduction to CCN String Diagrams: every example in the editor, with its expression, its diagram and what Simplify does. The `.md` is self-contained (all images embedded); `docs/README.md` is the same text with linked images, for reading on GitHub |
 
 ## The editor
 
