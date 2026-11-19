@@ -81,6 +81,9 @@ footer{padding:6px 16px;border-top:1px solid var(--line);font-size:12px;color:va
 .dlbl{font-family:var(--math);font-size:18px;dominant-baseline:central;pointer-events:none;fill:var(--ink)}
 .tlabel{font-family:var(--math);font-size:16px;fill:var(--accent2);pointer-events:none}
 .eqsign{font-family:var(--math);font-size:34px;text-anchor:middle;dominant-baseline:central;fill:var(--ink);pointer-events:none}
+.coef{font-family:var(--math);font-size:22px;dominant-baseline:central;fill:var(--ink);pointer-events:none}
+.pdisk{stroke:var(--ink);stroke-width:1.6}
+.sc{font-style:normal}
 .port{fill:#fff;stroke:#9a9384;stroke-width:1.2;cursor:crosshair;opacity:0;transition:opacity .12s}
 svg:hover .port{opacity:.9}
 .port:hover{fill:var(--sel);stroke:var(--sel);opacity:1}
@@ -99,7 +102,7 @@ svg:hover .port{opacity:.9}
 <body>
 <header>
   <h1><a href="index.html" style="color:inherit;text-decoration:none">CCN String Diagrams</a></h1>
-  <span class="sub">after Turaev &amp; Virelizier, <i>Monoidal Categories and Topological Field Theory</i>, §2.1–3.3 · read bottom → top · ⊗ = side by side · <i>gf</i> = <i>f</i> below <i>g</i></span>
+  <span class="sub">after Turaev &amp; Virelizier, <i>Monoidal Categories and Topological Field Theory</i>, §2.1–4.7 · read bottom → top · ⊗ = side by side · <i>gf</i> = <i>f</i> below <i>g</i></span>
 </header>
 <main>
   <div id="stage">
@@ -152,6 +155,7 @@ svg:hover .port{opacity:.9}
         <label title="§2.7: left and right traces agree (pivotal mode only)"><input type="checkbox" id="spherical"> spherical</label>
         <label title="§3.1.2: the braiding is a symmetry, τ⁻¹_{Y,X} = τ_{X,Y}"><input type="checkbox" id="symmetric"> symmetric</label>
         <label title="§3.3.2: a ribbon category, θʳ_X = θˡ_X (pivotal mode only; spherical by Corollary 3.4)"><input type="checkbox" id="ribbon"> ribbon</label>
+        <label title="§4.4–4.7: a pivotal pre-fusion category — linear combinations, ∑_{i∈I}, simple objects and partitions (pivotal mode only)"><input type="checkbox" id="prefusion"> pre-fusion</label>
         <label>duals <select id="duals" style="width:auto;font-size:12px;padding:2px"><option value="vee">∨X (§2.1.2)</option><option value="star">X* (§2.1.3, pivotal)</option></select></label>
         <label>engine <select id="engine" style="width:auto;font-size:12px;padding:2px"><option value="js">JavaScript (offline)</option><option value="wl">Wolfram kernel (notebook)</option></select></label>
         <label>composition <select id="cstyle" style="width:auto;font-size:12px;padding:2px"><option value="juxt">gf (book)</option><option value="circ">g ∘ f</option></select></label>
@@ -181,18 +185,18 @@ svg:hover .port{opacity:.9}
     </section>
 
     <section>
-      <h2>Examples from §2.1–3.3</h2>
+      <h2>Examples from §2.1–4.7</h2>
       <select id="examples"></select>
       <div class="hint" style="margin-top:8px">Syntax: <b>⊗</b> (or <code>(x)</code>). Composition by juxtaposition, <code>(id_Y ⊗ g)(f ⊗ id_U)</code> or <code>g f</code>, binds tightest (<code>g f ⊗ h</code> = (<i>gf</i>) ⊗ <i>h</i>); <b>∘</b> and <b>;</b> (diagrammatic order) bind loosest. <code>id_X</code>, <code>id_{X⊗Y}</code>, <code>ev_X</code>, <code>coev_X</code>, <code>ev~_X</code> (ẽv), <code>coev~_X</code> (c̃oev), <code>∨X</code>, <code>∨f</code>, <code>X*</code>, <code>f*</code>, postfix <b>†</b>, inline types <code>(f : X → Y)</code>. Separate the sides of an equation with <b>=</b>.</div>
     </section>
   </aside>
 </main>
-<footer><span>By Dara O Shayda and Noor Hoshino (星野ヌール) · © Computational Classnotes · CC BY-NC-SA 4.0</span><span>Rules: unit strands · ⊗-coloured strands · level exchange (Fig. 2.1) · (2.1) zigzags · ∨f and (2.2) · pivotal: Figs. 2.2–2.4 · §2.2–3.3</span></footer>
+<footer><span>By Dara O Shayda and Noor Hoshino (星野ヌール) · © Computational Classnotes · CC BY-NC-SA 4.0</span><span>Rules: unit strands · ⊗-coloured strands · level exchange (Fig. 2.1) · (2.1) zigzags · ∨f and (2.2) · pivotal: Figs. 2.2–2.4 · §2.2–3.3 · Ch. 4</span></footer>
 
 <script id="core">
 /* ================= CORE: syntax, typing, layout, layered form, rewriting ================= */
 const Core = (() => {
-  const opts = {juxt:true, pivotal:false, spherical:false, symmetric:false, ribbon:false};   // pivotal: duals written X* (§2.1.3); otherwise ∨X (§2.1.2)
+  const opts = {juxt:true, pivotal:false, spherical:false, symmetric:false, ribbon:false, prefusion:false};   // pivotal: duals written X* (§2.1.3); otherwise ∨X (§2.1.2)
   const UNIT = '𝟙';
   const isW = c => /[A-Za-z0-9Ͱ-Ͽ′'?∨*~⁻¹ˡʳ]/.test(c);
   function tokenize(s) {
@@ -264,7 +268,7 @@ const Core = (() => {
   }
 
   function parseSig(text) {
-    const sig = {}, pairings = [], inverses = [], retracts = [], errs = [];
+    const sig = {}, pairings = [], inverses = [], retracts = [], errs = [], simples = [], partitions = {}, scalars = [];
     text.split(/\n/).forEach((line, ln) => {
       line = line.replace(/(#|\/\/).*$/, '').trim(); if (!line) return;
       const pm = line.match(/^pairing\s+(\S+)\s*,?\s+(\S+)$/);
@@ -273,6 +277,22 @@ const Core = (() => {
       if (im) { inverses.push([im[1], im[2]]); return; }
       const rm = line.match(/^retract\s+(\S+)\s*,?\s+(\S+)$/);
       if (rm) { retracts.push([rm[1], rm[2]]); return; }
+      // Chapter 4: simple objects, partitions (§4.4.1, §4.6.1) and scalar families
+      const sm = line.match(/^simple\s+(.+)$/);
+      if (sm) { simples.push(...sm[1].split(/[\s,]+/).filter(Boolean)); return; }
+      const scm = line.match(/^scalar\s+(.+)$/);
+      if (scm) { scalars.push(...scm[1].split(/[\s,]+/).filter(Boolean)); return; }
+      const ptm = line.match(/^partition\s+([^:\s]+)\s*:(.*)$/);
+      if (ptm) {
+        try {
+          const P = parser(ptm[2]); const W = P.obj(); P.expect('→'); const T = P.obj();
+          if (P.p < P.T.length) P.fail('Unexpected “' + P.T[P.p].v + '”');
+          if (T.length > 1) throw new Error('the target of a partition is one simple object or 𝟙');
+          partitions[ptm[1]] = {W, t:T.length ? T[0] : UNIT};
+          sig['p_' + ptm[1]] = {dom:W, cod:T}; sig['q_' + ptm[1]] = {dom:T, cod:W};
+        } catch (e) { errs.push(`Signature line ${ln + 1}: ${e.message}`); }
+        return;
+      }
       const k = line.indexOf(':'); if (k < 0) { errs.push(`Signature line ${ln + 1}: missing “:”`); return; }
       const name = line.slice(0, k).replace(/\s+/g, '');
       try {
@@ -282,7 +302,7 @@ const Core = (() => {
         sig[name] = {dom, cod};
       } catch (e) { errs.push(`Signature line ${ln + 1}: ${e.message}`); }
     });
-    return {sig, pairings, inverses, retracts, errs};
+    return {sig, pairings, inverses, retracts, errs, simples, partitions, scalars};
   }
 
   function lookupGen(name, sig) {
@@ -298,6 +318,8 @@ const Core = (() => {
     m = name.match(/^ψ(⁻¹)?_(.+)$/); if (m && opts.pivotal) { const X = objOfSub(m[2]); return {t:'gen', name, dom:[...X], cod:[...X]}; }
     // §3.3.1: the twists θˡ_X, θʳ_X : X → X and their inverses θˡ⁻¹_X, θʳ⁻¹_X (braided pivotal categories)
     m = name.match(/^θ[ˡʳ](⁻¹)?_(.+)$/); if (m && opts.pivotal) { const X = objOfSub(m[2]); return {t:'gen', name, dom:[...X], cod:[...X]}; }
+    // Lemma 4.9(a): φ_{i,j} : i* → j and its inverse φ⁻¹_{i,j} : j → i*
+    m = name.match(/^φ(⁻¹)?_\{?([^,{}]+),([^{}]+)\}?$/); if (m && opts.pivotal) { const a = flipStar(m[2]), b = m[3]; return m[1] ? {t:'gen', name, dom:[b], cod:[a]} : {t:'gen', name, dom:[a], cod:[b]}; }
     if (isDualName(name)) { const b = lookupGen(undualName(name), sig); if (b && !b.dom.includes('?') && !b.cod.includes('?')) return dualGen(b); }
     if (name.endsWith('†') && sig[name.slice(0, -1)]) return dagger(lookupGen(name.slice(0, -1), sig));
     return null;
@@ -385,7 +407,7 @@ const Core = (() => {
     let pre = 0; while (name.startsWith('∨')) { pre++; name = name.slice(1); }
     let dag = 0, star = 0;
     // in ev_X*, coev~_X*, ψ_X*, τ_{X*,Y} the star belongs to the subscript, not to the morphism
-    const fixedSub = /^(ev~?|coev~?|ψ(⁻¹)?|τ(⁻¹)?|θ[ˡʳ](⁻¹)?)_/.test(name);
+    const fixedSub = /^(ev~?|coev~?|ψ(⁻¹)?|τ(⁻¹)?|θ[ˡʳ](⁻¹)?|φ(⁻¹)?|[pq])_/.test(name);
     for (;;) { if (fixedSub) break; if (name.endsWith('†')) { dag++; name = name.slice(0, -1); } else if (name.length > 1 && name.endsWith('*')) { star++; name = name.slice(0, -1); } else break; }
     const k = name.indexOf('_');
     let main = k < 0 ? name : name.slice(0, k), sub = k < 0 ? '' : name.slice(k + 1);
@@ -973,8 +995,489 @@ const Core = (() => {
     return {e:steps[steps.length - 1].e, steps, key:ldKey(ld), ld};
   }
 
+  /* ================= Chapter 4: the enriched graphical calculus (pivotal pre-fusion categories) =================
+     An expression is a k-linear combination of terms. A term is {c, sums, ld, pairs}:
+       c     — a coefficient: a rational number times a product of atoms dim_l(i), dim_r(i), N^i_X, δ_{i,j}, δ_{i°,j}, a_i
+               (powers may be negative), stored as {n, d, at:{key: power}}
+       sums  — the variables i of the sums ∑_{i∈I} in front of the term
+       ld    — the layered diagram
+       pairs — the partition pairs it uses, tag → {W, t}: an i-partition of W (t = i) or a 1-partition (t = 𝟙), §4.4.1;
+               the semi-disk p_tag : W → t and the compressed rectangle q_tag : t → W stand for Σ_α p_α ⊗ q_α (4.6).
+     The rules below follow the book: §4.3.2, Lemma 4.2, (4.7)–(4.10), Lemma 4.9. */
+  const LIN = {simples:new Set(), scalars:new Set(), bound:new Set()};
+  const gcd = (a, b) => { a = Math.abs(a); b = Math.abs(b); while (b) [a, b] = [b, a % b]; return a || 1; };
+  const fr = (n, d = 1) => { if (d < 0) { n = -n; d = -d; } const g = gcd(n, d); return {n:n / g, d:d / g}; };
+  const baseOf = x => x.replace(/\*+$/, '');
+  const starredQ = x => x.endsWith('*');
+  const simpleQ = x => x === UNIT || LIN.simples.has(baseOf(x)) || LIN.bound.has(baseOf(x));   // a summation variable runs through I
+  // atoms: dl:x, dr:x, N:i:W, δ:i:j (sorted), δo:i:j, a:x — dl(x*) = dr(x), dr(x*) = dl(x) (X** = X)
+  function atomNorm(k) {
+    const [h, ...r] = k.split('\u0001');
+    if ((h === 'dl' || h === 'dr') && starredQ(r[0])) return [(h === 'dl' ? 'dr' : 'dl'), baseOf(r[0])].join('\u0001');
+    if (h === 'δ') { const [x, y] = r; return x <= y ? k : ['δ', y, x].join('\u0001'); }
+    return k;
+  }
+  function cNorm(c) {
+    const at = {}; let n = c.n, d = c.d;
+    for (const [k0, p] of Object.entries(c.at)) {
+      const k = atomNorm(k0), [h, x, y] = k.split('\u0001');
+      if (h === 'δ' && x === y) continue;                                    // δ_{i,i} = 1
+      if ((h === 'dl' || h === 'dr') && x === UNIT) continue;                // dim(𝟙) = 1
+      if (h === 'N' && x === UNIT && y === '') continue;                     // N^𝟙_𝟙 = 1
+      at[k] = (at[k] || 0) + p; if (!at[k]) delete at[k];
+    }
+    // δ, δ° are idempotent: keep power 1
+    for (const k of Object.keys(at)) if (/^δo?\u0001/.test(k) && at[k] > 0) at[k] = 1;
+    const f = fr(n, d); return {n:f.n, d:f.d, at};
+  }
+  const cOne = () => ({n:1, d:1, at:{}});
+  const cMul = (a, b) => { const at = {...a.at}; for (const [k, p] of Object.entries(b.at)) at[k] = (at[k] || 0) + p; return cNorm({n:a.n * b.n, d:a.d * b.d, at}); };
+  const cAtom = (h, ...xs) => cNorm({n:1, d:1, at:{[[h, ...xs].join('\u0001')]:1}});
+  const cPow = (c, p) => p === 1 ? c : cNorm({n:p > 0 ? c.n ** p : c.d ** -p, d:p > 0 ? c.d ** p : c.n ** -p, at:Object.fromEntries(Object.entries(c.at).map(([k, q]) => [k, q * p]))});
+  const objT = W => W.length ? W.join('⊗') : UNIT;
+  // printing a coefficient
+  function atomText(k, p, tex) {
+    const [h, x, y] = k.split('\u0001');
+    let s;
+    if (tex) {
+      const o = v => v.split('⊗').map(a => nameTeX(a)).join(' \\otimes ');
+      s = h === 'dl' ? `\\dim_l(${o(x)})` : h === 'dr' ? `\\dim_r(${o(x)})` : h === 'N' ? `N^{${o(x)}}_{${y ? o(y) : '\\mathbb{1}'}}` :
+          h === 'δ' ? `\\delta_{${o(x)},${o(y)}}` : h === 'δo' ? `\\delta_{${o(x)}^{\\circ},${o(y)}}` : `${nameTeX(h.slice(2))}_{${o(x)}}`;
+      return p === 1 ? s : `${s}^{${p}}`;
+    }
+    s = h === 'dl' ? `dim_l(${x})` : h === 'dr' ? `dim_r(${x})` : h === 'N' ? `N^{${x}}_{${y || UNIT}}` :
+        h === 'δ' ? `δ_{${x},${y}}` : h === 'δo' ? `δ_{${x}°,${y}}` : `${h.slice(2)}_${x}`;
+    return p === 1 ? s : p === -1 ? s + '⁻¹' : s + '^' + p;
+  }
+  const atomOrder = ks => ks.sort((a, b) => (a.startsWith('δ') ? 0 : 1) - (b.startsWith('δ') ? 0 : 1) || (a < b ? -1 : a > b ? 1 : 0));
+  function cText(c, tex = false) {
+    const ks = atomOrder(Object.keys(c.at));
+    const num = Math.abs(c.n) === 1 && c.d === 1 ? '' : (c.d === 1 ? String(Math.abs(c.n)) : tex ? `\\tfrac{${Math.abs(c.n)}}{${c.d}}` : `${Math.abs(c.n)}/${c.d}`);
+    const parts = [num, ...ks.map(k => atomText(k, c.at[k], tex))].filter(Boolean);
+    return {neg:c.n < 0, s:parts.join(tex ? '\\,' : ' ')};
+  }
+  // renaming a colour variable v → w everywhere in a term (colours, box names, pair types, atoms)
+  const reEsc = s => s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  function renameColour(term, v, w) {
+    const rc = x => x === v ? w : x === v + '*' ? w + '*' : x;
+    const rn = name => name.replace(new RegExp('(?<=[_{,⊗])' + reEsc(v) + '(?=[*},⊗]|$)', 'g'), w);
+    const rB = B => B.t === 'gen' ? {t:'gen', name:rn(B.name), dom:B.dom.map(rc), cod:B.cod.map(rc)} : B.t === 'swap' ? {t:'swap', a:B.a.map(rc), b:B.b.map(rc)} : B;
+    const at = {};
+    for (const [k, p] of Object.entries(term.c.at)) { const [h, ...xs] = k.split('\u0001'); const k2 = [h, ...xs.map(x => h === 'N' ? x.split('⊗').map(rc).join('⊗') : rc(x))].join('\u0001'); at[k2] = (at[k2] || 0) + p; }
+    const pairs = {}; for (const [t, P] of Object.entries(term.pairs)) pairs[t] = {W:P.W.map(rc), t:rc(P.t)};
+    return {c:cNorm({n:term.c.n, d:term.c.d, at}), sums:term.sums, ld:{src:term.ld.src.map(rc), ls:term.ld.ls.map(l => ({a:l.a, B:rB(l.B)}))}, pairs};
+  }
+  const termColours = term => { const s = new Set(); rowsOf(term.ld).forEach(r => r.forEach(x => s.add(baseOf(x)))); term.ld.ls.forEach(l => l.B.t === 'gen' && [...l.B.name.matchAll(/[_{,⊗]([^_{},⊗*]+)/g)].forEach(m => s.add(m[1])));
+    Object.values(term.pairs).forEach(P => { P.W.forEach(x => s.add(baseOf(x))); s.add(baseOf(P.t)); });
+    Object.keys(term.c.at).forEach(k => k.split('\u0001').slice(1).forEach(x => x.split('⊗').forEach(y => s.add(baseOf(y))))); return s; };
+  function rowsOf(ld) { const rs = [ld.src.slice()]; for (const l of ld.ls) { const r = rs[rs.length - 1]; rs.push([...r.slice(0, l.a), ...outs(l.B), ...r.slice(l.a + ins(l.B).length)]); } return rs; }
+  const freshVar = (term, pref = ['i', 'j', 'k', 'l', 'm', 'n', 'r', 's']) => { const used = termColours(term); term.sums.forEach(v => used.add(v));
+    for (const v of pref) if (!used.has(v) && !LIN.simples.has(v)) return v; let k = 1; while (used.has('i' + k)) k++; return 'i' + k; };
+  const freshTag = (term, t) => { let u = t + '′'; while (term.pairs[u]) u += '′'; return u; };
+  const pTag = B => B.t === 'gen' && /^p_/.test(B.name) ? B.name.slice(2) : null;
+  const qTag = B => B.t === 'gen' && /^q_/.test(B.name) ? B.name.slice(2) : null;
+  const pB = (tag, P) => ({t:'gen', name:'p_' + tag, dom:[...P.W], cod:P.t === UNIT ? [] : [P.t]});
+  const qB = (tag, P) => ({t:'gen', name:'q_' + tag, dom:P.t === UNIT ? [] : [P.t], cod:[...P.W]});
+  const layerOf = (ls, test) => ls.findIndex(l => test(l.B));
+  const withLd = (term, ls, extra = {}) => ({c:term.c, sums:term.sums, pairs:term.pairs, ld:{src:term.ld.src, ls}, ...extra});
+  const dropPair = (pairs, tag) => { const o = {...pairs}; delete o[tag]; return o; };
+  // a term where a box layer is replaced by a list of layers
+  const splice = (ls, k, rep) => [...ls.slice(0, k), ...rep, ...ls.slice(k + 1)];
+
+  // δ_{u,w} T(u, w) = δ_{u,w} T(u, u); a sum over u or w collapses (∑_w δ_{u,w} T(w) = T(u))
+  function identify(term, u, w) {
+    if (u === w) return term;
+    if (term.sums.includes(w)) return renameColour({...term, sums:term.sums.filter(v => v !== w)}, w, u);
+    if (term.sums.includes(u)) return renameColour({...term, sums:term.sums.filter(v => v !== u)}, u, w);
+    const t2 = renameColour(term, w, u); return {...t2, c:cMul(t2.c, cAtom('δ', u, w))};
+  }
+  function makeLinRules(R) {
+    const byName = n => R.find(r => r.name === n);
+    // δ_{i,j}: a sum over j collapses (∑_j δ_{i,j} T(j) = T(i)); otherwise the larger name is replaced by the smaller one
+    const deltaRule = term => {
+      for (const k of Object.keys(term.c.at)) {
+        const [h, x, y] = k.split('\u0001'); if (h !== 'δ' || x === y) continue;
+        if (term.sums.includes(x) || term.sums.includes(y)) { const at = {...term.c.at}; delete at[k]; return identify({...term, c:cNorm({...term.c, at})}, x, y); }
+        const used = termColours({...term, c:cNorm({...term.c, at:Object.fromEntries(Object.entries(term.c.at).filter(([kk]) => kk !== k))})});
+        if (used.has(y)) { const t2 = renameColour(term, y, x); return t2; }
+      }
+      return null;
+    };
+    // §4.3.2: ω_S(β ⊗ α) = ω_{S*}(α ⊗ β), a closed pairing turned through 180° (isotopy, Theorem 2.6): the box with the smaller name goes first
+    const capFor = (l, r) => starredQ(l) ? evGen([r]) : evtGen([l]);
+    const turnPairing = term => {
+      const ls = term.ld.ls;
+      for (let k = 0; k + 1 < ls.length; k++) {
+        const A = ls[k], Bl = ls[k + 1]; if (A.B.t !== 'gen' || Bl.B.t !== 'gen' || ins(A.B).length || ins(Bl.B).length) continue;
+        const m = outs(A.B).length; if (!m || outs(Bl.B).length !== m || Bl.a !== A.a + m) continue;
+        if (!(Bl.B.name < A.B.name)) continue;
+        let ok = k + 1 + m < ls.length + 1;
+        const oa = outs(A.B), ob = outs(Bl.B);
+        for (let t = 0; t < m && ok; t++) {
+          const c = ls[k + 2 + t]; if (!c || c.a !== A.a + m - 1 - t || c.B.t !== 'gen' || outs(c.B).length || !eqObj(ins(c.B), [oa[m - 1 - t], ob[t]])) ok = false;
+          else if (!dualityQ(c.B)) ok = false;
+        }
+        if (!ok) continue;
+        const caps = []; for (let t = 0; t < m; t++) caps.push({a:A.a + m - 1 - t, B:capFor(ob[m - 1 - t], oa[t])});
+        return withLd(term, [...ls.slice(0, k), {a:A.a, B:Bl.B}, {a:A.a + m, B:A.B}, ...caps, ...ls.slice(k + 2 + m)]);
+      }
+      return null;
+    };
+    // loops with nothing on them: dim of a simple object (a scalar), and (4.10) for any other object
+    const emptyLoop = (ls, k) => { const c = ls[k], e = ls[k + 1]; if (!e || c.B.t !== 'gen' || e.B.t !== 'gen' || c.a !== e.a) return null;
+      const lt = coevtSub(c.B) != null && evSub(e.B) != null && coevtSub(c.B) === evSub(e.B), rt = coevSub(c.B) != null && evtSub(e.B) != null && coevSub(c.B) === evtSub(e.B);
+      if (!lt && !rt) return null; const X = objOfSub(lt ? coevtSub(c.B) : coevSub(c.B)); return X.length === 1 ? {left:lt, x:X[0]} : null; };
+    const dimSimple = term => {
+      const ls = term.ld.ls;
+      for (let k = 0; k + 1 < ls.length; k++) { const L = emptyLoop(ls, k); if (!L || !simpleQ(L.x)) continue;
+        return {...withLd(term, [...ls.slice(0, k), ...ls.slice(k + 2)]), c:cMul(term.c, cAtom(L.left ? 'dl' : 'dr', L.x))}; }
+      return null;
+    };
+    const dims410 = term => {
+      const ls = term.ld.ls;
+      for (let k = 0; k + 1 < ls.length; k++) { const L = emptyLoop(ls, k); if (!L || simpleQ(L.x)) continue;
+        const v = freshVar(term);
+        return {...withLd(term, [...ls.slice(0, k), ...ls.slice(k + 2)]), c:cMul(term.c, cMul(cAtom(L.left ? 'dl' : 'dr', v), cAtom('N', v, L.x))), sums:[...term.sums, v]}; }
+      return null;
+    };
+    // two layers p, q of one pair, brought next to each other by level exchange
+    const adjacentPair = (term, test) => {
+      const ls = term.ld.ls;
+      for (let i = 0; i < ls.length; i++) for (let j = 0; j < ls.length; j++) {
+        if (i === j) continue; const lo = Math.min(i, j), hi = Math.max(i, j);
+        const r = test(ls[i].B, ls[j].B, i < j); if (!r) continue;
+        const adj = makeAdjacent(ls, lo, hi); if (!adj) continue;
+        const [l, p] = adj; const res = r(l[p], l[p + 1], l, p); if (res) return res;
+      }
+      return null;
+    };
+    // (4.7): p_α q_α = N^i_W id_i (q below p on the same lines)
+    const rule47 = term => adjacentPair(term, (b1, b2, up) => {
+      const t = qTag(b1); if (!t || !term.pairs[t] || pTag(b2) !== t || !up) return null;
+      return (lq, lp, l, p) => {
+        if (lq.a !== lp.a) return null; const P = term.pairs[t];
+        return {...withLd(term, [...l.slice(0, p), ...l.slice(p + 2)]), c:cMul(term.c, cAtom('N', P.t, P.W.join('⊗'))), pairs:dropPair(term.pairs, t)};
+      };
+    });
+    // (4.8): ∑_i q_α p_α = id_W for an i-partition, when i appears nowhere else
+    const rule48 = term => adjacentPair(term, (b1, b2, up) => {
+      const t = pTag(b1); if (!t || !term.pairs[t] || qTag(b2) !== t || !up) return null;
+      const P = term.pairs[t]; if (!term.sums.includes(P.t)) return null;
+      return (lp, lq, l, p) => {
+        if (lp.a !== lq.a) return null;
+        const t2 = {...withLd(term, [...l.slice(0, p), ...l.slice(p + 2)]), pairs:dropPair(term.pairs, t)};
+        if (termColours(t2).has(P.t)) return null;
+        return {...t2, sums:term.sums.filter(v => v !== P.t)};
+      };
+    });
+    // isotopy (Theorem 2.6): a box b : x → 𝟙 bent round a cup, paired by a cap with f : 𝟙 → x, is b f
+    const straighten = term => {
+      const ls = term.ld.ls;
+      for (let k = 0; k + 2 < ls.length; k++) {
+        const C = ls[k]; if (C.B.t !== 'gen') continue;
+        const left = coevtSub(C.B) != null, right = coevSub(C.B) != null; if (!left && !right) continue;
+        const X = objOfSub(left ? coevtSub(C.B) : coevSub(C.B)); if (X.length !== 1) continue; const x = X[0], a = C.a;
+        const leg = left ? a + 1 : a, capT = left ? (B => evSub(B) === x) : (B => evtSub(B) === x);
+        const L = [ls[k + 1], ls[k + 2], ls[k + 3] || {a:-9, B:{t:'id', obj:[]}}];
+        const isB = l => l.B.t === 'gen' && l.a === leg && eqObj(ins(l.B), [x]) && !outs(l.B).length;
+        const isF = l => l.B.t === 'gen' && !ins(l.B).length && eqObj(outs(l.B), [x]);
+        // orders: b, f, cap  or  f, cap, b
+        if (isB(L[0]) && isF(L[1]) && L[1].a === leg && L[2].a === a && capT(L[2].B))
+          return withLd(term, [...ls.slice(0, k), {a, B:L[1].B}, {a, B:L[0].B}, ...ls.slice(k + 4)]);
+        // a box g : 𝟙 → y inside the cup, capped with one leg of the cup, is g on the other leg
+        const G = ls[k + 1], K = ls[k + 2];
+        if (G.B.t === 'gen' && !ins(G.B).length && outs(G.B).length === 1 && G.a === a + 1 && K.B.t === 'gen' && !outs(K.B).length) {
+          if (left && K.a === a + 1 && evSub(K.B) === x && eqObj(outs(G.B), [flipStar(x)])) return withLd(term, [...ls.slice(0, k), {a, B:G.B}, ...ls.slice(k + 3)]);
+          if (right && K.a === a && evtSub(K.B) === x && eqObj(outs(G.B), [flipStar(x)])) return withLd(term, [...ls.slice(0, k), {a, B:G.B}, ...ls.slice(k + 3)]);
+        }
+        const fPos = left ? a + 2 : a;
+        if (isF(L[0]) && L[0].a === fPos && L[1].a === a && capT(L[1].B) && L[2].a === a && eqObj(ins(L[2].B), [x]) && !outs(L[2].B).length)
+          return withLd(term, [...ls.slice(0, k), {a, B:L[0].B}, {a, B:L[2].B}, ...ls.slice(k + 4)]);
+      }
+      return null;
+    };
+    // (4.9): for a 1-partition, q_α p_α f = f and g q_α p_α = g
+    const rule49 = term => {
+      const ls = term.ld.ls;
+      for (const [t, P] of Object.entries(term.pairs)) {
+        if (P.t !== UNIT) continue;
+        const ip = layerOf(ls, B => pTag(B) === t), iq = layerOf(ls, B => qTag(B) === t); if (ip < 0 || iq < 0) continue;
+        for (let k = 0; k < ls.length; k++) {
+          if (k === ip || k === iq) continue; const B = ls[k].B; if (B.t !== 'gen' || pTag(B) || qTag(B)) continue;
+          // f : 𝟙 → W directly below p
+          if (!ins(B).length && eqObj(outs(B), P.W) && k < ip) {
+            const adj = makeAdjacent(ls, k, ip); if (adj) { const [l, p] = adj; if (l[p].a === l[p + 1].a) {
+              const rest = [...l.slice(0, p), ...l.slice(p + 2)], kq = rest.findIndex(x => qTag(x.B) === t);
+              return {...withLd(term, splice(rest, kq, [{a:rest[kq].a, B}])), pairs:dropPair(term.pairs, t)}; } }
+          }
+          // g : 𝟙 → x* paired with q by a cap: ev_x(g ⊗ q_α) p_α = ev_x(g ⊗ id_x)
+          if (P.W.length === 1 && !ins(B).length && outs(B).length === 1 && k + 2 < ls.length) {
+            const x = P.W[0], K = ls[k + 2];
+            if (iq === k + 1 && eqObj(outs(B), [flipStar(x)]) && ls[iq].a === ls[k].a + 1 && K.a === ls[k].a && evSub(K.B) === x) {
+              const rest = ls.filter((_, j) => j !== k && j !== iq && j !== k + 2), kp = rest.findIndex(y => pTag(y.B) === t), c = rest[kp].a;
+              return {...withLd(term, splice(rest, kp, [{a:c, B}, {a:c, B:K.B}])), pairs:dropPair(term.pairs, t)};
+            }
+          }
+          // g : W → 𝟙 directly above q
+          if (!outs(B).length && eqObj(ins(B), P.W) && k > iq) {
+            const adj = makeAdjacent(ls, iq, k); if (adj) { const [l, p] = adj; if (l[p].a === l[p + 1].a) {
+              const rest = [...l.slice(0, p), ...l.slice(p + 2)], kp = rest.findIndex(x => pTag(x.B) === t);
+              return {...withLd(term, splice(rest, kp, [{a:rest[kp].a, B}])), pairs:dropPair(term.pairs, t)}; } }
+          }
+        }
+      }
+      return null;
+    };
+    // Lemma 4.9(a): a j-partition of a simple i is (id_i, id_i) times δ_{i,j}; a j-partition of i* is (φ_{i,j}, φ⁻¹_{i,j}) times δ_{i°,j}
+    const rule49a = term => {
+      for (const [t, P] of Object.entries(term.pairs)) {
+        if (P.W.length !== 1 || P.t === UNIT || !simpleQ(P.W[0]) || !simpleQ(P.t)) continue;
+        const ls = term.ld.ls, ip = layerOf(ls, B => pTag(B) === t), iq = layerOf(ls, B => qTag(B) === t); if (ip < 0 || iq < 0) continue;
+        const s = P.W[0], j = P.t;
+        if (!starredQ(s) || starredQ(j)) {
+          if (starredQ(j) && !starredQ(s)) continue;
+          // δ_{s,j}: the boxes become identities and j is renamed s
+          let ls2 = ls.filter((_, k) => k !== ip && k !== iq);
+          return identify({...withLd(term, ls2), pairs:dropPair(term.pairs, t)}, baseOf(s), baseOf(j));
+        }
+        const i = baseOf(s);
+        const phi = {t:'gen', name:'φ_{' + i + ',' + j + '}', dom:[s], cod:[j]}, phiI = {t:'gen', name:'φ⁻¹_{' + i + ',' + j + '}', dom:[j], cod:[s]};
+        let ls2 = ls.map((l, k) => k === ip ? {a:l.a, B:phi} : k === iq ? {a:l.a, B:phiI} : l);
+        return {...withLd(term, ls2), pairs:dropPair(term.pairs, t), c:cMul(term.c, cAtom('δo', i, j))};
+      }
+      return null;
+    };
+    // Lemma 4.9(b), (c): 1-partitions of i* ⊗ j and of i ⊗ j*
+    const rule49bc = (left) => term => {
+      for (const [t, P] of Object.entries(term.pairs)) {
+        if (P.t !== UNIT || P.W.length !== 2) continue;
+        const [u, w] = P.W; if (!simpleQ(u) || !simpleQ(w)) continue;
+        if (left ? !(starredQ(u) && !starredQ(w)) : !(!starredQ(u) && starredQ(w))) continue;
+        const i = baseOf(u), j = baseOf(w);
+        const ls = term.ld.ls, ip = layerOf(ls, B => pTag(B) === t), iq = layerOf(ls, B => qTag(B) === t); if (ip < 0 || iq < 0) continue;
+        const t2 = identify({...term, pairs:dropPair(term.pairs, t)}, i, j);
+        const m = term.sums.includes(j) ? i : term.sums.includes(i) ? j : i;   // the name that survives
+        const ls2 = t2.ld.ls.map((l, k) => k === ip ? {a:l.a, B:left ? evGen([m]) : evtGen([m])} : k === iq ? {a:l.a, B:left ? coevtGen([m]) : coevGen([m])} : l);
+        return {...withLd(t2, ls2), c:cMul(t2.c, cPow(cAtom(left ? 'dl' : 'dr', m), -1))};
+      }
+      return null;
+    };
+    // Lemma 4.9(d): a 1-partition of i* ⊗ W is dim_l(i)⁻¹ times an i-partition of W with the i-arc bent (and of W ⊗ i* with dim_r(i))
+    const rule49d = term => {
+      for (const [t, P] of Object.entries(term.pairs)) {
+        if (P.t !== UNIT || P.W.length < 2) continue;
+        const ls = term.ld.ls, ip = layerOf(ls, B => pTag(B) === t), iq = layerOf(ls, B => qTag(B) === t); if (ip < 0 || iq < 0) continue;
+        const first = P.W[0], last = P.W[P.W.length - 1];
+        const left = starredQ(first) && simpleQ(first), right = !left && starredQ(last) && simpleQ(last);
+        if (!left && !right) continue;
+        const i = baseOf(left ? first : last), W = left ? P.W.slice(1) : P.W.slice(0, -1);
+        const u = freshTag(term, t), NP = {W, t:i};
+        const pa = ls[ip].a, qa = ls[iq].a;
+        const pRep = left ? [{a:pa + 1, B:pB(u, NP)}, {a:pa, B:evGen([i])}] : [{a:pa, B:pB(u, NP)}, {a:pa, B:evtGen([i])}];
+        const qRep = left ? [{a:qa, B:coevtGen([i])}, {a:qa + 1, B:qB(u, NP)}] : [{a:qa, B:coevGen([i])}, {a:qa, B:qB(u, NP)}];
+        const ls2 = ip < iq ? splice(splice(ls, iq, qRep), ip, pRep) : splice(splice(ls, ip, pRep), iq, qRep);
+        const pairs = {...dropPair(term.pairs, t), [u]:NP};
+        return {...withLd(term, ls2), pairs, c:cMul(term.c, cPow(cAtom(left ? 'dl' : 'dr', i), -1))};
+      }
+      return null;
+    };
+    // Lemma 4.2(b): an endomorphism f of a simple object i is dim_l(i)⁻¹ tr_l(f) id_i; (4.2): tr_r(f) = dim_l(i)⁻¹ dim_r(i) tr_l(f)
+    const loneLoop = (ls, k) => { const b = ls[k]; if (k < 1 || k + 1 >= ls.length) return null; const c = ls[k - 1], e = ls[k + 1];
+      if (c.B.t !== 'gen' || e.B.t !== 'gen' || c.a !== e.a) return null;
+      if (coevtSub(c.B) != null && evSub(e.B) === coevtSub(c.B) && b.a === c.a + 1) return 'l';
+      if (coevSub(c.B) != null && evtSub(e.B) === coevSub(c.B) && b.a === c.a) return 'r';
+      return null; };
+    const endoQ = B => B.t === 'gen' && ins(B).length === 1 && eqObj(ins(B), outs(B)) && simpleQ(ins(B)[0]) && ins(B)[0] !== UNIT && !dualityQ(B) && !pTag(B) && !qTag(B);
+    const rule42b = term => {
+      const ls = term.ld.ls;
+      for (let k = 0; k < ls.length; k++) {
+        const B = ls[k].B; if (!endoQ(B) || loneLoop(ls, k)) continue;
+        const x = ins(B)[0], n = rowsOf(term.ld)[ls.length].length;
+        const tr = [{a:n, B:coevtGen([x])}, {a:n + 1, B}, {a:n, B:evGen([x])}];
+        return {...withLd(term, [...ls.slice(0, k), ...ls.slice(k + 1), ...tr]), c:cMul(term.c, cPow(cAtom('dl', x), -1))};
+      }
+      return null;
+    };
+    const rule42 = term => {
+      const ls = term.ld.ls;
+      for (let k = 1; k + 1 < ls.length; k++) {
+        if (loneLoop(ls, k) !== 'r' || !endoQ(ls[k].B)) continue;
+        const x = ins(ls[k].B)[0], a = ls[k - 1].a;
+        const ls2 = [...ls.slice(0, k - 1), {a, B:coevtGen([x])}, {a:a + 1, B:ls[k].B}, {a, B:evGen([x])}, ...ls.slice(k + 2)];
+        return {...withLd(term, ls2), c:cMul(term.c, cMul(cPow(cAtom('dl', x), -1), cAtom('dr', x)))};
+      }
+      return null;
+    };
+    return [
+      {name:'δ substitution', fn:deltaRule},
+      {name:'turning ω_S (§4.3.2, Theorem 2.6)', fn:turnPairing},
+      {name:'Lemma 4.9(a)', fn:rule49a},
+      {name:'Lemma 4.9(b)', fn:rule49bc(true)},
+      {name:'Lemma 4.9(c)', fn:rule49bc(false)},
+      {name:'(4.9)', fn:rule49},
+      {name:'isotopy: straightening (Theorem 2.6)', fn:straighten},
+      {name:'(4.7)', fn:rule47},
+      {name:'(4.8)', fn:rule48},
+      {name:'Lemma 4.9(d)', fn:rule49d},
+      {name:'dim_l(i), dim_r(i) of a simple object', fn:dimSimple},
+      {name:'(4.10)', fn:dims410},
+      {name:'(4.2)', fn:rule42},
+      {name:'Lemma 4.2(b)', fn:rule42b},
+    ];
+  }
+
+  /* ---- parsing a linear combination: terms separated by + (or −), each [∑_{i,…}] [scalars] [morphism] ---- */
+  function parseLin(src, S) {
+    LIN.simples = new Set(S.simples || []); LIN.scalars = new Set(S.scalars || []);
+    const parts = []; let depth = 0, cur = '';
+    for (let k = 0; k < src.length; k++) {
+      const ch = src[k];
+      if ('({'.includes(ch)) depth++; if (')}'.includes(ch)) depth--;
+      if (depth === 0 && (ch === '+' || ch === '−') && cur.trim()) { parts.push(cur); cur = ch === '−' ? '−' : ''; continue; }
+      cur += ch;
+    }
+    if (cur.trim()) parts.push(cur);
+    return parts.map(t => parseTerm(t.trim(), S));
+  }
+  const SC = [
+    [/^∑_\{([^}]*)\}/, m => ({sum:m[1].replace(/∈\s*I/g, '').split(',').map(x => x.trim()).filter(Boolean)})],
+    [/^∑_([^\s{}]+)/, m => ({sum:[m[1].replace(/∈I$/, '')]})],
+    [/^−/, () => ({c:{n:-1, d:1, at:{}}})],
+    [/^(\d+)\/(\d+)/, m => ({c:fr(+m[1], +m[2])})],
+    [/^(\d+)(?![\w_])/, m => ({c:fr(+m[1])})],
+    [/^dim_([lr])\(([^()]+)\)/, m => ({c:cAtom(m[1] === 'l' ? 'dl' : 'dr', m[2].trim())})],
+    [/^N\^\{?([^{}_\s]+)\}?_\{?([^{}\s]+)\}?/, m => ({c:cAtom('N', m[1] === '𝟙' || m[1] === '1' ? UNIT : m[1], objOfSub(m[2]).join('⊗'))})],
+    [/^δ_\{([^,{}°]+)°,([^{}]+)\}/, m => ({c:cAtom('δo', m[1].trim(), m[2].trim())})],
+    [/^δ_\{([^,{}]+),([^{}]+)\}/, m => ({c:cAtom('δ', m[1].trim(), m[2].trim())})],
+  ];
+  function parseTerm(t, S) {
+    let c = cOne(), sums = [], s = t, div = false;
+    for (;;) {
+      s = s.replace(/^\s+/, '');
+      if (s.startsWith('/')) { div = true; s = s.slice(1); continue; }
+      let hit = null;
+      for (const [re, f] of SC) { const m = s.match(re); if (m) { hit = [m[0].length, f(m)]; break; } }
+      if (!hit) { const m = s.match(/^([^\s_()⊗]+)_\{?([^\s{}()⊗]+)\}?/); if (m && LIN.scalars.has(m[1])) hit = [m[0].length, {c:cAtom('a:' + m[1], m[2])}]; }
+      if (!hit) break;
+      s = s.slice(hit[0]); let v = hit[1];
+      if (v.c) { let p = 1; const pm = s.match(/^⁻¹/); if (pm) { p = -1; s = s.slice(pm[0].length); } if (div) p = -p; div = false; c = cMul(c, cPow(v.c, p)); }
+      if (v.sum) sums.push(...v.sum);
+    }
+    s = s.trim();
+    const e = s ? parse(s, S.sig) : {t:'id', obj:[]};
+    return {c, sums, e};
+  }
+  function termOf(pt, S) {
+    const ld = normalize(toLayered(pt.e)), pairs = {};
+    ld.ls.forEach(l => { const t = pTag(l.B) || qTag(l.B); if (t && S.partitions && S.partitions[t]) pairs[t] = S.partitions[t]; });
+    return {c:pt.c, sums:pt.sums, ld, pairs};
+  }
+  // a canonical key: bound names (sum variables, pair tags) renamed by first appearance
+  function termKey(term) {
+    const tags = []; term.ld.ls.forEach(l => { const t = pTag(l.B) || qTag(l.B); if (t && term.pairs[t] && !tags.includes(t)) tags.push(t); });
+    let T = term;
+    const vars = []; rowsOf(T.ld).forEach(r => r.forEach(x => { const b = baseOf(x); if (T.sums.includes(b) && !vars.includes(b)) vars.push(b); }));
+    Object.keys(T.c.at).sort().forEach(k => k.split('\u0001').slice(1).forEach(x => x.split('⊗').forEach(y => { const b = baseOf(y); if (T.sums.includes(b) && !vars.includes(b)) vars.push(b); })));
+    T.sums.forEach(v => { if (!vars.includes(v)) vars.push(v); });
+    vars.forEach((v, k) => { T = renameColour(T, v, '§' + k); });
+    let ldk = ldKey(T.ld); tags.forEach((t, k) => { ldk = ldk.split('_' + t).join('_#' + k); });
+    const ptypes = tags.map(t => objT(T.pairs[t].W) + '→' + T.pairs[t].t).join(';');
+    const atk = Object.keys(T.c.at).sort().map(k => k + '^' + T.c.at[k]).join('·');
+    return {shape:vars.length + '|' + atk + '|' + ptypes + '|' + ldk, n:T.c.n, d:T.c.d};
+  }
+  function collect(terms) {
+    const m = new Map();
+    for (const t of terms) { const k = termKey(t); const o = m.get(k.shape); if (o) { const f = fr(o.c.n * t.c.d + t.c.n * o.c.d, o.c.d * t.c.d); o.c = {...o.c, n:f.n, d:f.d}; } else m.set(k.shape, {...t, c:{...t.c}}); }
+    return [...m.values()].filter(t => t.c.n !== 0);
+  }
+  const linKey = terms => collect(terms).map(t => { const k = termKey(t); return k.shape + '=' + t.c.n + '/' + t.c.d; }).sort().join(' + ') || '0';
+  // printing
+  function termText(term, tex = false) {
+    const e = tidy(fromLayered(term.ld)); const {neg, s} = cText(term.c, tex);
+    const sum = term.sums.length ? (tex ? `\\sum_{${term.sums.map(v => nameTeX(v)).join(',')}\\in I}` : `∑_{${term.sums.join(',')}}`) : '';
+    const emptyE = e.t === 'id' && !e.obj.length;
+    const body = emptyE ? (s ? '' : '1') : (tex ? toTeX(e) : toText(e));
+    return {neg, s:[sum, s, body].filter(Boolean).join(tex ? '\\,' : ' ')};
+  }
+  function linText(terms, tex = false) {
+    if (!terms.length) return '0';
+    return terms.map((t, k) => { const r = termText(t, tex); return (k === 0 ? (r.neg ? '−' : '') : (r.neg ? ' − ' : ' + ')) + r.s; }).join('');
+  }
+  function coefHTML(c) {
+    const o = v => v.split('⊗').map(a => nameHTML(a)).join('<span class="op">⊗</span>');
+    const num = Math.abs(c.n) === 1 && c.d === 1 ? '' : (c.d === 1 ? String(Math.abs(c.n)) : `${Math.abs(c.n)}/${c.d}`);
+    const parts = atomOrder(Object.keys(c.at)).map(k => { const [h, x, y] = k.split('\u0001'), p = c.at[k];
+      const s = h === 'dl' || h === 'dr' ? `<span class="rm">dim</span><sub>${h === 'dl' ? 'l' : 'r'}</sub>(${o(x)})` : h === 'N' ? `<i>N</i><sup>${o(x)}</sup><sub>${y ? o(y) : UNIT}</sub>` :
+        h === 'δ' ? `<i>δ</i><sub>${o(x)},${o(y)}</sub>` : h === 'δo' ? `<i>δ</i><sub>${o(x)}°,${o(y)}</sub>` : `<i>${esc(h.slice(2))}</i><sub>${o(x)}</sub>`;
+      return p === 1 ? s : s + `<sup>${p === -1 ? '−1' : p}</sup>`; });
+    return [num, ...parts].filter(Boolean).join(' ');
+  }
+  function linHTML(terms) {
+    if (!terms.length) return '0';
+    return terms.map((t, k) => {
+      const e = tidy(fromLayered(t.ld)); const {neg, s} = cText(t.c);
+      const sum = t.sums.length ? `∑<sub>${t.sums.map(v => nameHTML(v)).join(',')}∈<i>I</i></sub> ` : '';
+      const emptyE = e.t === 'id' && !e.obj.length;
+      const sc = s ? `<span class="sc">${coefHTML(t.c)}</span> ` : '';
+      return (k === 0 ? (neg ? '−' : '') : `<span class="op">${neg ? '−' : '+'}</span>`) + sum + sc + (emptyE ? (s ? '' : '1') : toHTML(e, sc || sum ? 'tens' : 'top'));
+    }).join('');
+  }
+  // simplifying one term with the chapter 4 rules spliced into the usual list (before trace symmetry), then all the terms
+  function simplifyTermTrace(term, o = {}) {
+    let rules = makeRules(o.pairings || [], o.inverses || [], o.retracts || []);
+    if (o.rightFirst) { const i = rules.findIndex(R => R.name === '(2.1) left zigzag'); rules = [...rules.slice(0, i), rules[i + 1], rules[i], ...rules.slice(i + 2)]; }
+    const at = rules.findIndex(R => R.name === 'trace symmetry (§2.6.1)');
+    const lin = makeLinRules(rules).map(R => ({name:R.name, n:'term', fn:R.fn}));
+    rules = at < 0 ? [...rules, ...lin] : [...rules.slice(0, at), ...lin, ...rules.slice(at)];
+    const tidyT = t => { const pairs = {}; t.ld.ls.forEach(l => { const g = pTag(l.B) || qTag(l.B); if (g && t.pairs[g]) pairs[g] = t.pairs[g]; }); return {...t, c:cNorm(t.c), pairs}; };
+    let cur = tidyT({...term, ld:normalize(term.ld)});
+    const steps = [{rule:'start', term:cur}]; const seen = new Set([JSON.stringify(termKey(cur))]);
+    for (let it = 0; it < 60; it++) {
+      let hit = null; LIN.bound = new Set(cur.sums);
+      for (const R of rules) {
+        let r = null;
+        if (R.n === 'term') r = R.fn(cur);
+        else { const l = R.n === 'ld' ? R.fn(cur.ld) : R.n === 1 ? try1(cur.ld, R) : R.n === 2 ? try2(cur.ld, R) : try3(cur.ld, R); if (l) r = {...cur, ld:l}; }
+        if (r) { hit = {name:R.name, term:r}; break; }
+      }
+      if (!hit) break;
+      cur = tidyT({...hit.term, ld:normalize(hit.term.ld)});
+      steps.push({rule:hit.name, term:cur});
+      const k = JSON.stringify(termKey(cur)); if (seen.has(k)) break; seen.add(k);
+      if (cur.c.n === 0) break;
+    }
+    return {term:cur, steps};
+  }
+  function simplifyLin(pts, S, o = {}) {
+    LIN.simples = new Set(S.simples || []); LIN.scalars = new Set(S.scalars || []);
+    const traces = pts.map(pt => simplifyTermTrace(termOf(pt, S), o));
+    const terms = collect(traces.map(t => t.term));
+    return {traces, terms, key:linKey(terms)};
+  }
+  const setLinEnv = S => { LIN.simples = new Set(S.simples || []); LIN.scalars = new Set(S.scalars || []); };
+
+  // segments for drawing a coefficient on the canvas: [text, offset] with offset 0 (line), 0.3 (subscript), −0.4 (superscript)
+  function coefSegs(term) {
+    const out = []; const {neg} = cText(term.c);
+    if (term.sums.length) { out.push(['∑', 0, 1.3]); out.push([term.sums.join(',') + '∈I', 0.45, 0.6]); out.push([' ', 0, 1]); }
+    const c = term.c; if (c.d !== 1 || Math.abs(c.n) !== 1) out.push([(c.d === 1 ? String(Math.abs(c.n)) : Math.abs(c.n) + '/' + c.d) + ' ', 0, 1]);
+    for (const k of atomOrder(Object.keys(c.at))) {
+      const [h, x, y] = k.split('\u0001'), p = c.at[k];
+      if (h === 'dl' || h === 'dr') { out.push(['dim', 0, 1]); out.push([h === 'dl' ? 'l' : 'r', 0.3, 0.65]); out.push(['(' + x + ')', 0, 1]); }
+      else if (h === 'N') { out.push(['N', 0, 1]); out.push([x, -0.45, 0.65]); out.push([y || UNIT, 0.3, 0.65]); }
+      else if (h === 'δ' || h === 'δo') { out.push(['δ', 0, 1]); out.push([(h === 'δo' ? x + '°' : x) + ',' + y, 0.3, 0.65]); }
+      else { out.push([h.slice(2), 0, 1]); out.push([x, 0.3, 0.65]); }
+      if (p !== 1) out.push([p === -1 ? '−1' : String(p), -0.45, 0.65]);
+      out.push([' ', 0, 1]);
+    }
+    return {neg, segs:out};
+  }
+  const termsOf = (pts, S) => { setLinEnv(S); return pts.map(pt => termOf(pt, S)); };
+  const termExpr = term => tidy(fromLayered(term.ld));
+
   return {opts, tokenize, parse, parseSig, typeOf, toText, toHTML, toTeX, typeHTML, objText, objHTML, nameHTML, splitName, showMain,
-          toDiagram, fromDiagram, tidy, toLayered, fromLayered, normalize, simplifyTrace, mkComp, mkTens, ldKey};
+          toDiagram, fromDiagram, tidy, toLayered, fromLayered, normalize, simplifyTrace, mkComp, mkTens, ldKey,
+          parseLin, simplifyLin, termsOf, linText, linHTML, linKey, termText, termExpr, coefSegs, cText, setLinEnv, collectTerms:collect};
 })();
 </script>
 
@@ -1025,6 +1528,10 @@ const braidOf = n => n.kind === 'box' && n.nIn === 2 && n.nOut === 2 && /^τ(⁻
 const capCup = n => !Core.opts.pivotal || n.kind !== 'box' ? null
   : (/^(ev|ev~)_/.test(n.label) && n.nIn === 2 && n.nOut === 0) ? 'cap'
   : (/^(coev|coev~)_/.test(n.label) && n.nIn === 0 && n.nOut === 2) ? 'cup' : null;
+const PCOL = ['#e03a1e', '#3a2fa0', '#1f7a4d', '#c77d0a', '#7a2f8f', '#0e7490'];
+const partOf = n => Core.opts.prefusion && n.kind === 'box' && /^[pq]_/.test(n.label || '') ? n.label[0] : null;
+function partColour(tag) { const base = tag.replace(/′+$/, ''); const tags = Object.keys((sig().partitions) || {}); let k = tags.indexOf(base);
+  if (k < 0) { k = 0; for (const ch of base) k = (k * 31 + ch.codePointAt(0)) % 997; } return PCOL[k % PCOL.length]; }
 function render() {
   const gw = $('#gw'), gn = $('#gn'); gw.innerHTML = ''; gn.innerHTML = '';
   const showT = $('#showTypes').checked;
@@ -1049,6 +1556,13 @@ function render() {
     if (n.kind === 'eq') {
       el('rect', {x:n.x - 22, y:n.y - 24, width:44, height:48, rx:6, class:'grip'}, g);
       el('text', {x:n.x, y:n.y, class:'eqsign'}, g).textContent = '=';
+      continue;
+    }
+    if (n.kind === 'lbl') {
+      // §4.6: the scalar and the sum in front of a term of a linear combination
+      const t = el('text', {x:n.x - n.w / 2, y:n.y, class:'coef'}, g); let off = 0;
+      for (const [txt, o, sc] of n.segs) { const ts = el('tspan', {dy:(o - off) * 22, 'font-size':sc * 100 + '%'}, t); ts.textContent = txt; off = o; }
+      if (off) { const ts = el('tspan', {dy:-off * 22}, t); ts.textContent = '\u200b'; }
       continue;
     }
     if (n.kind === 'in' || n.kind === 'out') {
@@ -1086,6 +1600,13 @@ function render() {
       el('rect', {x:n.x - nodeW(n) / 2, y:n.y - BH * 0.75, width:nodeW(n), height:BH * 1.5, class:'swapbox'}, g);
       el('path', {d:`M${p1.x},${p1.y} C${p1.x},${cy} ${p2.x},${cy} ${p2.x},${p2.y}`, class:'swapline capline'}, g);
       el('title', {}, g).textContent = n.label;
+    } else if (partOf(n)) {
+      // §4.6.1: the semi-disk p_α (flat side on its source) and the compressed rectangle q_α (notch on its source)
+      const w = nodeW(n), yi = n.y - DIR * BH / 2, yo = n.y + DIR * BH / 2, x0 = n.x - w / 2, x1 = n.x + w / 2, fill = partColour(n.label.slice(2));
+      const d = partOf(n) === 'p' ? `M${x0},${yi} C${x0},${yo + DIR * 8} ${x1},${yo + DIR * 8} ${x1},${yi} Z`
+        : `M${x0},${yo} L${x1},${yo} L${x1},${yi} C${x1},${n.y - DIR * 4} ${x0},${n.y - DIR * 4} ${x0},${yi} Z`;
+      el('path', {d, class:'pdisk', fill}, g);
+      el('title', {}, g).textContent = n.label;
     } else {
       // the book draws every morphism as a box (coupon), including those with source or target 𝟙
       const w = nodeW(n);
@@ -1102,7 +1623,7 @@ function fit() {
   const svg = $('#canvas'), r = svg.getBoundingClientRect();
   if (!D.nodes.length || !r.width) { view = {x:0, y:0, s:1}; applyView(); return; }
   let x0 = Infinity, y0 = Infinity, x1 = -Infinity, y1 = -Infinity;
-  D.nodes.forEach(n => { const w = n.kind === 'box' || n.kind === 'swap' ? nodeW(n) / 2 + 20 : 30; x0 = Math.min(x0, n.x - w); x1 = Math.max(x1, n.x + w); y0 = Math.min(y0, n.y - 40); y1 = Math.max(y1, n.y + 40); });
+  D.nodes.forEach(n => { const w = n.kind === 'box' || n.kind === 'swap' ? nodeW(n) / 2 + 20 : n.kind === 'lbl' ? n.w / 2 + 10 : 30; x0 = Math.min(x0, n.x - w); x1 = Math.max(x1, n.x + w); y0 = Math.min(y0, n.y - 40); y1 = Math.max(y1, n.y + 40); });
   const s = Math.min(1.5, (r.width - 60) / (x1 - x0), (r.height - 60) / (y1 - y0));
   view.s = Math.max(0.2, s); view.x = (x0 + x1) / 2 - r.width / 2 / view.s; view.y = (y0 + y1) / 2 - r.height / 2 / view.s;
   applyView();
@@ -1298,9 +1819,24 @@ function parseAll() {
   if (ss.some(s => !s)) throw new SyntaxError('Each side of “=” needs an expression');
   return {S, es:ss.map(s => Core.parse(s, S.sig))};
 }
+function parseLinAll() {
+  const S = sig(); const ss = sides($('#expr').value);
+  if (ss.some(s => !s)) throw new SyntaxError('Each side of “=” needs an expression');
+  return {S, sides:ss.map(s => Core.parseLin(s, S))};
+}
+const linType = terms => { const t = terms[0]; if (!t) return null; const rs = Core.typeOf(Core.termExpr(t)); return rs; };
+function previewLin() {
+  const {S, sides:ps} = parseLinAll();
+  const tss = ps.map(pts => Core.termsOf(pts, S));
+  $('#preview').innerHTML = tss.map(ts => Core.linHTML(ts)).join('<span class="rel">=</span>');
+  const t0 = linType(tss[0]); if (t0) $('#ptype').innerHTML = ': ' + Core.typeHTML(t0);
+  if (S.errs.length) { $('#perr').className = 'err warn'; $('#perr').textContent = S.errs.join('\n'); }
+  return {lin:true, S, ps, tss};
+}
 function preview() {
   $('#perr').className = 'err'; $('#perr').textContent = ''; $('#ptype').innerHTML = '';
   if (!$('#expr').value.trim()) { $('#preview').innerHTML = '<span class="hint">typeset preview</span>'; return null; }
+  if (Core.opts.prefusion) { try { return previewLin(); } catch (err) { $('#preview').innerHTML = '<span class="hint">—</span>'; $('#perr').textContent = err.message; return null; } }
   try {
     const {S, es} = parseAll(); const warn = [];
     const ts = es.map(e => Core.typeOf(e, warn));
@@ -1314,7 +1850,31 @@ function preview() {
 $('#expr').addEventListener('input', () => { preview(); save(); });
 $('#sig').addEventListener('input', () => { preview(); save(); });
 
+function drawLin(tss) {
+  const nodes = [], wires = []; let x = 0, ys = []; let nid = 0;
+  const lbl = (segs) => { const w = segs.reduce((a, [t, o, sc]) => a + [...t].length * 11 * sc, 0) + 6; nodes.push({id:'lb' + (nid++), kind:'lbl', nIn:0, nOut:0, inTypes:[], outTypes:[], x:x + w / 2, y:0, w, segs}); x += w + 14; };
+  tss.forEach((ts, s) => {
+    if (!ts.length) lbl([['0', 0, 1]]);
+    ts.forEach((t, k) => {
+      const {neg, segs} = Core.coefSegs(t);
+      if (k > 0 || neg) lbl([[neg ? '−' : '+', 0, 1.2]]);
+      const e = Core.termExpr(t), empty = e.t === 'id' && !e.obj.length;
+      if (segs.length || empty) lbl(segs.length ? segs : [['1', 0, 1]]);
+      if (!empty) {
+        const d = Core.toDiagram(e, U, 100, DIR, 's' + s + 't' + k + '_');
+        const xs = d.nodes.map(n => n.x); const minX = Math.min(...xs) - 50, maxX = Math.max(...xs) + 50;
+        const dx = x - minX; d.nodes.forEach(n => { n.x += dx; ys.push(n.y); });
+        nodes.push(...d.nodes); wires.push(...d.wires); x += (maxX - minX) + 20;
+      }
+    });
+    if (s < tss.length - 1) { x += 30; nodes.push({id:'eq' + s, kind:'eq', nIn:0, nOut:0, inTypes:[], outTypes:[], x:x, y:0}); x += 70; }
+  });
+  const cy = ys.length ? (Math.min(...ys) + Math.max(...ys)) / 2 : 200;
+  nodes.forEach(n => { if (n.kind === 'eq' || n.kind === 'lbl') n.y = cy; });
+  D = {nodes, wires};
+}
 function drawExprs(es) {
+  if (es && es.lin) return drawLin(es.tss);
   const nodes = [], wires = []; let x = 0, ys = [];
   es.forEach((e, k) => {
     const d = Core.toDiagram(e, U, 100, DIR, 's' + k + '_');
@@ -1339,13 +1899,21 @@ function showError(msg) { $('#result').innerHTML = `<span class="err" style="fon
 
 $('#bE2D').onclick = () => {
   const es = preview(); if (!es) { showError($('#perr').textContent || 'Type an expression first.'); return; }
-  pushUndo(); drawExprs(es); sel = null; render(); inspector(); fit(); showResult(es);
+  pushUndo(); drawExprs(es); sel = null; render(); inspector(); fit();
+  if (es.lin) showLinResult(es.tss); else showResult(es);
 };
+function showLinResult(tss, opt = {}) {
+  lastResult = null;
+  $('#result').innerHTML = tss.map(ts => Core.linHTML(ts)).join(opt.rel || '<span class="rel">=</span>');
+  const t0 = linType(tss[0]); $('#rtype').innerHTML = t0 ? ': ' + Core.typeHTML(t0) : '';
+  $('#verdict').className = 'verdict' + (opt.verdict ? ' ' + opt.verdict[0] : ''); $('#verdict').textContent = opt.verdict ? opt.verdict[1] : '';
+  $('#log').innerHTML = opt.log || '';
+}
 function diagramToExprs() {
   const eqs = D.nodes.filter(n => n.kind === 'eq').sort((a, b) => a.x - b.x);
   const groupOf = n => eqs.filter(q => q.x < n.x).length;
   const groups = [...Array(eqs.length + 1)].map(() => ({nodes:[], wires:[]}));
-  D.nodes.forEach(n => { if (n.kind !== 'eq') groups[groupOf(n)].nodes.push(n); });
+  D.nodes.forEach(n => { if (n.kind !== 'eq' && n.kind !== 'lbl') groups[groupOf(n)].nodes.push(n); });
   for (const w of D.wires) {
     const a = byId(w.from.node), b = byId(w.to.node); if (!a || !b) continue;
     if (groupOf(a) !== groupOf(b)) throw new Error('An arc crosses an “=” sign — each side of an equation must be a separate diagram');
@@ -1394,10 +1962,64 @@ async function wolframTrace(e, S) {
   const last = steps[steps.length - 1];
   return {e:last.e, steps, key:last.key, engine:j.engine || 'Wolfram'};
 }
+// §4.6–4.7: one request per term; the kernel answers with the steps of that term
+async function wolframLin(pts, S) {
+  const url = $('#wlurl').value.trim(); if (!url) throw new Error('no Wolfram kernel URL is set');
+  const terms = Core.termsOf(pts, S), traces = []; let engine = 'Wolfram';
+  for (const t of terms) {
+    const base = ldPayload(Core.termExpr(t), S);
+    const payload = {...base, src:t.ld.src, ls:t.ld.ls.map(({a, B}) => ({a, name:B.name, ins:Core.typeOf(B).dom, outs:Core.typeOf(B).cod})),
+      prefusion:true, simples:S.simples || [], c:t.c, sums:t.sums, pairs:t.pairs};
+    const ctl = new AbortController(); const timer = setTimeout(() => ctl.abort(), 60000); let r;
+    try { r = await fetch(url, {method:'POST', body:new URLSearchParams({payload_b64:b64enc(JSON.stringify(payload))}), signal:ctl.signal}); }
+    catch (err) { throw new Error(err.name === 'AbortError' ? 'no reply within 60 s' : 'could not reach the kernel'); }
+    finally { clearTimeout(timer); }
+    const j = await r.json().catch(() => null);
+    if (!j) throw new Error('unreadable reply (HTTP ' + r.status + ')');
+    if (j.error) throw new Error(j.error);
+    if (!j.steps_b64) throw new Error(j.Message || 'kernel error (HTTP ' + r.status + ')');
+    engine = j.engine || engine;
+    const steps = JSON.parse(b64dec(j.steps_b64)).map(([rule, o]) => ({rule, term:{c:o.c, sums:o.sums, pairs:Array.isArray(o.pairs) ? {} : o.pairs, ld:ldFromReply(o)}}));
+    traces.push({term:steps[steps.length - 1].term, steps});
+  }
+  const fin = traces.map(t => t.term);
+  return {traces, terms:Core.collectTerms(fin), key:Core.linKey(fin), engine};
+}
 $('#engine').onchange = () => { $('#wlrow').style.display = $('#engine').value === 'wl' ? '' : 'none'; save(); };
 $('#wlurl').addEventListener('change', save);
 
+async function simplifyLinUI(pv) {
+  const S = pv.S, o = {pairings:S.pairings, inverses:S.inverses, retracts:S.retracts, rightFirst:$('#rightFirst').checked};
+  const jsRs = pv.ps.map(pts => Core.simplifyLin(pts, S, o));
+  let rs = jsRs, note = '';
+  if ($('#engine').value === 'wl') {
+    const b = $('#bSimp'); b.disabled = true; b.textContent = 'Asking Wolfram…';
+    try {
+      rs = await Promise.all(pv.ps.map(pts => wolframLin(pts, S)));
+      const agree = rs.every((r, k) => r.key === jsRs[k].key);
+      note = agree ? `<div class="hint">Computed by the notebook engine (${escA(rs[0].engine)}). The JavaScript engine agrees.</div>`
+                   : `<div class="err warn">Computed by the notebook engine (${escA(rs[0].engine)}). The JavaScript engine gives ${jsRs.map(r => Core.linHTML(r.terms)).join(' ; ')} — the two engines have drifted apart.</div>`;
+    } catch (err) { rs = jsRs; note = `<div class="err warn">The Wolfram kernel failed (${escA(err.message)}), so the JavaScript engine was used.</div>`; }
+    finally { b.disabled = false; b.textContent = 'Simplify'; }
+  }
+  let log = note;
+  rs.forEach((r, k) => {
+    if (rs.length > 1) log += `<h3>${k === 0 ? 'Left' : k === rs.length - 1 ? 'Right' : 'Middle'} side</h3>`;
+    r.traces.forEach((tr, j) => {
+      if (r.traces.length > 1) log += `<div class="hint">term ${j + 1}</div>`;
+      log += '<ul class="trace">' + `<li>${Core.linHTML([tr.steps[0].term])}<span class="why">given</span></li>` +
+        tr.steps.slice(1).map(s => `<li><span class="rel">=</span>${Core.linHTML([s.term])}<span class="why">${escA(s.rule)}</span></li>`).join('') + '</ul>';
+    });
+    if (r.traces.length > 1) log += `<ul class="trace"><li><span class="rel">=</span>${Core.linHTML(r.terms)}<span class="why">collecting terms</span></li></ul>`;
+  });
+  const same = rs.every(r => r.key === rs[0].key);
+  const verdict = rs.length > 1 ? (same ? ['ok', '✓ Both sides reduce to the same normal form, so the equation holds.'] : ['no', 'The normal forms differ. The rules did not prove this equation (that does not show it is false).']) : null;
+  showLinResult(rs.map(r => r.terms), {verdict, log, rel: rs.length > 1 && !same ? '<span class="rel">≟</span>' : undefined});
+  $('#expr').value = rs.map(r => Core.linText(r.terms)).join('  =  '); preview(); save();
+  if ($('#redraw').checked) { pushUndo(); drawLin(rs.map(r => r.terms)); sel = null; render(); inspector(); fit(); }
+}
 $('#bSimp').onclick = async () => {
+  if (Core.opts.prefusion) { const pv = preview(); if (!pv) { showError($('#perr').textContent || 'Nothing to simplify.'); return; } return simplifyLinUI(pv); }
   let es = preview();
   if (!es && !$('#expr').value.trim() && D.nodes.length) { try { es = diagramToExprs().es; } catch (err) { showError(err.message); return; } }
   if (!es) { showError($('#perr').textContent || 'Nothing to simplify.'); return; }
@@ -1483,7 +2105,7 @@ $('#bSvg').onclick = () => {
   sel = s; render();
 };
 
-/* ---------- examples from §2.1–3.3 (pp. 31–62) & persistence ---------- */
+/* ---------- examples from §2.1–4.7 (pp. 31–87) & persistence ---------- */
 const SIG = {
   cat:  'f : X → Y\ng : Y → Z',
   mon:  'f : X → Y\ng : U → V',
@@ -1501,6 +2123,14 @@ const SIG = {
   hs:   'f : X → X\nj : X → Y\np : Y → X\nretract p j',
   br:   'f : X → X\ng : Y → Y',
   tw:   'g : X → Y\nk : X → X\n# §3.3: the twists θˡ_X, θʳ_X and their inverses θˡ⁻¹_X, θʳ⁻¹_X are built in (pivotal mode)',
+  c432: '# §4.3.2: ω_S(α ⊗ β) = ev_S(α ⊗ β)\nα : 𝟙 → Y* ⊗ X\nβ : 𝟙 → X* ⊗ Y',
+  c42:  '# Lemma 4.2: i is simple\nsimple i\nh : i → i',
+  c461: '# §4.6.1: an i-partition (p_α : X → i, q_α : i → X), drawn as a semi-disk and a compressed rectangle\nsimple i\npartition α : X → i',
+  c463: '# §4.6.3\nsimple i\npartition α : X → i\npartition β : X → 𝟙\nf : 𝟙 → X\ng : X → 𝟙',
+  c48:  '# Lemma 4.8, S = (X,+): a 1-partition of X\npartition β : X → 𝟙\nf : 𝟙 → X\ng : 𝟙 → X*',
+  c49:  '# Lemma 4.9\nsimple i j\npartition β : i → j\npartition γ : i* → j\npartition δ : i* ⊗ j → 𝟙\npartition ε : i ⊗ j* → 𝟙\npartition α : X → i\npartition ζ : i* ⊗ X → 𝟙\npartition η : X ⊗ i* → 𝟙',
+  c410: '# Lemma 4.10\nsimple i j k\nscalar a\npartition ρ : k ⊗ j* → i\npartition σ : i → l',
+  c464: '# §4.6.4\nsimple i\npartition α : X → i',
   ex215:'# Exercise 2.1.5: a non-degenerate pairing ω with inverse Ω\nω : X ⊗ Y → 𝟙\nΩ : 𝟙 → Y ⊗ X\npairing ω Ω\nf : X → X\nh : X → X\ng : Y → Y',
 };
 const EX = [
@@ -1582,21 +2212,50 @@ const EX = [
   ['§3.3.2  ribbon: θˡ_X = θʳ_X', 'θˡ_X = θʳ_X', 'tw', 'rib'],
   ['Theorem 3.3  R1: θʳ_X (θˡ_X)⁻¹ = id', '(id_X ⊗ ev~_X)(τ_{X,X} ⊗ id_X*)(id_X ⊗ coev_X)(id_X ⊗ ev~_X)(τ⁻¹_{X,X} ⊗ id_X*)(id_X ⊗ coev_X) = id_X', 'tw', 'rib'],
   ['Corollary 3.4  a ribbon category is spherical', 'ev_X(id_X* ⊗ k)coev~_X = ev~_X(k ⊗ id_X*)coev_X', 'tw', 'rib'],
+  ['§4.3.2  ω_((X,−),(Y,+))(α ⊗ β) = ω_((Y,−),(X,+))(β ⊗ α)', 'ev_Y(id_Y* ⊗ ev~_X ⊗ id_Y)(α ⊗ β) = ev_X(id_X* ⊗ ev~_Y ⊗ id_X)(β ⊗ α)', 'c432', 'fus'],
+  ['Lemma 4.2(a)  ω_S(coev_i ⊗ coev_i) = dim_r(i)', 'ev~_i(id_i ⊗ ev_i ⊗ id_i*)(coev_i ⊗ coev_i) = ev~_i coev_i = dim_r(i)', 'c42', 'fus'],
+  ['Lemma 4.2(a)  S = ((i,−),(i,+)) gives dim_l(i)', 'ev_i(id_i* ⊗ ev~_i ⊗ id_i)(coev~_i ⊗ coev~_i) = ev_i coev~_i = dim_l(i)', 'c42', 'fus'],
+  ['Lemma 4.2(b)  f = dim_l(i)⁻¹ tr_l(f) id_i', 'h = dim_l(i)⁻¹ (id_i ⊗ ev_i(id_i* ⊗ h)coev~_i)', 'c42', 'fus'],
+  ['(4.2)  dim_l(i) tr_r(f) = dim_r(i) tr_l(f)', 'dim_l(i) ev~_i(h ⊗ id_i*)coev_i = dim_r(i) ev_i(id_i* ⊗ h)coev~_i', 'c42', 'fus'],
+  ['§4.6.1  a semi-disk with its arcs bent', '(id_X* ⊗ ev~_i)(id_X* ⊗ p_α ⊗ id_i*)(coev~_X ⊗ id_i*) = (ev_i ⊗ id_X*)(id_i* ⊗ p_α ⊗ id_X*)(id_i* ⊗ coev_X)', 'c461', 'fus'],
+  ['§4.6.1  a compressed rectangle with its arcs bent', '(id_i* ⊗ ev~_X)(id_i* ⊗ q_α ⊗ id_X*)(coev~_i ⊗ id_X*) = (ev_X ⊗ id_i*)(id_X* ⊗ q_α ⊗ id_i*)(id_X* ⊗ coev_i)', 'c461', 'fus'],
+  ['(4.7)  p_α q_α = N^i_X id_i', 'p_α q_α = N^i_X id_i', 'c463', 'fus'],
+  ['(4.8)  ∑_i q_α p_α = id_X', '∑_i q_α p_α = id_X', 'c463', 'fus'],
+  ['(4.9)  q_β p_β f = f', 'q_β p_β f = f', 'c463', 'fus'],
+  ['(4.9)  g q_β p_β = g', 'g q_β p_β = g', 'c463', 'fus'],
+  ['(4.10)  dim_l(X) = ∑_i dim_l(i) N^i_X, step by step', 'ev_X coev~_X = ∑_i ev_X(id_X* ⊗ q_α p_α)coev~_X = ∑_i ev_i(id_i* ⊗ p_α q_α)coev~_i = ∑_i N^i_X ev_i coev~_i = ∑_i dim_l(i) N^i_X', 'c463', 'fus'],
+  ['(4.10)  dim_r(X) = ∑_i dim_r(i) N^i_X', 'ev~_X coev_X = ∑_i ev~_X(q_α p_α ⊗ id_X*)coev_X = ∑_i ev~_i(p_α q_α ⊗ id_i*)coev_i = ∑_i dim_r(i) N^i_X', 'c463', 'fus'],
+  ['Lemma 4.8  (id_E ⊗ ω_S)(∗_S ⊗ f) = f', 'q_β ⊗ ev_X(((id_X* ⊗ p_β)coev~_X) ⊗ f) = q_β p_β f = f', 'c48', 'fus'],
+  ['Lemma 4.8  (ω_S ⊗ id_F)(g ⊗ ∗_S) = g', 'ev_X(g ⊗ q_β) ⊗ ((id_X* ⊗ p_β)coev~_X) = (id_X* ⊗ ev_X(g ⊗ id_X))coev~_X = g', 'c48', 'fus'],
+  ['Lemma 4.9(a)  a j-partition of i is δ_{i,j}(id_i, id_i)', 'p_β ⊗ q_β = δ_{i,j} id_i ⊗ id_i', 'c49', 'fus'],
+  ['Lemma 4.9(a)  a j-partition of i* is δ_{i°,j}(φ_{i,j}, φ⁻¹_{i,j})', 'p_γ ⊗ q_γ = δ_{i°,j} φ_{i,j} ⊗ φ⁻¹_{i,j}', 'c49', 'fus'],
+  ['Lemma 4.9(b)  a 1-partition of i* ⊗ j', 'p_δ ⊗ q_δ = δ_{i,j} dim_l(i)⁻¹ ev_i ⊗ coev~_i', 'c49', 'fus'],
+  ['Lemma 4.9(c)  a 1-partition of i ⊗ j*', 'p_ε ⊗ q_ε = δ_{i,j} dim_r(i)⁻¹ ev~_i ⊗ coev_i', 'c49', 'fus'],
+  ['Lemma 4.9(d)  an i-partition of X, bent', 'p_α ⊗ q_α = dim_l(i) ((id_i ⊗ p_ζ)(coev_i ⊗ id_X)) ⊗ ((ev~_i ⊗ id_X)(id_i ⊗ q_ζ)) = dim_r(i) ((p_η ⊗ id_i)(id_X ⊗ coev~_i)) ⊗ ((id_X ⊗ ev_i)(q_η ⊗ id_i))', 'c49', 'fus'],
+  ['Lemma 4.10  by duality, f_{j,k} becomes a_k id_{k ⊗ j*}', 'a_k (ev~_k ⊗ id_k ⊗ id_j*)(id_k ⊗ coev~_k ev_j ⊗ id_j*)(id_k ⊗ id_j* ⊗ coev_j) = a_k id_k ⊗ id_j*', 'c410', 'fus'],
+  ['Lemma 4.10  (4.12) holds when a_i = a_𝟙 dim_r(i)', 'a_𝟙 dim_r(k) id_k ⊗ id_j* = ∑_i a_𝟙 dim_r(i) dim_r(k) dim_r(i)⁻¹ q_ρ p_ρ', 'c410', 'fus'],
+  ['Lemma 4.10  (4.12) at k = 𝟙, j = i*', '∑_l a_l dim_r(l)⁻¹ q_σ p_σ = a_i dim_r(i)⁻¹ id_i', 'c410', 'fus'],
+  ['§4.6.4  a semi-disk passes under a strand', 'τ_{i,Y}(p_α ⊗ id_Y) = (id_Y ⊗ p_α)τ_{X,Y}', 'c464', 'fus'],
 ];
 $('#examples').innerHTML = '<option value="">Load an example…</option>' + EX.map((x, i) => `<option value="${i}">${escA(x[0])}</option>`).join('');
 $('#examples').onchange = e => { const x = EX[+e.target.value]; if (!x) return; setDuals(x[3] || 'vee'); $('#sig').value = SIG[x[2]]; $('#expr').value = x[1]; preview(); $('#bE2D').click(); e.target.value = ''; };
 function setDuals(v) { $('#symmetric').checked = v === 'sym' || v === 'symstar'; if (v === 'sym') v = 'vee'; if (v === 'symstar') v = 'star';
   $('#ribbon').checked = v === 'rib'; if (v === 'rib') v = 'star';
-  Core.opts.symmetric = $('#symmetric').checked; Core.opts.ribbon = $('#ribbon').checked;
+  $('#prefusion').checked = v === 'fus'; if (v === 'fus') v = 'star';
+  Core.opts.symmetric = $('#symmetric').checked; Core.opts.ribbon = $('#ribbon').checked; Core.opts.prefusion = $('#prefusion').checked;
   if (v === 'sph') { v = 'star'; $('#spherical').checked = true; } else if (v === 'star' || v === 'vee') $('#spherical').checked = false;
   $('#duals').value = v; Core.opts.pivotal = v === 'star'; Core.opts.spherical = $('#spherical').checked; }
 $('#spherical').onchange = () => { Core.opts.spherical = $('#spherical').checked; save(); };
 $('#symmetric').onchange = () => { Core.opts.symmetric = $('#symmetric').checked; save(); };
 $('#ribbon').onchange = () => { Core.opts.ribbon = $('#ribbon').checked; save(); };
+$('#prefusion').onchange = () => { Core.opts.prefusion = $('#prefusion').checked; preview(); save(); };
 $('#duals').onchange = () => { setDuals($('#duals').value); preview(); render(); save(); };
 const KEY = 'ccn-graphical-calculus-tv-v3';
-function save() { try { localStorage.setItem(KEY, JSON.stringify({D, expr:$('#expr').value, sig:$('#sig').value, DIR, engine:$('#engine').value, wlurl:$('#wlurl').value, duals:$('#duals').value})); } catch (_) {} }
-function load() { try { const j = JSON.parse(localStorage.getItem(KEY) || 'null'); if (j && j.D) { D = j.D; $('#expr').value = j.expr || ''; $('#sig').value = j.sig || ''; DIR = j.DIR || -1; $('#dir').value = String(DIR); if (j.engine) $('#engine').value = j.engine; if (j.wlurl) $('#wlurl').value = j.wlurl; if (j.duals) setDuals(j.duals); return true; } } catch (_) {} return false; }
+function save() { try { localStorage.setItem(KEY, JSON.stringify({D, expr:$('#expr').value, sig:$('#sig').value, DIR, engine:$('#engine').value, wlurl:$('#wlurl').value, duals:$('#duals').value,
+  flags:{spherical:$('#spherical').checked, symmetric:$('#symmetric').checked, ribbon:$('#ribbon').checked, prefusion:$('#prefusion').checked}})); } catch (_) {} }
+function load() { try { const j = JSON.parse(localStorage.getItem(KEY) || 'null'); if (j && j.D) { D = j.D; $('#expr').value = j.expr || ''; $('#sig').value = j.sig || ''; DIR = j.DIR || -1; $('#dir').value = String(DIR); if (j.engine) $('#engine').value = j.engine; if (j.wlurl) $('#wlurl').value = j.wlurl; if (j.duals) setDuals(j.duals);
+  if (j.flags) { for (const k of ['spherical', 'symmetric', 'ribbon', 'prefusion']) { $('#' + k).checked = !!j.flags[k]; Core.opts[k] = !!j.flags[k]; } }
+  return true; } } catch (_) {} return false; }
 
 $('#wlurl').value = String(CFG.WOLFRAM_URL || '');
 drawPad();
@@ -1604,6 +2263,10 @@ if (!load() || (!D.nodes.length && !$('#expr').value)) { $('#sig').value = SIG.d
 $('#wlrow').style.display = $('#engine').value === 'wl' ? '' : 'none';
 preview(); render(); inspector(); requestAnimationFrame(fit);
 window.addEventListener('resize', () => applyView());
+// a link …/string-diagram-editor.html#ex=N opens example N (the Chapter 4 pages link their steps this way)
+function exampleFromHash() { const m = location.hash.match(/^#ex=(\d+)$/); const x = m && EX[+m[1]]; if (!x) return;
+  setDuals(x[3] || 'vee'); $('#sig').value = SIG[x[2]]; $('#expr').value = x[1]; preview(); $('#bE2D').click(); }
+exampleFromHash(); window.addEventListener('hashchange', exampleFromHash);
 </script>
 </body>
 </html>

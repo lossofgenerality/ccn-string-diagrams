@@ -7,7 +7,8 @@
       §2.1.1–2.1.2), pivotal-2.1.3.wl (sections 20–27, §2.1.3, which defines rulesP), penrose-2.2.wl (sections 30–35,
       §2.2, which defines rulesT), pivotal-2.3-2.7.wl (sections 40–47, §2.3–2.7, which defines rulesD and rulesS) and
       braided-2.7-3.2.wl (sections 50–55, §2.7.3 and §3.1–3.2, which defines rulesB, rulesDB, rulesSB) and
-      ribbon-3.3.wl (sections 60–64, §3.3.1–3.3.3, which defines twistRules, ribbonRules and withTwists), all in gcDir.
+      ribbon-3.3.wl (sections 60–64, §3.3.1–3.3.3, which defines twistRules, ribbonRules and withTwists) and
+      fusion-4-rules.wl (sections 80–83, Chapter 4, which defines linRules, withLin and lTrace), all in gcDir.
    2. Evaluate this whole file in one go: Get["…/GraphicalCalculusKernel-deploy.wl"], or paste it into one cell.
       If any check fails it stops before CloudDeploy, so a half-loaded kernel is never deployed.
       It loads the notebook's engine itself, so the engine and the API code always share one context.
@@ -28,6 +29,9 @@
    rules of §3.1–3.2 (rulesB, rulesDB, rulesSB); symmetric: true adds the symmetry rules of §3.1.2.
    Pivotal sets also get the twist rules of §3.3.1–3.3.3 (withTwists); ribbon: true adds θʳ = θˡ (§3.3.2) and,
    by Corollary 3.4, sphericity.
+   prefusion: true (Chapter 4) sends one term of a linear combination: "c" (coefficient), "sums", "pairs" and "simples"
+   besides src and ls; the reply steps then carry {"c", "sums", "pairs", "src", "ls"}. The rules of §4.3.2–4.7 (linRules)
+   go in before trace symmetry.
    Reply JSON: {"steps_b64": base64 of [[rule, {"src": [...], "ls": [[a, name, ins, outs], ...]}], ...],
                 "engine": "Wolfram 15."}   or   {"error": "..."}
    Names: "ev_X" <-> Subscript["ev","X"], "coev_X" <-> Subscript["coev","X"],
@@ -54,6 +58,7 @@ gcPenrose = FileNameJoin[{gcDir, "penrose-2.2.wl"}];
 gcDuals = FileNameJoin[{gcDir, "pivotal-2.3-2.7.wl"}];
 gcBraid = FileNameJoin[{gcDir, "braided-2.7-3.2.wl"}];
 gcRibbon = FileNameJoin[{gcDir, "ribbon-3.3.wl"}];
+gcFusion = FileNameJoin[{gcDir, "fusion-4-rules.wl"}];
 
 (* load the notebook's engine: evaluate its Input cells, in order, in the current context.
    Cells stored as text are read with Get; cells stored as boxes with ToExpression. With (not Module)
@@ -74,10 +79,12 @@ If[! FileExistsQ[gcBraid], Print["§3.1–3.2 package not found: ", gcBraid],
  Quiet[Get[gcBraid]]; Print["Loaded ", FileNameTake[gcBraid]]];
 If[! FileExistsQ[gcRibbon], Print["§3.3 package not found: ", gcRibbon],
  Quiet[Get[gcRibbon]]; Print["Loaded ", FileNameTake[gcRibbon]]];
+If[! FileExistsQ[gcFusion], Print["Chapter 4 package not found: ", gcFusion],
+ Quiet[Get[gcFusion]]; Print["Loaded ", FileNameTake[gcFusion]]];
 gcReady = AssociationQ[rules] && KeyExistsQ[rules, "(2.1) left zigzag"] && AssociationQ[rulesP] && AssociationQ[rulesT] &&
-   AssociationQ[rulesD] && AssociationQ[rulesS] && AssociationQ[rulesB] && AssociationQ[rulesDB] && AssociationQ[rulesSB] && AssociationQ[twistRules] && AssociationQ[ribbonRules] &&
+   AssociationQ[rulesD] && AssociationQ[rulesS] && AssociationQ[rulesB] && AssociationQ[rulesDB] && AssociationQ[rulesSB] && AssociationQ[twistRules] && AssociationQ[ribbonRules] && AssociationQ[linRules] &&
    Length[DownValues[normalize]] > 0 && Length[DownValues[rewriteOnce]] > 0;
-If[! gcReady, Print["The engine (rules, rulesP, normalize, rewriteOnce) did not load in context ", $Context, ". Check gcNotebook, gcPivotal, gcPenrose, gcDuals, gcBraid and gcRibbon."]];
+If[! gcReady, Print["The engine (rules, rulesP, normalize, rewriteOnce) did not load in context ", $Context, ". Check gcNotebook, gcPivotal, gcPenrose, gcDuals, gcBraid, gcRibbon and gcFusion."]];
 
 gcSym[s_String] := With[{m = StringCases[s, RegularExpression["^(ev|coev)(~?)_(.+)$"] -> {"$1", "$2", "$3"}]},
    Which[m =!= {}, Subscript[If[m[[1, 2]] === "~", OverTilde[m[[1, 1]]], m[[1, 1]]], StringTrim[m[[1, 3]], "{" | "}"]],
@@ -129,6 +136,7 @@ gcHandler[payloadB64_String] := Module[{j, ld, rs, steps},
      TrueQ[j["pivotal"]], withTwists[If[TrueQ[j["spherical"]], rulesSB, rulesDB]], True, rulesB];
    rs = If[TrueQ[j["symmetric"]], withSymmetry[rs], rs];
    rs = If[TrueQ[j["rightFirst"]], gcRightFirst[rs], rs];
+   If[TrueQ[j["prefusion"]], Return[gcHandlerLin[j, ld, rs]]];
    steps = Block[{pairings = Replace[Lookup[j, "pairings", {}], Except[_List] -> {}],
       inverses = Replace[Lookup[j, "inverses", {}], Except[_List] -> {}],
       retracts = Replace[Lookup[j, "retracts", {}], Except[_List] -> {}]},
@@ -138,9 +146,26 @@ gcHandler[payloadB64_String] := Module[{j, ld, rs, steps},
    <|"steps_b64" -> BaseEncode[ExportByteArray[{#[[1]], gcFromLD[#[[2]]]} & /@ steps, "RawJSON", "Compact" -> True]],
      "engine" -> "Wolfram " <> ToString[$VersionNumber]|>];
 
+(* Chapter 4: one term of a linear combination *)
+gcTermJSON[t_] := <|"c" -> t["c"], "sums" -> t["sums"], "pairs" -> t["pairs"], "src" -> t["ld"][[1]], "ls" -> ({#[[1]], gcName[#[[2, 1]]], #[[2, 2]], #[[2, 3]]} & /@ t["ld"][[2]])|>;
+gcHandlerLin[j_, ld_, rs_] := Module[{term, steps},
+   term = <|"c" -> Replace[Lookup[j, "c", <||>], Except[_Association] -> <|"n" -> 1, "d" -> 1, "at" -> <||>|>],
+     "sums" -> Replace[Lookup[j, "sums", {}], Except[_List] -> {}], "pairs" -> Replace[Lookup[j, "pairs", <||>], Except[_Association] -> <||>], "ld" -> ld|>;
+   term["c"] = Join[<|"n" -> 1, "d" -> 1, "at" -> <||>|>, term["c"]]; If[! AssociationQ[term["c"]["at"]], term["c"]["at"] = <||>];
+   steps = Block[{pairings = Replace[Lookup[j, "pairings", {}], Except[_List] -> {}],
+      inverses = Replace[Lookup[j, "inverses", {}], Except[_List] -> {}],
+      retracts = Replace[Lookup[j, "retracts", {}], Except[_List] -> {}],
+      lSimples = Replace[Lookup[j, "simples", {}], Except[_List] -> {}]},
+     TimeConstrained[Quiet@lTrace[term, withLin[rs]], 40, $Aborted]];
+   If[steps === $Aborted, Return[<|"error" -> "time limit reached"|>]];
+   If[! ListQ[steps], Return[<|"error" -> "the Chapter 4 engine did not return terms"|>]];
+   <|"steps_b64" -> BaseEncode[ExportByteArray[{#[[1]], gcTermJSON[#[[2]]]} & /@ steps, "RawJSON", "Compact" -> True]],
+     "engine" -> "Wolfram " <> ToString[$VersionNumber]|>];
+
 (* quick local checks before deploying: they should print "definition of ∨f", "Fig. 2.4 slide through right ev",
    "caps and cups on ⊗", "(2.1) right zigzag" (ψ_X written out, X** = X), "trace symmetry (§2.6.1)", "R3: Yang–Baxter",
-   "twists cancel (Lemma 3.2)" (two curls drawn out) and "ribbon: θʳ = θˡ (§3.3.2)" *)
+   "twists cancel (Lemma 3.2)" (two curls drawn out), "ribbon: θʳ = θˡ (§3.3.2)" and, for Chapter 4,
+   "(4.8)" (∑_i q_α p_α = id_X) *)
 gcCheck[payload_Association, expected_String] := With[{r = gcHandler[BaseEncode[ExportByteArray[payload, "RawJSON", "Compact" -> True]]]},
    With[{got = If[KeyExistsQ[r, "steps_b64"], ImportByteArray[BaseDecode[r["steps_b64"]], "RawJSON"][[-1, 1]], r]},
     Print["Check: ", got, If[got === expected, "  ✓", "  ✗ expected " <> expected]]; got === expected]];
@@ -174,6 +199,10 @@ gcReady = gcReady && gcCheck[<|"src" -> {"X"}, "pivotal" -> True, "ls" -> {
     <|"a" -> 0, "name" -> "ev_X", "ins" -> {"X*", "X"}, "outs" -> {}|>}|>, "twists cancel (Lemma 3.2)"];
 gcReady = gcReady && gcCheck[<|"src" -> {"X"}, "pivotal" -> True, "ribbon" -> True, "ls" -> {
     <|"a" -> 0, "name" -> "\[Theta]\:02b3_X", "ins" -> {"X"}, "outs" -> {"X"}|>}|>, "ribbon: \[Theta]\:02b3 = \[Theta]\:02e1 (\[Section]3.3.2)"];
+gcReady = gcReady && gcCheck[<|"src" -> {"X"}, "pivotal" -> True, "prefusion" -> True, "simples" -> {"i"},
+    "c" -> <|"n" -> 1, "d" -> 1, "at" -> <||>|>, "sums" -> {"i"}, "pairs" -> <|"\[Alpha]" -> <|"W" -> {"X"}, "t" -> "i"|>|>, "ls" -> {
+    <|"a" -> 0, "name" -> "p_\[Alpha]", "ins" -> {"X"}, "outs" -> {"i"}|>,
+    <|"a" -> 0, "name" -> "q_\[Alpha]", "ins" -> {"i"}, "outs" -> {"X"}|>}|>, "(4.8)"];
 
 gcDeployed = If[TrueQ[gcReady],
    CloudDeploy[APIFunction[{"payload_b64" -> "String"}, gcHandler[#["payload_b64"]] &, "JSON"],
