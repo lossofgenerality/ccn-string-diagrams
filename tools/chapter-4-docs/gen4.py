@@ -1,5 +1,8 @@
+import os
+ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..'))   # the repository
+WORK = os.environ.get('CCN_BUILD', os.path.join(ROOT, 'build', 'chapter-4'))      # scratch folder for screenshots and pages
 import json, os
-D = {x['i']: x for x in json.load(open('/home/claude/ch4/ex.json'))}
+D = {x['i']: x for x in json.load(open(f'{WORK}/ex.json'))}
 ED = '../../string-diagram-editor.html'
 FOOT = "\n---\n\nBy Dara O Shayda and Noor Hoshino (星野ヌール) · © Computational Classnotes · CC BY-NC-SA 4.0\n"
 NB = "`graphical-calculus-4.nb` (sections 70–79, code in `fusion-4.wl`)"
@@ -34,7 +37,7 @@ def example(i, book=None, heading=None):
 
 PAGES = []
 def page(slug, title, body):
-    PAGES.append((slug, title)); open(f'/home/claude/ch4/{slug}.md', 'w').write(f"# {title}\n\n" + body + FOOT)
+    PAGES.append((slug, title)); open(f'{WORK}/{slug}.md', 'w').write(f"# {title}\n\n" + body + FOOT)
 
 NAV = "[← Chapter 4 index](index.md)\n\n"
 
@@ -181,6 +184,6 @@ idx += ("\n## Using the editor for Chapter 4\n\n"
 "- Expressions are linear combinations: `∑_i dim_l(i) N^i_X`, `δ_{i,j} dim_l(i)⁻¹ ev_i ⊗ coev~_i`, `a_k id_k ⊗ id_j*`.\n"
 "- New rules, tried before trace symmetry: δ substitution, turning ω_S, Lemma 4.9(a)–(d), (4.7), (4.8), (4.9), isotopy: straightening, dimensions of simple objects, (4.10), (4.2), Lemma 4.2(b). The Wolfram kernel (`fusion-4-rules.wl`) has the same rules in the same order. On all 116 Chapter 4 requests it gives the same steps and the same terms as the JavaScript engine.\n\n"
 "## A possible misprint\n\nLemma 4.6(b) as printed, $\\sum_j v_iv_j\\dim(j)S_{i,j} = \\dim(\\mathcal C)\\dim(i)$, fails in the modular categories $\\mathbb Z/3$ and $\\mathbb Z/5$. It holds with $\\Delta_+$ in place of $\\dim(\\mathcal C)$; see [Lemma 4.6](lemma-4-6.md).\n")
-open('/home/claude/ch4/index.md', 'w').write(idx + FOOT)
-json.dump(PAGES, open('/home/claude/ch4/pages.json', 'w'), ensure_ascii=False)
+open(f'{WORK}/index.md', 'w').write(idx + FOOT)
+json.dump(PAGES, open(f'{WORK}/pages.json', 'w'), ensure_ascii=False)
 print(len(PAGES))

@@ -1,4 +1,4 @@
-const fs=require('fs');const html=fs.readFileSync('/home/claude/ccn-string-diagrams/string-diagram-editor.html','utf8');
+const fs=require('fs'),path=require('path');const ROOT=path.join(__dirname,'..','..');const html=fs.readFileSync(path.join(ROOT,'string-diagram-editor.html'),'utf8');
 eval(html.match(/<script id="core">([\s\S]*?)<\/script>/)[1]+';global.Core=Core');
 Core.opts.pivotal=true;
 const run=(sigT, src)=>{ const S=Core.parseSig(sigT); if(S.errs.length) console.log(S.errs);

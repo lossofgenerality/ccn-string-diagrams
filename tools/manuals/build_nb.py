@@ -1,5 +1,8 @@
+import os
+ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..'))   # the repository
+WORK = os.environ.get('CCN_BUILD', os.path.join(ROOT, 'build', 'manuals'))      # scratch folder for screenshots and pages
 import re
-pkg = open('/home/claude/p4/fusion-4.wl').read()
+pkg = open(f'{ROOT}/kernel/fusion-4.wl').read()
 parts = re.split(r'\(\* ::Section:: \*\)\n', pkg)
 secs = []
 for p in parts[1:]:

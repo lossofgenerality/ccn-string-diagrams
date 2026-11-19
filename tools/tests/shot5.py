@@ -1,9 +1,12 @@
+import os
+ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..'))   # the repository
+WORK = os.environ.get('CCN_BUILD', os.path.join(ROOT, 'build', 'tests'))      # scratch folder for screenshots and pages
 from playwright.sync_api import sync_playwright
 with sync_playwright() as p:
     b=p.chromium.launch(executable_path='/usr/bin/google-chrome')
     pg=b.new_page(viewport={'width':1440,'height':900})
     errs=[]; pg.on('pageerror',lambda e:errs.append(str(e)))
-    pg.goto('file:///home/claude/ccn-string-diagrams/string-diagram-editor.html'); pg.wait_for_timeout(400)
+    pg.goto(f'file://{ROOT}/string-diagram-editor.html'); pg.wait_for_timeout(400)
     n=pg.eval_on_selector_all('#examples option','os=>os.length')-1
     bad=[]
     for i in range(n):

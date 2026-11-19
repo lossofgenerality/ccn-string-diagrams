@@ -1,5 +1,8 @@
+import os
+ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..'))   # the repository
+WORK = os.environ.get('CCN_BUILD', os.path.join(ROOT, 'build', 'introduction'))      # scratch folder for screenshots and pages
 import json, re
-D = json.load(open('/home/claude/intro/ex.json'))
+D = json.load(open(f'{WORK}/ex.json'))
 
 def factors(t):
     """split a TeX composition (A) (B) (C) at top level"""
@@ -310,5 +313,5 @@ A("For §3.3 the notebook `graphical-calculus-3.3.nb` also checks, in graded vec
 A("On every example in this document, both engines give the same sequence of rules and the same result. In the Wolfram notebooks the same identities are also checked in vector spaces, where $\\otimes$ is the Kronecker product and composition is the matrix product.\n")
 A("---\n")
 A("By Dara O Shayda and Noor Hoshino (星野ヌール) · © Computational Classnotes · CC BY-NC-SA 4.0\n")
-open('/home/claude/intro/intro.md', 'w').write("\n".join(L))
+open(f'{WORK}/intro.md', 'w').write("\n".join(L))
 print(len("\n".join(L)))
