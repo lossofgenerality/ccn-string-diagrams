@@ -1,5 +1,7 @@
 # CCN String Diagrams
 
+<p align="center"><img src="docs/cover/ccn-string-diagrams-cover.png" alt="CCN String Diagrams cover: glowing coloured strands with boxes f, g and θ, a crossing, a zigzag, a twist and a loop above the title" width="480"></p>
+
 An editor for the graphical calculus of monoidal categories, after Turaev & Virelizier, *Monoidal Categories and Topological Field Theory* (Progress in Mathematics 322, Springer 2017), Chapter 2, §2.1.
 
 **Live page:** https://lossofgenerality.github.io/ccn-string-diagrams/
@@ -35,6 +37,7 @@ An editor for the graphical calculus of monoidal categories, after Turaev & Vire
 | `kernel/expression-to-diagram-manual.nb` | The programmer's manual for that package, in the same format as the other one, with 12 tests |
 | `kernel/simplifier.wl` | Expression to expression: the simplifier behind the editor's Simplify button and the kernel, with a documented interface (`simplifyText`, `simplifyTextSteps`, `equationReport`, `simplifyLDTrace`, `simplifyTermTrace` for Chapter 4 terms, `ruleSet`/`ruleInfo`/`ruleCatalogue`, and the level-exchange machinery). It loads the engine from `graphical-calculus-2.1-simplify.nb`, `pivotal-2.1.3.wl` and the other kernel files in the same folder, and uses the same rules in the same order as the editor on all 412 recorded requests |
 | `kernel/simplifier-manual.nb` | The programmer's manual for the simplifier: the loop, the rule kinds, the rule set of each mode, a catalogue of all 49 rules with their sources in the book, the options, the limits, and the tests |
+| `docs/cover/ccn-string-diagrams-cover.png` | The project's cover art, 3600 × 5400 portrait PNG (title set in Icklips, freeware by Apostrophic Laboratories) |
 | `docs/chapter-4/` | One page per result of Chapter 4 (§4.3.2, Lemma 4.2, §4.6.1–4.6.4, Lemmas 4.6–4.10): the statement, and the proof as a chain of editor steps, each with a link that opens it in the editor (`string-diagram-editor.html#ex=N`) |
 | `docs/introduction-to-ccn-string-diagrams.md` (and `.pdf`) | Introduction to CCN String Diagrams: every example in the editor, with its expression, its diagram and what Simplify does. The `.md` is self-contained (all images embedded); `docs/README.md` is the same text with linked images, for reading on GitHub |
 
