@@ -1,0 +1,267 @@
+Notebook[
+ {Cell["Graphical calculus \[Section]2.2: Penrose diagrams and associated \
+morphisms", "Title"], Cell["Turaev & Virelizier, Monoidal Categories and \
+Topological Field Theory, pp. 35\[Dash]38 \[CenterDot] sections 30\[Dash]36 \
+\[CenterDot] continues graphical-calculus-2.1-simplify.nb and \
+pivotal-2.1.3.wl", "Subtitle"], Cell["29a. Setup", "Section"], 
+  Cell["This notebook builds on sections 0\[Dash]19 of \
+graphical-calculus-2.1-simplify.nb and on pivotal-2.1.3.wl (sections \
+20\[Dash]27). The first cell loads both from this folder \
+(Desktop/Research/Monoidal Graphical Calculus). The code of sections \
+30\[Dash]35 is also saved on its own as penrose-2.2.wl, which the \
+GraphicalCalculusKernel loads.", "Text"], Cell["ClearAll[\"Global`*\"];\n(* \
+the engine of \[Section]2.1.1\[Dash]2.1.2 (sections 0\[Dash]19) and of \
+\[Section]2.1.3 (sections 20\[Dash]27) *)\nengineNotebook = \
+FileNameJoin[{$HomeDirectory, \"Desktop\", \"Research\", \"Monoidal Graphical \
+Calculus\", \"graphical-calculus-2.1-simplify.nb\"}];\npivotalPackage = \
+FileNameJoin[{$HomeDirectory, \"Desktop\", \"Research\", \"Monoidal Graphical \
+Calculus\", \"pivotal-2.1.3.wl\"}];\n(* With, not Module: the notebook starts \
+with ClearAll[\"Global`*\"], which would clear the loader's own variables \
+*)\nWith[{cells = Cases[Get[engineNotebook], Cell[c_, \"Input\" | \"Code\", \
+___] :> c, Infinity], name = FileNameTake[engineNotebook]},\n \
+Scan[Quiet@Check[TimeConstrained[ToExpression[#, StandardForm]; Null, 120], \
+Null] &, cells];\n Print[\"Loaded \", Length[cells], \" code cells from \", \
+name]];\nQuiet[Get[pivotalPackage]]; Print[\"Loaded \", \
+FileNameTake[pivotalPackage]];", "Input"], 
+  Cell["30. Caps and cups on tensor products", "Section"], 
+  Cell["A strand coloured (Y\[CircleTimes]X)* is the strand coloured \
+Y\[CircleTimes]X with its arrow turned round. Split into parallel strands it \
+becomes X* \[CircleTimes] Y*, in that order: turning a pair of strands round \
+reverses their order. A cap or cup on Y\[CircleTimes]X then becomes two \
+nested caps or cups:\n   ev_(Y\[CircleTimes]X) = ev_X (id_X* \[CircleTimes] \
+ev_Y \[CircleTimes] id_X),   coev_(Y\[CircleTimes]X) = (id_Y \[CircleTimes] \
+coev_X \[CircleTimes] id_Y* ) coev_Y,\n   and the same for \:1ebdv and \
+c\:0303oev. Under this convention (Y\[CircleTimes]X)* is identified with \
+X*\[CircleTimes]Y* through ?*\:2082(X, Y), which is then drawn as the \
+identity. Inside a diagram whose free ends are not tensor-dual strands, the \
+identification cancels out, so the morphism does not change.", "Text"], 
+  Cell["tensorStarQ[c_String] := StringMatchQ[c, \"(\" ~~ __ ~~ \")*\"] && \
+StringContainsQ[c, \"\\[CircleTimes]\"];\ntensorStarQ[_] := \
+False;\nsplitStarMap[c_String] /; tensorStarQ[c] := Reverse[star /@ \
+StringSplit[StringTake[c, {2, -3}], \"\\[CircleTimes]\"]];\nsplitStarMap[c_] \
+:= {c};\n\npartsOf[x_String] := StringSplit[x, \
+\"\\[CircleTimes]\"];\njoinParts[ps_List] := StringRiffle[ps, \
+\"\\[CircleTimes]\"];\ndualList[ps_List] := Reverse[star /@ ps];\n\n(* \
+one-box rule: a cap or cup whose colour is a tensor product becomes a nested \
+pair *)\nnestCaps[{a_, B[Subscript[\"ev\", x_String], i_, {}]}] /; \
+Length[partsOf[x]] > 1 :=\n  With[{p = First[partsOf[x]], r = \
+Rest[partsOf[x]]},\n   If[i =!= Join[dualList[r], {star[p], p}, r], \
+$Failed,\n    {{a + Length[r], B[Subscript[\"ev\", p], {star[p], p}, {}]}, \
+{a, B[Subscript[\"ev\", joinParts[r]], Join[dualList[r], r], \
+{}]}}]];\nnestCaps[{a_, B[Subscript[\"coev\", x_String], {}, o_]}] /; \
+Length[partsOf[x]] > 1 :=\n  With[{p = First[partsOf[x]], r = \
+Rest[partsOf[x]]},\n   If[o =!= Join[{p}, r, dualList[r], {star[p]}], \
+$Failed,\n    {{a, B[Subscript[\"coev\", p], {}, {p, star[p]}]}, {a + 1, \
+B[Subscript[\"coev\", joinParts[r]], {}, Join[r, \
+dualList[r]]]}}]];\nnestCaps[{a_, B[Subscript[OverTilde[\"ev\"], x_String], \
+i_, {}]}] /; Length[partsOf[x]] > 1 :=\n  With[{p = First[partsOf[x]], r = \
+Rest[partsOf[x]]},\n   If[i =!= Join[{p}, r, dualList[r], {star[p]}], \
+$Failed,\n    {{a + 1, B[Subscript[OverTilde[\"ev\"], joinParts[r]], Join[r, \
+dualList[r]], {}]}, {a, B[Subscript[OverTilde[\"ev\"], p], {p, star[p]}, \
+{}]}}]];\nnestCaps[{a_, B[Subscript[OverTilde[\"coev\"], x_String], {}, o_]}] \
+/; Length[partsOf[x]] > 1 :=\n  With[{p = First[partsOf[x]], r = \
+Rest[partsOf[x]]},\n   If[o =!= Join[dualList[r], {star[p], p}, r], \
+$Failed,\n    {{a, B[Subscript[OverTilde[\"coev\"], joinParts[r]], {}, \
+Join[dualList[r], r]]}, {a + Length[r], B[Subscript[OverTilde[\"coev\"], p], \
+{}, {star[p], p}]}}]];\nnestCaps[_] := $Failed;\n\n(* rulesT: rulesP with the \
+two tensor rules, placed right after the colour rules *)\nrulesT = \
+Join[KeyTake[rulesP, {\"unit strands\", \"\\[CircleTimes]-coloured \
+strands\"}],\n   <|\"dual \\[CircleTimes]-coloured strands\" -> {\"colour\", \
+splitStarMap}, \"caps and cups on \\[CircleTimes]\" -> {1, nestCaps}|>,\n   \
+KeyDrop[rulesP, {\"unit strands\", \"\\[CircleTimes]-coloured \
+strands\"}]];\nrulesTRightFirst = Join[KeyTake[rulesT, {\"(2.1) right \
+zigzag\"}], rulesT];", "Input"], 
+  Cell["The rules after the tensor rules are those of rulesP, unchanged:", 
+   "Text"], Cell["Keys[rulesT]", "Input"], Cell["31. \[Section]2.2.5 \
+Exercise: ?*\:2082(X, Y) and its inverse are inverse to each other", 
+   "Section"], Cell["q2L, q2R, q2iL, q2iR are the four pictures of section \
+27. Composed in either order, they simplify to an identity: the tensor rules \
+split the Y\[CircleTimes]X strands, the identity box id_(Y\[CircleTimes]X) \
+disappears, and two zigzags straighten.", "Text"], 
+  Cell["ex225a = stackL[q2L, q2iL];      (* (?*\:2082)^-1 \[SmallCircle] \
+?*\:2082 : X* \[CircleTimes] Y* \[RightArrow] X* \[CircleTimes] Y*, left \
+pictures *)\nex225b = stackL[q2R, q2iR];      (* the same with the right \
+pictures *)\nex225c = stackL[q2iL, q2L];      (* ?*\:2082 \[SmallCircle] \
+(?*\:2082)^-1 : (Y\[CircleTimes]X)* \[RightArrow] (Y\[CircleTimes]X)* \
+*)\nex225d = stackL[q2iR, q2R];\nex225e = stackL[q2L, q2iR];      (* mixing \
+the two pictures *)", "Input"], Cell["The left pictures of ?*\:2082(X, Y) and \
+of its inverse, composed, and the simplification step by step:", "Text"], 
+  Cell["showTraceP[simplifyTrace[ex225a, rulesT]]", "Input"], 
+  Cell["All five composites reduce to an identity. Under the tensor rules \
+?*\:2082 is itself drawn as the identity of X* \[CircleTimes] Y*, so the \
+composites in the other order, which start from (Y\[CircleTimes]X)*, also end \
+on X* \[CircleTimes] Y*. The matrices check the claim without that \
+identification: each composite is the 6 \[Times] 6 identity.", "Text"], 
+  Cell["{simplifyLD[#, rulesT] & /@ {ex225a, ex225b, ex225c, ex225d, ex225e}, \
+matOf[#] == IdentityMatrix[6] & /@ {ex225a, ex225b, ex225c, ex225d, ex225e}}"\
+, "Input"], Cell["32. \[Section]2.2.1 Signed objects", "Section"], 
+  Cell["A signed object is a pair {X, \"+\"} or {X, \"-\"}; it determines X \
+or X*. A tuple S of signed objects determines X_S, the tensor product of its \
+entries, and X_\[EmptySet] = \|01d7d9. A row of colours is read back as a \
+tuple: \"X\" is (X, +) and \"X*\" is (X, \[Minus]).", "Text"], 
+  Cell["signedColour[{x_String, \"+\"}] := x;\nsignedColour[{x_String, \
+\"-\"}] := star[x];\nXS[s_List] := signedColour /@ s;                    (* \
+the colours of X_S, left to right *)\nXSobj[s_List] := tensor[XS[s]];         \
+            (* X_S as an object; XSobj[{}] = \|01d7d9 *)\nsignsOf[cs_List] := \
+If[starQ[#], {unstar[#], \"-\"}, {#, \"+\"}] & /@ cs;", "Input"], 
+  Cell["Column[{pretty[XSobj[{{\"X\", \"+\"}, {\"Y\", \"-\"}, {\"Z\", \
+\"+\"}}]], pretty[XSobj[{}]], signsOf[{\"U\", \"U*\", \"A*\", \"V\", \
+\"B\"}]}]", "Input"], Cell["33. \[Section]2.2.2\[Dash]2.2.3 Penrose diagrams, \
+strips and the associated morphism", "Section"], 
+  Cell["A generic Penrose diagram is cut by horizontal lines into strips. \
+Each strip is a list of pieces, left to right: seg[c] is a vertical segment \
+(c = \"X\" for an X arc pointing down, c = \"X*\" for an X arc pointing up), \
+and a box, cap or cup is B[symbol, ins, outs]. Strips are listed from the \
+bottom to the top. penroseLD turns the strips into the layered form, so every \
+tool of \[Section]2.1 applies; penroseExpr writes the associated morphism \
+exactly as \[Section]2.2.3 does: the monoidal product of the pieces of each \
+strip, composed from the bottom to the top.", "Text"], 
+  Cell["seg[c_] := {\"seg\", c};\npieceIns[{\"seg\", c_}] := {c};  \
+pieceIns[b_B] := ins[b];\npieceOuts[{\"seg\", c_}] := {c}; pieceOuts[b_B] := \
+outs[b];\npieceMor[{\"seg\", c_}] := id[c]; pieceMor[b_B] := \
+sym[b];\n\npenroseLD::rows = \"Strip `1` expects the lines `2`, but the strip \
+below ends with `3`.\";\npenroseLD[src_List, strips_List] := Module[{row = \
+src, ls = {}, k = 0},\n   Catch[\n    Do[k++;\n     If[Flatten[pieceIns /@ \
+strip] =!= row, Message[penroseLD::rows, k, Flatten[pieceIns /@ strip], row]; \
+Throw[$Failed]];\n     Module[{off = 0}, Do[If[Head[p] === B, AppendTo[ls, \
+{off, p}]; off += Length[outs[p]], off += 1], {p, strip}]];\n     row = \
+Flatten[pieceOuts /@ strip], {strip, strips}];\n    LD[src, \
+ls]]];\npenroseExpr[strips_List] := compose[Reverse[tensor[pieceMor /@ #] & \
+/@ strips]];\npenroseTarget[src_List, strips_List] := \
+Last[rows[penroseLD[src, strips]]];\n\n(* Figure 2.5, sliced into the five \
+strips of page 37 *)\ngB = B[\"g\", {\"X\", \"Z*\"}, {\"X\", \"V\"}];       \
+(* g : X \[CircleTimes] Z* \[RightArrow] X \[CircleTimes] V *)\nhB = B[\"h\", \
+{\"A\"}, {\"Y*\", \"B\"}];            (* h : A \[RightArrow] Y* \
+\[CircleTimes] B *)\nkB = B[\"k\", {}, {\"Z*\", \"Y\"}];               (* k : \
+\|01d7d9 \[RightArrow] Z* \[CircleTimes] Y *)\nlB = B[\"l\", {}, {}];         \
+               (* l : \|01d7d9 \[RightArrow] \|01d7d9 *)\nevB[x_] := \
+B[evL[x], {star[x], x}, {}];      evtB[x_] := B[evR[x], {x, star[x]}, \
+{}];\ncoevB[x_] := B[coevL[x], {}, {x, star[x]}];  coevtB[x_] := B[coevR[x], \
+{}, {star[x], x}];\nfig25src = {\"A*\", \"A\"};\nfig25 = {\n   {seg[\"A*\"], \
+coevtB[\"X\"], coevtB[\"X\"], seg[\"A\"]},\n   {seg[\"A*\"], seg[\"X*\"], \
+evtB[\"X\"], seg[\"X\"], kB, seg[\"A\"]},\n   {seg[\"A*\"], evB[\"X\"], \
+coevtB[\"X\"], seg[\"Z*\"], seg[\"Y\"], hB, lB},\n   {coevB[\"U\"], \
+seg[\"A*\"], seg[\"X*\"], gB, evtB[\"Y\"], seg[\"B\"]},\n   {seg[\"U\"], \
+seg[\"U*\"], seg[\"A*\"], evB[\"X\"], seg[\"V\"], seg[\"B\"]}};\nfig25LD = \
+penroseLD[fig25src, fig25];\n\n(* the formula printed on page 38, typed in as \
+it stands *)\nfig25book = SmallCircle[\n   CircleTimes[id[\"U\"], id[\"U*\"], \
+id[\"A*\"], evL[\"X\"], id[\"V\"], id[\"B\"]],\n   CircleTimes[coevL[\"U\"], \
+id[\"A*\"], id[\"X*\"], \"g\", evR[\"Y\"], id[\"B\"]],\n   \
+CircleTimes[id[\"A*\"], evL[\"X\"], coevR[\"X\"], id[\"Z*\"], id[\"Y\"], \
+\"h\", \"l\"],\n   CircleTimes[id[\"A*\"], id[\"X*\"], evR[\"X\"], id[\"X\"], \
+\"k\", id[\"A\"]],\n   CircleTimes[id[\"A*\"], coevR[\"X\"], coevR[\"X\"], \
+id[\"A\"]]];", "Input"], Cell["Figure 2.5 from its five strips. The picture \
+is laid out automatically from the layered form, so it is the same diagram up \
+to isotopy, not a copy of the book's drawing. P_\[Bullet] and P^\[Bullet] are \
+read off the free ends, and the morphism is written strip by strip.", 
+   "Text"], Cell["showPenrose[fig25src, fig25]", "Input"], 
+  Cell["The strips reproduce the formula printed on page 38 symbol for \
+symbol, and that formula agrees with the layered form in vector spaces:", 
+   "Text"], Cell["{penroseExpr[fig25] === fig25book, matExpr22[fig25book] == \
+mat22[fig25LD]}", "Input"], 
+  Cell["34. \[Section]2.2.4 Lemma 2.1: the morphism does not depend on the \
+slicing", "Section"], Cell["Three other drawings of Figure 2.5:\n   fig25up   \
+pushes k down to the first strip and l up to the last one (transformation \
+(iii));\n   fig25flat straightens the zigzag in the X loop, so the loop is a \
+plain circle c\:0303oev_X then ev_X (transformation (ii));\n   fig25wide puts \
+every piece in a strip of its own, the finest slicing (transformations (i) \
+and (iii)).\n   All four give the same morphism, both in vector spaces and by \
+simplify.", "Text"], Cell["fig25up = {\n   {seg[\"A*\"], coevtB[\"X\"], \
+coevtB[\"X\"], kB, seg[\"A\"]},\n   {seg[\"A*\"], seg[\"X*\"], evtB[\"X\"], \
+seg[\"X\"], seg[\"Z*\"], seg[\"Y\"], seg[\"A\"]},\n   {seg[\"A*\"], \
+evB[\"X\"], coevtB[\"X\"], seg[\"Z*\"], seg[\"Y\"], hB},\n   {coevB[\"U\"], \
+seg[\"A*\"], seg[\"X*\"], gB, evtB[\"Y\"], seg[\"B\"]},\n   {seg[\"U\"], \
+seg[\"U*\"], seg[\"A*\"], evB[\"X\"], seg[\"V\"], seg[\"B\"], \
+lB}};\nfig25flat = {\n   {seg[\"A*\"], coevtB[\"X\"], seg[\"A\"]},\n   \
+{seg[\"A*\"], seg[\"X*\"], seg[\"X\"], kB, seg[\"A\"]},\n   {seg[\"A*\"], \
+evB[\"X\"], coevtB[\"X\"], seg[\"Z*\"], seg[\"Y\"], hB, lB},\n   \
+{coevB[\"U\"], seg[\"A*\"], seg[\"X*\"], gB, evtB[\"Y\"], seg[\"B\"]},\n   \
+{seg[\"U\"], seg[\"U*\"], seg[\"A*\"], evB[\"X\"], seg[\"V\"], \
+seg[\"B\"]}};\nfineStrips[src_, strips_] := Module[{ld = penroseLD[src, \
+strips], rs},\n   rs = Most[rows[ld]];\n   MapThread[Function[{row, layer}, \
+Join[seg /@ Take[row, layer[[1]]], {layer[[2]]}, seg /@ Drop[row, layer[[1]] \
++ Length[ins[layer[[2]]]]]]], {rs, ld[[2]]}]];\nfig25wide = \
+fineStrips[fig25src, fig25];\n\n(* vector spaces: every colour is k\262, ev \
+and coev pair a basis with its dual basis, g, h, k, l are random \
+*)\nSeedRandom[2025];\ndims22 = AssociationMap[2 &, Join[#, star /@ #] \
+&[{\"X\", \"Y\", \"Z\", \"U\", \"V\", \"A\", \"B\"}]];\nmats22 = Join[<|\"g\" \
+-> RandomInteger[{-3, 3}, {4, 4}], \"h\" -> RandomInteger[{-3, 3}, {4, 2}],\n \
+   \"k\" -> RandomInteger[{-3, 3}, {4, 1}], \"l\" -> {{RandomInteger[{1, \
+5}]}}|>,\n   Association @@ Flatten[Table[{evL[c] -> {vec[2]}, evR[c] -> \
+{vec[2]}, coevL[c] -> Transpose[{vec[2]}], coevR[c] -> \
+Transpose[{vec[2]}]},\n      {c, {\"X\", \"Y\", \"Z\", \"U\", \"V\", \"A\", \
+\"B\"}}]]];\nmat22[ld_LD] := toMatrix[toExpression[fromLayered[ld]], dims22, \
+mats22];\nmatExpr22[e_] := toMatrix[e, dims22, mats22];", "Input"], 
+  Cell["Column[{showPenrose[fig25src, fig25up], showPenrose[fig25src, \
+fig25flat]}, Spacings -> 3]", "Input"], Cell["Same morphism in vector spaces, \
+and the same normal form after simplify, for all four slicings:", "Text"], 
+  Cell["{mat22[penroseLD[fig25src, #]] == mat22[fig25LD] & /@ {fig25up, \
+fig25flat, fig25wide},\n simplifyLD[penroseLD[fig25src, #], rulesT] === \
+simplifyLD[fig25LD, rulesT] & /@ {fig25up, fig25flat, fig25wide}}", "Input"], 
+  Cell["Simplify straightens the zigzag inside the W-shaped X loop. What is \
+left of that loop is a plain circle c\:0303oev_X then ev_X, the dimension of \
+X, which no rule of \[Section]2.1\[Dash]2.2 removes:", "Text"], 
+  Cell["showTraceP[simplifyTrace[fig25LD, rulesT]]", "Input"], 
+  Cell["35. Showing Penrose diagrams", "Section"], 
+  Cell["showPenrose[src_List, strips_List] := With[{ld = penroseLD[src, \
+strips]},\n   Grid[{{renderP[ld],\n      Column[{Style[Row[{Subscript[\"P\", \
+\"\\[Bullet]\"], \" = \", pretty[XSobj[signsOf[src]]], \"     \",\n           \
+Superscript[\"P\", \"\\[Bullet]\"], \" = \", \
+pretty[XSobj[signsOf[Last[rows[ld]]]]]}], 13, FontFamily -> \"Times\"],\n     \
+   Style[pretty[penroseExpr[strips]], 13, FontFamily -> \"Times\"]}, Spacings \
+-> 1.2]}},\n    Spacings -> 3, Alignment -> {Left, Center}]];", "Input"], 
+  Cell["36. Tests", "Section"], Cell["Each identity is checked by the rules \
+and in vector spaces. In vector spaces every colour of Figure 2.5 is k\262, \
+the duality morphisms pair a basis with its dual basis, and g, h, k, l are \
+random integer matrices. For ?*\:2082 the dimensions of section 21 are used: \
+X = k\262, Y = k\263.", "Text"], Cell["SeedRandom[2025];\n<|\n \"2.2.5: the \
+five composites of ?*\:2082 and its inverse simplify to identities\" ->\n   \
+(simplifyLD[#, rulesT] & /@ {ex225a, ex225b, ex225c, ex225d, ex225e} === \
+ConstantArray[idL[{\"X*\", \"Y*\"}], 5]),\n \"2.2.5: the five composites are \
+identities in vector spaces\" -> (And @@ (matOf[#] == IdentityMatrix[6] & /@ \
+{ex225a, ex225b, ex225c, ex225d, ex225e})),\n \"2.2.1: P_\[Bullet] of Figure \
+2.5 is A*\[CircleTimes]A\" -> (XSobj[signsOf[fig25src]] === \
+CircleTimes[\"A*\", \"A\"]),\n \"2.2.1: P^\[Bullet] of Figure 2.5 is \
+U\[CircleTimes]U*\[CircleTimes]A*\[CircleTimes]V\[CircleTimes]B\" -> \
+(XSobj[signsOf[penroseTarget[fig25src, fig25]]] === CircleTimes[\"U\", \
+\"U*\", \"A*\", \"V\", \"B\"]),\n \"2.2.3: the strips give the formula of p. \
+38\" -> (penroseExpr[fig25] === fig25book),\n \"2.2.3: the formula equals the \
+layered form in vector spaces\" -> (matExpr22[fig25book] == \
+mat22[fig25LD]),\n \"Lemma 2.1: four slicings, one matrix\" -> (And @@ \
+(mat22[penroseLD[fig25src, #]] == mat22[fig25LD] & /@ {fig25up, fig25flat, \
+fig25wide})),\n \"Lemma 2.1: four slicings, one normal form\" -> (And @@ \
+(simplifyLD[penroseLD[fig25src, #], rulesT] === simplifyLD[fig25LD, rulesT] & \
+/@ {fig25up, fig25flat, fig25wide})),\n \"every step on Figure 2.5 keeps the \
+matrix\" -> (Equal @@ (mat22 /@ simplifyTrace[fig25LD, rulesT][[All, 2]])),\n \
+\"every layered form is valid\" -> (And @@ (validQ /@ Join[{fig25LD, \
+simplifyLD[fig25LD, rulesT]}, penroseLD[fig25src, #] & /@ {fig25up, \
+fig25flat, fig25wide}])),\n \"\[Section]2.1.3 results unchanged under \
+rulesT\" -> (simplifyLD[fsL, rulesT] === fstarL && simplifyLD[fsR, rulesT] \
+=== fstarL && And @@ (sameQ[#[[1]], #[[2]], rulesT] & /@ fig24)),\n \
+\"\[Section]2.1.2 results unchanged\" -> (sameQ[dfR, dfL] && sameQ[e1, e2] && \
+sameQ[c1, c2])\n|>", "Input"], Cell["Appendix: implementation notes", 
+   "Section"], Cell["The tensor rules: \"dual \[CircleTimes]-coloured \
+strands\" is a colour rule that replaces a strand coloured \
+(A\[CircleTimes]B)* by B* and A*, and \"caps and cups on \[CircleTimes]\" is \
+a one-box rule that nests a cap or cup whose colour is a tensor product. Both \
+sit just after the colour rules of rulesP, so caps and cups are split before \
+the zigzags look for them.", "Item"], Cell["These rules identify \
+(Y\[CircleTimes]X)* with X*\[CircleTimes]Y* through ?*\:2082(X, Y), which is \
+then drawn as the identity. Inside a diagram, the identification cancels. On \
+a free end coloured (Y\[CircleTimes]X)*, the simplified diagram has the end \
+X* \[CircleTimes] Y* instead: it differs from the original by ?*\:2082. For \
+this reason the per-step matrix check is made on Figure 2.5, which has no \
+tensor-dual strands, and the ?*\:2082 composites are checked as whole \
+matrices.", "Item"], Cell["Penrose diagrams are entered strip by strip: \
+seg[c] is a vertical segment and B[...] is a box, cap or cup. penroseLD \
+checks that each strip fits the strip below it and returns the layered form, \
+so render, simplify and toMatrix apply unchanged. penroseExpr writes the \
+associated morphism exactly as in \[Section]2.2.3.", "Item"], 
+  Cell["Lemma 2.1 is checked on Figure 2.5 for transformations (ii) and (iii) \
+and for the finest slicing. Isotopy (i) is built in, because the layout is \
+recomputed from the layered form.", "Item"], Cell["Loops: a closed loop such \
+as c\:0303oev_X then ev_X is a scalar, the dimension of X. The rules leave it \
+in place; \[Section]2.3 and later sections of the book give it a name.", 
+   "Item"], 
+  Cell["\[Copyright] Computational Classnotes \[CenterDot] CC BY-NC-SA 4.0", 
+   "Text"]}, StyleDefinitions -> "Default.nb"]

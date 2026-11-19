@@ -1,0 +1,12 @@
+const run=require('./lin1.js');
+const s49='simple i j\npartition β : i → j\npartition γ : i* → j\npartition δ : i* ⊗ j → 𝟙\npartition ε : i ⊗ j* → 𝟙\npartition α : X → i\npartition ζ : i* ⊗ X → 𝟙\npartition η : X ⊗ i* → 𝟙';
+run(s49,'p_β ⊗ q_β = δ_{i,j} id_i ⊗ id_i');
+run(s49,'p_γ ⊗ q_γ = δ_{i°,j} φ_{i,j} ⊗ φ⁻¹_{i,j}');
+run(s49,'p_δ ⊗ q_δ = δ_{i,j} dim_l(i)⁻¹ ev_i ⊗ coev~_i');
+run(s49,'p_ε ⊗ q_ε = δ_{i,j} dim_r(i)⁻¹ ev~_i ⊗ coev_i');
+run(s49,'p_α ⊗ q_α = dim_l(i) ((id_i ⊗ p_ζ)(coev_i ⊗ id_X)) ⊗ ((ev~_i ⊗ id_X)(id_i ⊗ q_ζ)) = dim_r(i) ((p_η ⊗ id_i)(id_X ⊗ coev~_i)) ⊗ ((id_X ⊗ ev_i)(q_η ⊗ id_i))');
+run('α : 𝟙 → Y* ⊗ X\nβ : 𝟙 → X* ⊗ Y','ev_Y(id_Y* ⊗ ev~_X ⊗ id_Y)(α ⊗ β) = ev_X(id_X* ⊗ ev~_Y ⊗ id_X)(β ⊗ α)');
+run('simple i','ev_i(id_i* ⊗ ev~_i ⊗ id_i)(coev~_i ⊗ coev~_i) = dim_l(i)');
+const s48='partition β : X → 𝟙\npartition γ : X ⊗ Y* → 𝟙\nf : 𝟙 → X\ng : 𝟙 → X*\nf₂ : 𝟙 → X ⊗ Y*\ng₂ : 𝟙 → Y ⊗ X*';
+run(s48,'q_β ⊗ (ev_X(((id_X* ⊗ p_β)coev~_X) ⊗ f)) = q_β p_β f = f');
+run(s48,'(ev_X(g ⊗ q_β)) ⊗ ((id_X* ⊗ p_β)coev~_X) = g');

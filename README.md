@@ -13,6 +13,13 @@ An editor for the graphical calculus of monoidal categories, after Turaev & Vire
 | `index.html` | The landing page |
 | `string-diagram-editor.html` | The editor: a single self-contained page that runs offline |
 | `kernel/GraphicalCalculusKernel-deploy.wl` | Deploys the Wolfram Cloud API behind the editor's “Wolfram kernel” engine |
+| `kernel/graphical-calculus-2.1-simplify.nb` | Sections 0–19, the base engine: diagrams as data, the renderer, diagram → expression, the layered form, level exchange (`swap`, `normalize`, `makeAdjacent`), the rewriting loop and the rules of §2.1.1–2.1.2. Every other kernel file builds on it |
+| `kernel/pivotal-2.1.3.wl` | Sections 20–27, §2.1.3 (pivotal categories): star duals, `renderP` with arrows, identity boxes, Figures 2.3 and 2.4 (`rulesP`) and ?*₂ |
+| `kernel/graphical-calculus-2.1.3-pivotal.nb`, `-2.2-penrose.nb`, `-2.3-2.7.nb`, `-2.7-3.2.nb`, `-3.3.nb`, `-4.nb` | The teaching notebooks for §2.1.3 (with Exercise 2.1.5), §2.2, §2.3–2.7, §2.7.3–3.2, §3.3 and Chapter 4: each result checked by the rules and in a matrix model, with tests |
+| `kernel/GraphicalCalculusKernel-deploy-2.2.wl`, `-2.3-2.7.wl`, `-2.7-3.2.wl`, `-3.3.wl`, `-4.wl` | The deploy file as it was after each stage (history); `-4.wl` is the same as `GraphicalCalculusKernel-deploy.wl` |
+| `kernel/tests/editor-requests-*.json` | Every request the editor sends to the kernel for its examples, with the rule steps the JavaScript engine takes: 190 (§2.1–2.7), 244 (to §3.2), 296 (to §3.3) and 412 (to Chapter 4, 116 of them linear-combination terms). The kernel, the notebooks and `simplifier.wl` are tested against them |
+| `kernel/tests/editor-text-layered.json` | The 148 example sides of the editor as text and as the layered form the editor computes, used by the expression-to-diagram and simplifier tests |
+| `tools/` | The scripts that made the generated files: `manuals/` (the three programmer's manuals and notebook 10), `chapter-4-docs/` and `introduction-docs/` (screenshots, pages, PDF), `tests/` (request capture, layered-form capture, linear-combination tests, UI smoke test). They were written for the build workspace, so paths at their top may need changing |
 | `kernel/penrose-2.2.wl` | §2.2 in Wolfram: caps and cups on tensor products (`rulesT`), Exercise 2.2.5, signed objects, Penrose diagrams by strips, Figure 2.5 and Lemma 2.1 checks |
 | `kernel/pivotal-2.3-2.7.wl` | §2.3–2.7 in Wolfram: ψ_X and Lemmas 2.2–2.4, ev_S and Ψ_S, a box turned through 360°, traces, dimensions, sphericity (`rulesD`, `rulesS`), and a weighted vector-space model (Example 2.7.2) for the matrix checks |
 | `kernel/braided-2.7-3.2.wl` | §2.7.3 and §3.1–3.2 in Wolfram: Lemma 2.10 (proj_k), braidings τ and the rules (3.1)–(3.3), Reidemeister moves R2–R5, symmetries, the mirror braiding, and a graded vector-space model (Examples 3.1.4–3.1.6) for the matrix checks |
@@ -27,6 +34,8 @@ An editor for the graphical calculus of monoidal categories, after Turaev & Vire
 | `kernel/simplifier-manual.nb` | The programmer's manual for the simplifier: the loop, the rule kinds, the rule set of each mode, a catalogue of all 49 rules with their sources in the book, the options, the limits, and the tests |
 | `docs/chapter-4/` | One page per result of Chapter 4 (§4.3.2, Lemma 4.2, §4.6.1–4.6.4, Lemmas 4.6–4.10): the statement, and the proof as a chain of editor steps, each with a link that opens it in the editor (`string-diagram-editor.html#ex=N`) |
 | `docs/introduction-to-ccn-string-diagrams.md` (and `.pdf`) | Introduction to CCN String Diagrams: every example in the editor, with its expression, its diagram and what Simplify does. The `.md` is self-contained (all images embedded); `docs/README.md` is the same text with linked images, for reading on GitHub |
+
+All Wolfram files expect to sit together in one folder. The notebooks and the deploy file look for it at `~/Desktop/Research/Monoidal Graphical Calculus/` (`gcDir`); copy the contents of `kernel/` there, or change that path. `simplifier.wl`, `diagram-to-expression.wl` and `expression-to-diagram.wl` find their companions in their own folder. The book itself is not included.
 
 ## The editor
 
