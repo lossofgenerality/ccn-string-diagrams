@@ -1,6 +1,6 @@
 # CCN String Diagrams
 
-<p align="center"><img src="docs/cover/ccn-string-diagrams-cover.png" alt="CCN String Diagrams cover: glowing coloured strands with boxes f, g and θ, a crossing, a zigzag, a twist and a loop above the title" width="480"></p>
+<p align="center"><img src="docs/cover/ccn-string-diagrams-cover.png" alt="CCN String Diagrams cover: glowing coloured strands with boxes f, g and θ, a crossing, a zigzag, a twist and a loop above the title" width="240"></p>
 
 An editor for the graphical calculus of monoidal categories, after Turaev & Virelizier, *Monoidal Categories and Topological Field Theory* (Progress in Mathematics 322, Springer 2017), Chapter 2, §2.1.
 
